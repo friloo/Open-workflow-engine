@@ -18,8 +18,8 @@
     <div class="lg:pl-64">
         @include('layouts.topbar')
 
-        <main class="py-8">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <main class="{{ ($full ?? false) ? '' : 'py-8' }}">
+            <div class="{{ ($full ?? false) ? '' : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8' }}">
                 @if (session('status'))
                     <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                         {{ session('status') }}

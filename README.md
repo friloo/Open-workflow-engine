@@ -3,9 +3,9 @@
 Self-hosted workflow- und formularbasiertes Automatisierungstool fuer
 Shared-Hosting (PHP 8.2+ / MySQL oder MariaDB).
 
-> **Status:** Phase 1 — Fundament (Auth, Benutzer- und Rollenverwaltung,
-> CSV-Import, revisionssicheres Audit-Log, DB-Schema fuer Workflows und
-> Formulare).
+> **Status:** Phase 2 — Workflow-Designer mit bedingten Verzweigungen,
+> inline Formular-Schema-Editor und immutabler Versionierung. Phase 1
+> (Auth, Benutzer-/Rollenverwaltung, CSV-Import, Audit-Log) ist enthalten.
 
 ## Geplanter Funktionsumfang
 
@@ -19,6 +19,29 @@ Shared-Hosting (PHP 8.2+ / MySQL oder MariaDB).
 - E-Mail-Benachrichtigungen pro Workflow-Schritt
 - Rollenbasiertes Rechtesystem (keine Einzelberechtigungen)
 - Revisionssichere, hashverkettete Audit-Historie
+
+## Phase 2 — Workflow-Designer
+
+- **Drag-and-Drop-Editor** (Drawflow) mit Knoten-Palette und Settings-Panel.
+- **Knotentypen:**
+  - *Start* — automatischer Einstiegspunkt fuer den Trigger.
+  - *Genehmigung* — Empfaenger nach Wahl (Vorgesetzter des Antragstellers,
+    Vorgesetzter des vorigen Bearbeiters, Mitglieder einer Rolle, oder
+    eine konkrete Person), Karenzzeit (Stunden/Tage/Monate), optionale
+    Eskalation an Vorgesetzten oder Rolle, optionale Weiterleitung.
+    Ausgaenge: Genehmigt / Abgelehnt / (Weitergeleitet).
+  - *Bedingung* — beliebig viele Verzweigungen mit Operatoren
+    (`ist gleich`, `enthaelt`, `groesser`, `ist angekreuzt`, `ist leer` …)
+    plus implizitem **Else-Ausgang**. Felder kommen aus dem Form-Schema.
+  - *Benachrichtigung* — sendet E-Mail mit Platzhaltern (`@{{ feld }}`).
+  - *Ende* — markiert das Ergebnis (abgeschlossen / abgelehnt / abgebrochen).
+- **Form-Schema-Editor** im Designer fuer formulargetriggerte Workflows
+  (Text, Textarea, Zahl, Datum, Select, Radio, Checkbox).
+- **Immutable Versionierung:** Jeder Speichervorgang erzeugt eine neue
+  `workflow_version`. Aeltere Versionen koennen wiederhergestellt werden
+  (was als neuer Versions-Eintrag dokumentiert wird).
+- **Audit-Log:** Anlegen, Speichern, Aktivieren, Archivieren, Loeschen
+  jedes Workflows landet in der hashverketteten Audit-Historie.
 
 ## Phase 1 — was bereits funktioniert
 
@@ -109,9 +132,9 @@ nachvollziehen und manipulierte Datensaetze identifizieren.
 
 ## Naechste Schritte
 
-- Phase 2: Workflow-Designer (Drawflow) + Formular-Builder
-- Phase 3: Workflow-Runtime, Karenzzeiten, Eskalationen, Benachrichtigungs-Mails
-- Phase 4: Microsoft 365 SSO und Benutzer-Sync
+- Phase 3: Workflow-Runtime — Instanzen starten, Karenzzeit-Eskalation
+  (Scheduler/Cron), Mail-Versand, oeffentliche Formulare ohne Login.
+- Phase 4: Microsoft 365 SSO und Benutzer-Sync inkl. Vorgesetzten-Feld.
 
 ## Lizenz
 

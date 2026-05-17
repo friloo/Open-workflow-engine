@@ -8,6 +8,13 @@
             ],
         ],
         [
+            'group' => 'Automatisierung',
+            'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish']),
+            'items' => [
+                ['name' => 'Workflows', 'route' => 'workflows.index', 'icon' => 'workflow', 'active' => request()->routeIs('workflows.*'), 'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish'])],
+            ],
+        ],
+        [
             'group' => 'Verwaltung',
             'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','roles.view','roles.manage','audit.view']),
             'items' => [

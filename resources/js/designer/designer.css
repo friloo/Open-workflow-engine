@@ -1,0 +1,80 @@
+/* Drawflow canvas overrides matched to Tailwind palette */
+#drawflow {
+    background: #f8fafc;
+    background-image:
+        radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.08) 1px, transparent 0);
+    background-size: 22px 22px;
+}
+
+.drawflow .drawflow-node {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 0;
+    min-width: 180px;
+}
+
+.drawflow .drawflow-node.selected {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.drawflow .drawflow-node .input,
+.drawflow .drawflow-node .output {
+    background: white;
+    border: 2px solid var(--node-color, #6366f1);
+    width: 12px;
+    height: 12px;
+}
+
+.drawflow .connection .main-path {
+    stroke: #94a3b8;
+    stroke-width: 2;
+}
+
+.drawflow .connection .main-path:hover {
+    stroke: #6366f1;
+}
+
+.owe-node {
+    display: flex;
+    flex-direction: column;
+    border-left: 4px solid var(--node-color, #6366f1);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.owe-node__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.01);
+}
+
+.owe-node__chip {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 0.375rem;
+    background: var(--node-color, #6366f1);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.owe-node__title {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 0.875rem;
+}
+
+.owe-node__type {
+    font-size: 0.7rem;
+    color: #64748b;
+    padding: 0 0.75rem 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
