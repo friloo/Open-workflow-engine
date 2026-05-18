@@ -10,15 +10,17 @@
        Open Workflow Engine
 ```
 
-### Workflows, Postkorb und Light-DMS — komplett selbst gehostet.
+### Self-hosted Dokumenten-Management mit Workflow-Engine. Built fuer KMU.
 
-**Eingehende Rechnung per Mail → Kostenstelle automatisch erkannt → richtige Person genehmigt — ohne Cloud, ohne SSH, ohne Composer.**
+**Ein DMS, das deine Dokumente nicht nur ablegt — sondern sie liest, klassifiziert, weiterleitet und genehmigen laesst.**
+Eingehende Rechnung per Mail → Kostenstelle automatisch erkannt → richtige Person genehmigt. Ohne Cloud. Ohne SSH. Ohne Composer.
 
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white&style=flat-square)]()
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white&style=flat-square)]()
 [![Tests](https://img.shields.io/badge/Tests-190%20passing-10B981?style=flat-square)]()
 [![Self-hosted](https://img.shields.io/badge/Self--hosted-✓-0EA5E9?style=flat-square)]()
 [![DSGVO](https://img.shields.io/badge/DSGVO-by%20design-7C3AED?style=flat-square)]()
+[![Revisionssicher](https://img.shields.io/badge/Revisionssicher-SHA--256-F59E0B?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-475569?style=flat-square)]()
 
 [**Was kann es?**](#-was-owe-kann) · [**Quick-Start**](#-quick-start-in-3-minuten) · [**Live-Beispiel**](#-live-beispiel-rechnungseingang) · [**Vergleich**](#%EF%B8%8F-owe-vs-saas-vs-selbst-zusammenstecken) · [**Architektur**](#%EF%B8%8F-architektur) · [**Roadmap**](#%EF%B8%8F-roadmap)
@@ -29,7 +31,7 @@
 
 ## 🎯 In drei Saetzen
 
-OWE laeuft auf **jedem PHP-Hosting** (auch dem 5-EUR-Tarif beim Webhoster um die Ecke), bringt **Workflows, Genehmigungen, ein Light-DMS mit OCR und Felder-Erkennung, Mail-Eingang und Webhook-Integrationen** unter ein Dach — und ist **komplett ueber den Browser bedienbar**, von der Erstinstallation bis zum Update. Du behaeltst deine Daten, deine Kontrolle und deine DSGVO-Hoheit. Keine Cloud-Abhaengigkeit, kein Vendor-Lock-In, keine 49-EUR-pro-User-pro-Monat-Falle.
+OWE ist im Kern ein **Dokumenten-Management-System** — mit Versionierung, OCR-Volltextsuche, automatischer Feld-Erkennung (Rechnungsnummer, Kostenstelle, IBAN, Datum, Betrag), revisionssicherer Hash-Kette, DSGVO-Aufbewahrungsregeln und Sharing-Links. Auf dem **Workflow-Modul** obendrauf werden Dokumente intelligent geroutet: Mail-Eingang → automatische Klassifizierung → Genehmigung beim richtigen Empfaenger. Alles laeuft auf **jedem PHP-Hosting** (auch dem 5-EUR-Tarif), ist **komplett ueber den Browser bedienbar** — von der Erstinstallation bis zum Update — und du behaeltst deine Daten, deine Kontrolle und deine DSGVO-Hoheit.
 
 ---
 
@@ -68,6 +70,7 @@ Du bedienst es ueber den Browser, nicht ueber ein Terminal.
 
 ## 👥 Fuer wen ist OWE?
 
+- 📁 **Jeden, der bisher PDFs in Ordnerstrukturen schiebt** und sich ein revisionssicheres DMS mit Volltext + Feld-Erkennung wuenscht — aber dafuer nicht in die Cloud will.
 - 📊 **Buchhaltung & Controlling**, die Rechnungen automatisch der richtigen Kostenstelle zuordnen wollen — ohne 200 EUR/Monat fuer ein Cloud-DMS.
 - 🏛️ **Vereine und Stiftungen**, die ihren Vorstands-Genehmigungs-Workflow digital abbilden wollen — mit Vier-Augen-Prinzip und Audit-Log.
 - 🔧 **IT-Verantwortliche in KMU**, die Self-hosted brauchen, aber keine Lust auf eine 3-Wochen-Kubernetes-Einrichtung haben.
@@ -84,30 +87,34 @@ Du bedienst es ueber den Browser, nicht ueber ein Terminal.
 <tr>
 <td width="50%" valign="top">
 
-### 🔄 Workflows
-- **Drag-and-Drop-Designer** (Drawflow) mit Versionierung
-- 7 Knotentypen: Start · Bedingung · Genehmigung · HTTP · PDF · Mail · Ende
-- Empfaenger: User · Rolle · Vorgesetzter · **Lookup-Liste**
-- **Parallel-Quorum**: alle muessen zustimmen / n-aus-m
-- Trigger: Formular · Manuell · Zeitplan · IMAP · Webhook · API
-- **Vertretungsregelung** wird automatisch bei Urlaub respektiert
-- **Trockenlauf** vor Aktivierung mit Testdaten
-- **3 Cookbook-Vorlagen** zum Import: Rechnung · Urlaub · Bestellung
-- **KI-Designer-Assistent** (OpenAI/DeepSeek/Ollama) — optional
+### 📄 Dokumenten-Management (Kern)
+- 📥 **Bulk-Upload** · Drag-and-Drop · Inline-Vorschau (PDF/Bild)
+- 🔢 **Versionierung** pro Dokument (Chain-Konzept, alle Versionen revisionssicher)
+- 🔍 **OCR-Volltextsuche** (pdftotext + tesseract automatisch)
+- 🧠 **Felder-Schemas pro Dokumenttyp**: Rechnungsnummer, Datum, Brutto, Kostenstelle, IBAN, USt-ID — automatisch extrahiert
+- 🎯 Erkennung: **Heuristik** · Eigener Regex · **Lookup-Liste (anlernen ueber deine Listen!)** · KI optional
+- 📨 **Postkorb** fuer eingehende Mails / unzugeordnete Dokumente
+- 🔎 Filter auf erkannte Felder + **CSV-Export** fuer Buchhaltung
+- 🔗 **Sharing-Links** mit Passwort, Ablauf-Cap, Auto-Review-Mails
+- 🗑️ **Aufbewahrungsregeln** pro Dokumenttyp (DSGVO-Aktion: archivieren / loeschen / pruefen)
+- 🔐 **SHA-256-Hashing** aller Dateien — Manipulationen fallen sofort auf
+- 🏷️ **Dokumenttypen** mit rollenbasierter Sichtbarkeit (Buchhaltung sieht Rechnungen, HR sieht Fuehrerscheine)
 
 </td>
 <td width="50%" valign="top">
 
-### 📄 Dokumente & DMS
-- Bulk-Upload · Inline-Vorschau · **Versionierung** · Volltext-Suche
-- **OCR** automatisch (pdftotext + tesseract)
-- **Felder-Schemas pro Dokumenttyp**: Rechnungsnummer, Datum, Brutto, Kostenstelle, IBAN, USt-ID
-- Erkennung: **Heuristik** · Eigener Regex · **Lookup-Liste (Anlernen)** · KI optional
-- **Postkorb** fuer eingehende Mails ohne Auto-Workflow
-- Filter auf erkannte Felder + **CSV-Export**
-- **Sharing-Links** mit Passwort, Ablauf-Cap, Auto-Review
-- **Aufbewahrungsregeln** pro Dokumenttyp (DSGVO)
-- SHA-256-Hashing aller Dateien — manipulationssicher
+### 🔄 Workflow-Engine (rund ums DMS)
+- ✏️ **Drag-and-Drop-Designer** (Drawflow) mit Versionierung
+- 7 Knotentypen: Start · Bedingung · Genehmigung · HTTP · PDF · Mail · Ende
+- Empfaenger: User · Rolle · Vorgesetzter · **Lookup-Liste**
+- **Parallel-Quorum**: alle muessen zustimmen / n-aus-m
+- Trigger: Formular · Manuell · Zeitplan · **IMAP-Mail** · Webhook · API
+- 🏖️ **Vertretungsregelung** automatisch bei Urlaub
+- 🧪 **Trockenlauf** vor Aktivierung mit Testdaten
+- 📦 **3 Cookbook-Vorlagen** zum Import: Rechnung · Urlaub · Bestellung
+- 🤖 **KI-Designer-Assistent** (OpenAI/DeepSeek/Ollama) — optional
+- 📊 **Statistik**: Durchlaufzeiten · Engpaesse · Throughput
+- 🗳️ **Genehmigung per Mail** ueber signierten Link (kein Login noetig)
 
 </td>
 </tr>
@@ -208,6 +215,29 @@ in der Online-Hilfe.
 
 ---
 
+## 📚 Was OWE als DMS auszeichnet
+
+Klassische Cloud-DMS legen ein PDF ab und vergeben einen Suchbegriff.
+OWE geht weiter:
+
+| | Typisches Mini-DMS | **OWE** |
+|---|---|---|
+| Volltextsuche | ✓ | ✓ |
+| Versionen | meist nur „neueste" | **Komplette Versionskette mit Hashes** |
+| Feld-Erkennung | KI-Black-Box, Pflicht | **Heuristik + deine Lookup-Listen, KI optional** |
+| Strukturierte Suche | nein | **Filter auf Rechnungsnr., Datum, Kostenstelle, Brutto** |
+| Anlernen | proprietaeres Modell | **Du pflegst deine Listen, Aenderung wirkt sofort** |
+| Workflow nach Upload | nein | **Postkorb + Auto-Routing + Lookup-Empfaenger** |
+| Mail-Eingang direkt ins DMS | extra Tool | **Eingebaut, multi-Postfach IMAP** |
+| Aufbewahrung | manuell | **DSGVO-Regeln pro Dokumenttyp, Cron-gesteuert** |
+| Sharing nach extern | meist Cloud-Link | **Eigener Server, Passwort, Ablauf, Auto-Review-Mails** |
+| Audit-Trail | Logs | **SHA-256-Hashkette aller Aktionen** |
+
+> *„Documents come in, intelligence happens, the right person decides."* —
+> OWE ist Ablage **und** Routing-Engine in einem System.
+
+---
+
 ## ⚖️ OWE vs. SaaS vs. Selbst zusammenstecken
 
 | | **🆚 SaaS (Zapier/n8n cloud/...)** | **🆚 Selbst zusammengesteckt** | **✅ Open Workflow Engine** |
@@ -230,13 +260,33 @@ in der Online-Hilfe.
 
 ## 🚀 Quick-Start in 3 Minuten
 
+### Variante A: Bootstrap-Installer (empfohlen — einfachster Weg)
+
+Lade **eine einzige PHP-Datei** (`tools/owe-installer.php`, ca. 12 KB) per FTP in dein Webroot hoch und oeffne sie im Browser:
+
+```
+https://deine-domain.de/owe-installer.php
+```
+
+Das Skript:
+1. Pruft PHP-Version, Extensions und Schreibrechte
+2. Laedt die aktuelle OWE-Version direkt vom Update-Proxy
+3. Entpackt alles ins Webroot
+4. Loescht sich selbst
+5. Leitet automatisch zum App-Installer `/install` weiter
+
+> 💡 **Du musst nicht Hunderte Dateien per FTP hochladen.**
+> Diese eine PHP-Datei reicht. Der Rest kommt vom Proxy ueber HTTPS.
+
+### Variante B: Release-ZIP manuell hochladen
+
 ```bash
 # 1. Release-ZIP entpacken
 # 2. Per FTP auf deinen Webspace hochladen (enthaelt vendor/)
 # 3. Browser oeffnen → automatischer Redirect nach /install
 ```
 
-Der **Web-Installer** ist ein Wizard:
+### Der eigentliche **App-Installer** unter `/install`
 
 ```
   ┌───────────────────────────────────────────────────────┐
@@ -528,7 +578,9 @@ darfst du gerne. Du musst nur den Copyright-Hinweis behalten.
 
 <div align="center">
 
-### Gebaut fuer Mittelstand und Vereine, die ihre Workflows behalten wollen — statt SaaS-Ketten anzuschmieden.
+### Ein DMS mit Verstand. Eine Workflow-Engine mit Wurzeln. Beides aus einer Hand.
+
+Gebaut fuer Mittelstand und Vereine, die ihre Dokumente und Workflows behalten wollen — statt SaaS-Ketten anzuschmieden.
 
 <sub>Wenn dir OWE Zeit oder Cloud-Kosten spart, **freuen wir uns ueber einen Stern ⭐** — und ueber Feedback noch mehr.</sub>
 
