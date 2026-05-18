@@ -63,6 +63,39 @@ Beim Speichern:
 Name, E-Mail, Passwort (min. 8 Zeichen, doppelt). Bekommt die
 `admin`-Rolle.
 
+### Alternative zu Schritt 2-3: Aus Backup wiederherstellen
+
+Auf der Welcome-Seite gibt es zwei Karten:
+
+- **Frische Installation** — der oben beschriebene Weg.
+- **Aus Backup wiederherstellen** — perfekt fuer den Umzug auf einen
+  neuen Host. Du bekommst ein einzelnes Formular:
+  - App-Name, App-URL
+  - DB-Treiber (muss zum Backup passen) + ggf. MySQL-Zugangsdaten
+  - Backup-ZIP zum Upload
+  - Bestaetigung „bestehende Daten werden ueberschrieben"
+
+Beim Absenden passiert intern:
+
+1. `.env` wird geschrieben, APP_KEY generiert falls leer.
+2. DB-Verbindung wird getestet (MySQL).
+3. ZIP wird nach `storage/app/backups/` geschoben und das Manifest
+   gelesen. Stimmt der Driver nicht ueberein -> Fehler.
+4. `BackupService::restore()` faehrt mit dem Maintenance-Flag und
+   ersetzt DB + Anhaenge.
+5. `migrate --force` laeuft (falls das Code-Schema neuer als das
+   Backup ist).
+6. Marker `storage/app/.installed` wird gesetzt.
+7. Du landest auf einer Erfolgsseite und meldest dich mit **deinen
+   bisherigen Admin-Zugangsdaten** an (die aus dem Backup).
+
+**Upload-Limit**: die Seite zeigt das aktuelle PHP-Limit
+(`upload_max_filesize` / `post_max_size`). Bei zu grossen Backups:
+ZIP per FTP nach `storage/app/backups/` schieben und ueber CLI
+`php artisan backup:restore <datei>` einspielen — danach manuell
+`storage/app/.installed` anlegen oder einfach im Browser
+`/install/finish` aufrufen.
+
 ### Schritt 4 — Fertig
 
 - Marker `storage/app/.installed` wird gesetzt (mit Timestamp +

@@ -362,6 +362,9 @@ Route::prefix('install')->name('install.')->group(function () {
     Route::get('/admin', [\App\Http\Controllers\InstallerController::class, 'adminShow'])->name('admin');
     Route::post('/admin', [\App\Http\Controllers\InstallerController::class, 'adminSave']);
     Route::get('/finish', [\App\Http\Controllers\InstallerController::class, 'finishShow'])->name('finish');
+    Route::get('/restore', [\App\Http\Controllers\InstallerController::class, 'restoreShow'])->name('restore');
+    Route::post('/restore', [\App\Http\Controllers\InstallerController::class, 'restoreSave']);
+    Route::get('/restore/done', [\App\Http\Controllers\InstallerController::class, 'restoreDone'])->name('restoreDone');
 });
 
 require __DIR__.'/auth.php';

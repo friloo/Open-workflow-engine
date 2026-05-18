@@ -74,5 +74,51 @@ class InstallerTest extends TestCase
         $this->get('/install')->assertRedirect('/');
         $this->get('/install/database')->assertRedirect('/');
         $this->get('/install/admin')->assertRedirect('/');
+        $this->get('/install/restore')->assertRedirect('/');
+    }
+
+    public function test_welcome_shows_restore_option(): void
+    {
+        $this->get('/install')->assertOk()
+            ->assertSee('Frische Installation')
+            ->assertSee('Aus Backup wiederherstellen');
+    }
+
+    public function test_restore_page_renders(): void
+    {
+        $this->get('/install/restore')->assertOk()
+            ->assertSee('Backup-Datei')
+            ->assertSee('Max. Upload-Groesse');
+    }
+
+    public function test_restore_rejects_when_driver_mismatch(): void
+    {
+        $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
+        @mkdir(storage_path('app/attachments'), 0775, true);
+        $path = app(\App\Services\BackupService::class)->create();
+
+        $upload = new \Illuminate\Http\UploadedFile($path, basename($path), 'application/zip', null, true);
+
+        $this->post('/install/restore', [
+            'driver' => 'mysql',
+            'host' => 'localhost', 'port' => '3306',
+            'database' => 'x', 'username' => 'x', 'password' => 'x',
+            'app_name' => 'Test', 'app_url' => 'http://localhost',
+            'backup_file' => $upload,
+            'confirm' => '1',
+        ])->assertOk()
+          ->assertSee('Backup wurde mit sqlite erstellt');
+
+        foreach (app(\App\Services\BackupService::class)->list() as $b) {
+            @unlink(app(\App\Services\BackupService::class)->path($b['file']));
+        }
+    }
+
+    public function test_restore_requires_confirm(): void
+    {
+        $this->post('/install/restore', [
+            'driver' => 'sqlite',
+            'app_name' => 'Test', 'app_url' => 'http://localhost',
+        ])->assertSessionHasErrors(['backup_file', 'confirm']);
     }
 }

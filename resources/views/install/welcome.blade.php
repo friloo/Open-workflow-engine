@@ -25,19 +25,22 @@
             Bitte die mit <strong>FAIL</strong> markierten Punkte beheben und Seite neu laden.
         </div>
     @else
-        <div class="alert-info" style="margin-top:16px;">
-            System sieht gut aus. Weiter zur Datenbank-Konfiguration.
+        <h2 style="margin-top: 28px;">Wie weiter?</h2>
+        <p class="sub">Frische Installation oder Migration aus einem Backup?</p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;">
+            <a href="{{ route('install.database') }}" style="display:block; padding:16px; border:1px solid #c7d2fe; border-radius:10px; background:#eef2ff; text-decoration:none; color:#1e1b4b;">
+                <strong>Frische Installation</strong>
+                <div style="font-size:13px; color:#475569; margin-top:4px;">DB neu anlegen, erstes Admin-Konto erstellen.</div>
+            </a>
+            <a href="{{ route('install.restore') }}" style="display:block; padding:16px; border:1px solid #fed7aa; border-radius:10px; background:#fff7ed; text-decoration:none; color:#7c2d12;">
+                <strong>Aus Backup wiederherstellen</strong>
+                <div style="font-size:13px; color:#475569; margin-top:4px;">Backup-ZIP hochladen, DB und Anhaenge einspielen — z. B. fuer Umzug auf neuen Host.</div>
+            </a>
         </div>
     @endif
 
     <div style="margin-top:20px; text-align: right;">
         <a class="link" href="{{ url('/install') }}">Neu pruefen</a>
-        &nbsp;&nbsp;
-        @if($canProceed)
-            <a href="{{ route('install.database') }}"><button type="button" class="primary">Weiter zur Datenbank →</button></a>
-        @else
-            <button type="button" class="primary" disabled>Weiter zur Datenbank →</button>
-        @endif
     </div>
 </div></div>
 </body>
