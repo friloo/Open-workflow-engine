@@ -47,3 +47,11 @@ Permissions werden **ausschliesslich an Rollen** vergeben. Standard-Rollen:
 
 *Workflows -> Neuer Workflow.* Trigger waehlen, im Designer
 Knoten verknuepfen, speichern (= neue Version), aktivieren.
+
+## 7. Beispiel: Rechnungseingang automatisieren
+
+Ein typisches End-to-End-Setup steht im **Cookbook**: Lookup-Liste fuer
+Kostenstellen -> Felder-Schema fuer „Rechnung" -> IMAP-Postfach ->
+Workflow mit Routing zum Kostenstellen-Verantwortlichen.
+Siehe **Rechnungseingang einrichten** im Hilfemenue oder
+`resources/docs/cookbook-rechnungseingang.md`.

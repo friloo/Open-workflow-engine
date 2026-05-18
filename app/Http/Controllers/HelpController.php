@@ -13,6 +13,7 @@ class HelpController extends Controller
     private array $toc = [
         'index' => 'Uebersicht',
         'first-steps' => 'Erste Schritte',
+        'cookbook-rechnungseingang' => 'Cookbook: Rechnungseingang',
         'workflows' => 'Workflows entwerfen',
         'stats' => 'Workflow-Statistik',
         'delegation' => 'Vertretungsregelung',

@@ -26,8 +26,31 @@ Im Genehmigungs-Knoten:
 
 - Empfaenger-Typ: **Aus Liste nachschlagen**
 - Liste: die definierte Liste
-- Schluessel-Feld: das Formularfeld, das den Schluesselwert liefert (z. B. `kostenstelle`)
+- **Schluessel aus Feld**: ein Formularfeld-Name (z. B. `kostenstelle`)
+  **oder Punktnotation** in einen anderen Kontext, z. B.
+  `doc.indexed_fields.kostenstelle` (Wert aus dem erkannten Feld
+  eines Dokuments — siehe **Felder-Schemas** und **Cookbook:
+  Rechnungseingang**).
+- **Fallback-Rolle / Fallback-Benutzer**: falls der Lookup nichts
+  findet (z. B. die Kostenstelle steht nicht in der Liste), geht die
+  Aufgabe an diesen Empfaenger.
 
 Die Engine zieht zur Laufzeit die Verantwortlich-Spalte und mappt die
 E-Mail auf einen Benutzer. Eskalation funktioniert analog ueber die
 Eskalations-Spalte.
+
+## Verwendung als Lerngrundlage fuer Felder-Schemas
+
+Eine Lookup-Liste kann ohne Workflow auch dafuer benutzt werden, dass
+Werte automatisch aus dem OCR-Text eines Dokuments erkannt werden.
+
+Im Felder-Schema (Verwaltung -> Dokument-Schemas) wird pro Feld die
+Erkennung **Lookup-Liste** gewaehlt. Das System durchsucht dann jeden
+OCR-Text nach Eintraegen aus der Liste; bei mehreren Treffern gewinnt
+der laengste (spezifischste) Schluessel. Aenderungen an der Liste
+wirken sofort — kein Training, keine KI.
+
+Damit ist das Anlernen schlicht: die ohnehin gepflegte
+Kostenstellen-Liste reicht aus, damit eingehende Rechnungen ihre
+Kostenstelle „lernen". Siehe **Cookbook: Rechnungseingang** fuer das
+volle Setup.

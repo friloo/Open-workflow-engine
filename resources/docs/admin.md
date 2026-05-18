@@ -29,6 +29,41 @@ Unter *Systemeinstellungen* findest du zwei separate Karten:
   sehen darf. Eine Rolle kann mehrere Typen sehen, ein Typ kann
   mehrere Rollen erlauben.
 
+## Felder-Schemas pro Dokumenttyp
+
+*Verwaltung -> Dokument-Schemas*: pro Dokumenttyp legst du Felder an
+(z. B. `rechnungsnummer`, `kostenstelle`, `betrag_brutto`, `iban`) und
+waehlst pro Feld eine Erkennungs-Methode (Heuristik, Lookup-Liste,
+Regex, KI). Werte werden nach OCR automatisch in
+`attachments.indexed_fields` geschrieben und stehen im Workflow als
+`{{ doc.indexed_fields.<feld> }}` zur Verfuegung.
+
+Details: *Felder-Schemas pro Dokumenttyp* und *Postkorb + Lookup-
+Routing*; vollstaendiges Setup: *Cookbook: Rechnungseingang*.
+
+## Aufbewahrungsregeln
+
+*Verwaltung -> Systemeinstellungen -> Aufbewahrungsregeln*: pro
+Dokumenttyp Min/Max-Jahre + Aktion (Pruefung markieren, archivieren,
+endgueltig loeschen). Wird taeglich um 03:15 angewendet.
+
+## System-Health und Update
+
+- **System-Health** (Permission `system.health`) zeigt eine Statusseite
+  mit Karten fuer DB, Speicherplatz, Mail, IMAP, Audit-Kette,
+  Scheduler etc. Plus JSON-Endpoint `/admin/health.json` fuer
+  Monitoring.
+- **System-Update** (Permission `system.update`) zieht direkt aus der
+  UI die neueste Version vom konfigurierten Channel
+  (stable/development) und laeuft `composer install` + `migrate`
+  hinter einer Wartungsseite.
+
+## E-Mail-Postfaecher (IMAP)
+
+*Verwaltung -> E-Mail-Postfaecher* (Permission `mailboxes.manage`):
+mehrere IMAP-Postfaecher mit fixem Dokumenttyp und optionalem
+Workflow-Auto-Start. `mail:fetch` laeuft alle 5 Minuten.
+
 ## Branding
 
 App-Name, Logo-Text und Primaerfarbe werden zur Laufzeit ins Layout
@@ -75,3 +110,8 @@ Damit laufen automatisch:
 - `asset:check-due` (taeglich 06:00) — Asset-Faelligkeiten
 - `ocr:run-pending` (taeglich 02:30) — Nachholen von OCR-Extraktionen
 - `audit:cleanup --days=730` (monatlich) — DSGVO-Anonymisierung
+- `documents:retention-check` (taeglich 03:15) — Aufbewahrungsregeln
+- `mail:fetch` (alle 5 Minuten) — IMAP-Postfaecher abrufen
+- `shares:review` (taeglich 07:00) — Sharing-Link-Pruefungs-Mails
+- Scheduler-Sentinel (jede Minute) — Health-Check weiss damit, dass
+  der Cron laeuft

@@ -76,6 +76,34 @@ Volltext werden hervorgehoben angezeigt.
 `php artisan ocr:run-pending` holt OCR-Extraktionen nach. Laeuft taeglich
 um 02:30 ueber den Laravel-Scheduler.
 
+## Strukturierte Felder pro Dokumenttyp
+
+Zusaetzlich zum Volltext koennen pro Dokumenttyp **strukturierte
+Felder** definiert werden (Rechnungsnummer, Datum, Brutto,
+Kostenstelle, IBAN, USt-ID, ...). Werte werden direkt nach OCR
+automatisch erkannt — entweder per Heuristik, eigenem Regex,
+**Lookup-Liste** (Anlernen ueber eine gepflegte Liste) oder optional KI.
+
+Siehe **Felder-Schemas pro Dokumenttyp** in der Hilfe und das
+**Cookbook: Rechnungseingang** fuer das durchgaengige Beispiel.
+
+Erkannte Felder sind:
+
+- in der Dokumenten-Detailansicht **manuell korrigierbar** (Audit-
+  Eintrag `document.fields.corrected`),
+- als `{{ doc.indexed_fields.<feld> }}` in Workflow-Templates und
+  Bedingungen verwendbar,
+- via *Jetzt neu indexieren* pro Dokumenttyp komplett neu auslesbar
+  (oder per Konsole `php artisan documents:reindex --type=Rechnung`).
+
+## Postkorb
+
+*Dokumente -> Postkorb* zeigt alle Dokumente, die noch keinem Workflow
+oder Asset zugeordnet sind — typischerweise per IMAP eingegangene
+Dateien ohne Auto-Workflow am Postfach. Pro Zeile siehst du die
+erkannten Felder als Chips und kannst direkt einen Workflow starten.
+Die Felder wandern als Kontext in den Workflow (`{{ doc.* }}`).
+
 ## Sicherheit
 
 - SHA-256 fuer jede Datei beim Upload (`content_hash`).

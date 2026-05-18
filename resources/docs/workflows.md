@@ -6,8 +6,9 @@
 |--------|-------|-----------|
 | **Start** | Einstiegspunkt | 1 |
 | **Genehmigung** | Aufgabe an Person/Rolle | Genehmigt / Abgelehnt / (Weitergeleitet) |
-| **Bedingung** | Verzweigt nach Formularwerten | beliebig viele + Else |
+| **Bedingung** | Verzweigt nach Formularwerten oder `doc.*`-Feldern | beliebig viele + Else |
 | **HTTP-Request** | Externe API aufrufen | OK / Fehler |
+| **PDF erzeugen** | HTML-Template -> revisionssicheres PDF-Attachment | 1 |
 | **Benachrichtigung** | E-Mail senden | 1 |
 | **Ende** | Beendet die Instanz | 0 |
 
@@ -19,7 +20,35 @@
 - **Vorgesetzter des Subject-Users**
 - **Rolle** — alle Mitglieder einer Rolle.
 - **Konkrete Person** — fester Benutzer.
-- **Aus Liste nachschlagen** — Schluessel aus einem Formularfeld in einer Lookup-Liste; Engine zieht die Verantwortlich-E-Mail.
+- **Aus Liste nachschlagen** — Schluessel aus einem Formularfeld *oder
+  einem Dokument-Feld* in einer Lookup-Liste; Engine zieht die
+  Verantwortlich-E-Mail. Mit **Fallback-Rolle / Fallback-Benutzer**,
+  wenn der Lookup leer ist.
+
+Der **Vertretung** wird automatisch gefolgt: ist der Empfaenger gerade
+im Urlaubszeitraum, geht die Aufgabe direkt an die hinterlegte
+Vertretung (siehe *Vertretungsregelung*).
+
+## doc.\* — Routing nach Dokument-Inhalten
+
+Wird ein Workflow aus dem **Postkorb** oder einem IMAP-Postfach mit
+zugeordnetem Workflow gestartet, ist das Dokument unter `doc.*`
+verfuegbar:
+
+- `doc.id`, `doc.original_name`, `doc.document_type`, `doc.mime_type`,
+  `doc.size`
+- `doc.indexed_fields.<feld>` — alle Schema-Felder (z. B.
+  `kostenstelle`, `rechnungsnummer`, `betrag_brutto`, `iban`, ...)
+
+Beide nutzbar in:
+
+- E-Mail-Subjects/Bodies, HTTP-Templates: `{{ doc.indexed_fields.kostenstelle }}`
+- Bedingungs-Knoten: Feld = `doc.indexed_fields.kostenstelle`,
+  Operator = `nicht leer`
+- Approval-Empfaenger „Aus Liste nachschlagen", Schluessel-Feld =
+  `doc.indexed_fields.kostenstelle`
+
+End-to-End-Setup siehe **Cookbook: Rechnungseingang**.
 
 ## KI-Entwurf
 

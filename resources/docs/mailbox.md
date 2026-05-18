@@ -55,3 +55,27 @@ Doppelt-Anlage.
 Auditiert wird `mailbox.message.received` mit Absender, Betreff und
 Anhang-Anzahl. Fehler landen in `mailbox.message.failed` und im Feld
 `last_error` des Postfachs.
+
+## Was wird automatisch indexiert
+
+Direkt nach OCR laeuft die Felder-Extraktion ueber das Schema des
+Dokumenttyps (Verwaltung -> Dokument-Schemas). Das heisst bei
+`document_type=Rechnung` werden Rechnungsnummer, Datum, Brutto,
+Kostenstelle (per Lookup-Liste), IBAN, USt-ID etc. — je nach Schema —
+automatisch in `attachments.indexed_fields` geschrieben.
+
+Diese Felder stehen im Workflow direkt zur Verfuegung:
+
+- `{{ doc.indexed_fields.kostenstelle }}` in E-Mail-Templates etc.
+- Bedingungs-Knoten: Feld = `doc.indexed_fields.kostenstelle`
+- Approval-Empfaenger „Aus Liste nachschlagen" mit Schluessel-Feld
+  in Punktnotation
+
+Vollstaendiges Setup-Beispiel: **Cookbook: Rechnungseingang**.
+
+## Ohne Workflow-Auto-Start
+
+Wenn ein Postfach kein „Workflow starten" gesetzt hat, landen die
+verarbeiteten Anhaenge im **Postkorb** (*Dokumente -> Postkorb*). Dort
+kann pro Zeile manuell ein Workflow gestartet werden — die erkannten
+Felder werden mitgegeben.
