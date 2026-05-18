@@ -73,6 +73,9 @@ class FieldExtractor
         if ($ex === 'regex') {
             return $this->runRegex((string) ($field['pattern'] ?? ''), $context);
         }
+        if ($ex === 'lookup') {
+            return $this->findInLookup((string) ($field['pattern'] ?? ''), $context);
+        }
         if (str_starts_with($ex, 'heuristic:')) {
             $kind = substr($ex, strlen('heuristic:'));
             return match ($kind) {
@@ -203,6 +206,38 @@ class FieldExtractor
     {
         if (preg_match('/\b(DE\s?\d{9})\b/i', $text, $m)) {
             return strtoupper(str_replace(' ', '', $m[1]));
+        }
+        return null;
+    }
+
+    /**
+     * Sucht den OCR-Text nach Schluesseln aus einer Lookup-Liste. Damit
+     * lernt das System z. B. Kostenstellen-Codes ohne KI: der Anwender
+     * pflegt die Liste, der Extraktor findet die Werte im Dokument.
+     * Bei mehreren Treffern gewinnt der laengste (spezifischste).
+     */
+    private function findInLookup(string $listSlug, string $text): ?string
+    {
+        $listSlug = trim($listSlug);
+        if ($listSlug === '') return null;
+
+        $list = \App\Models\LookupList::where('slug', $listSlug)->first();
+        if (! $list) return null;
+
+        $keys = $list->entries()->pluck('key_value')->filter()->all();
+        if (empty($keys)) return null;
+
+        // Laengste zuerst, damit "K-2026-01" vor "K-2026" gewinnt.
+        usort($keys, fn ($a, $b) => mb_strlen((string) $b) <=> mb_strlen((string) $a));
+
+        foreach ($keys as $k) {
+            $k = (string) $k;
+            if ($k === '') continue;
+            // Exakt mit Wortgrenzen (case-insensitive)
+            $pattern = '/\b'.preg_quote($k, '/').'\b/i';
+            if (preg_match($pattern, $text, $m)) {
+                return $k;
+            }
         }
         return null;
     }

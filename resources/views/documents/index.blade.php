@@ -13,7 +13,8 @@
         </div>
     @endif
 
-    <div class="mb-4 flex justify-end">
+    <div class="mb-4 flex items-center justify-end gap-3">
+        <a href="{{ route('documents.inbox') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Postkorb</a>
         <a href="{{ route('documents.bulk') }}"><x-primary-button type="button">Bulk-Upload</x-primary-button></a>
     </div>
 

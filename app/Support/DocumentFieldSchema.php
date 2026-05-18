@@ -28,6 +28,7 @@ class DocumentFieldSchema
         'heuristic:iban' => 'Heuristik: IBAN',
         'heuristic:vat_id_de' => 'Heuristik: USt-IdNr. (DE)',
         'heuristic:email' => 'Heuristik: E-Mail-Adresse',
+        'lookup' => 'Lookup-Liste (anlernen ueber Listen-Eintraege)',
         'regex' => 'Eigener Regex (Capture-Group 1)',
         'ki' => 'KI (OpenAI-kompatibel)',
     ];

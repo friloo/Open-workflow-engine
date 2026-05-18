@@ -45,6 +45,22 @@ nutzbar:
 
 - `{{ ticket_id }}`, `{{ ticket_url }}`, ...
 
+### Dokument (wenn aus dem Postkorb oder per Mail gestartet)
+
+Wenn der Workflow aus einem Dokument heraus startet, sind die Daten des
+Anhangs verfuegbar:
+
+- `{{ doc.id }}`, `{{ doc.original_name }}`, `{{ doc.document_type }}`,
+  `{{ doc.mime_type }}`, `{{ doc.size }}`
+- `{{ doc.indexed_fields.<feld> }}` — alle laut Schema erkannten Felder
+  (z. B. `{{ doc.indexed_fields.kostenstelle }}`,
+  `{{ doc.indexed_fields.rechnungsnummer }}`,
+  `{{ doc.indexed_fields.betrag_brutto }}`).
+
+Diese Felder funktionieren auch in Bedingungs-Knoten („Feld" =
+`doc.indexed_fields.kostenstelle`) und im Approval-Empfaenger „Aus
+Liste nachschlagen" (Schluessel-Feld = `doc.indexed_fields.kostenstelle`).
+
 ## Punktnotation
 
 Geschachtelte Pfade in Objekten/Arrays sind via Punkt erreichbar:

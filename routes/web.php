@@ -203,11 +203,14 @@ Route::middleware(['auth'])->group(function () {
 // Dokumenten-Suche (OCR-Volltext) + Versionen + Bulk-Upload
 Route::middleware(['auth', 'permission:documents.search'])->prefix('dokumente')->name('documents.')->group(function () {
     Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
+    Route::get('postkorb', [\App\Http\Controllers\DocumentController::class, 'inbox'])->name('inbox');
     Route::get('upload', [\App\Http\Controllers\DocumentController::class, 'bulkUploadShow'])->name('bulk');
     Route::post('upload', [\App\Http\Controllers\DocumentController::class, 'bulkUploadStore'])->name('bulk.store');
     Route::get('{attachment}', [\App\Http\Controllers\DocumentController::class, 'show'])->name('show');
     Route::get('{attachment}/preview', [\App\Http\Controllers\DocumentController::class, 'preview'])->name('preview');
     Route::post('{attachment}/reindex', [\App\Http\Controllers\DocumentController::class, 'reindex'])->name('reindex');
+    Route::post('{attachment}/fields', [\App\Http\Controllers\DocumentController::class, 'updateIndexedFields'])->name('fields.update');
+    Route::post('{attachment}/start-workflow', [\App\Http\Controllers\DocumentController::class, 'startWorkflow'])->name('start_workflow');
     Route::post('{attachment}/new-version', [\App\Http\Controllers\DocumentController::class, 'uploadVersion'])->name('new_version');
 });
 

@@ -67,6 +67,75 @@ class DocumentController extends Controller
         ]);
     }
 
+    /**
+     * Postkorb: alle Anhaenge, die noch keinem Objekt angehaengt sind
+     * (z. B. via IMAP eingegangen, ohne Workflow-Trigger). Pro Zeile kann
+     * ein Workflow manuell gestartet werden — die erkannten Felder
+     * wandern in den Kontext.
+     */
+    public function inbox(Request $request): View
+    {
+        $user = $request->user();
+        $visibleTypes = DocumentTypes::visibleForUser($user);
+        $allowAll = $user->hasRole('admin');
+
+        $query = Attachment::with('uploader')
+            ->whereNull('attachable_type')
+            ->where('is_current_version', true)
+            ->orderByDesc('id');
+
+        if (! $allowAll) {
+            $query->whereIn('document_type', $visibleTypes ?: ['__none__']);
+        }
+
+        $workflows = \App\Models\Workflow::where('status', \App\Models\Workflow::STATUS_ACTIVE)
+            ->orderBy('name')->get(['id', 'name', 'trigger_type']);
+
+        return view('documents.inbox', [
+            'documents' => $query->paginate(25),
+            'workflows' => $workflows,
+        ]);
+    }
+
+    public function startWorkflow(Request $request, Attachment $attachment): RedirectResponse
+    {
+        if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
+
+        $data = $request->validate([
+            'workflow_id' => ['required', 'integer', 'exists:workflows,id'],
+        ]);
+
+        $workflow = \App\Models\Workflow::findOrFail($data['workflow_id']);
+        if ($workflow->status !== \App\Models\Workflow::STATUS_ACTIVE) {
+            return back()->withErrors(['workflow_id' => 'Workflow ist nicht aktiv.']);
+        }
+
+        // Form-Kontext: erkannte Felder + Referenz auf das Dokument.
+        $form = array_merge(
+            (array) ($attachment->indexed_fields ?? []),
+            [
+                'doc_attachment_id' => $attachment->id,
+                'doc_original_name' => $attachment->original_name,
+                'doc_document_type' => $attachment->document_type,
+            ],
+        );
+
+        $instance = app(\App\Services\WorkflowEngine::class)->start($workflow, $form, $request->user());
+
+        // Anhang an die Instanz haengen, damit er im Workflow-Viewer sichtbar ist.
+        $attachment->update([
+            'attachable_type' => $instance->getMorphClass(),
+            'attachable_id' => $instance->id,
+        ]);
+
+        $this->audit->log('document.workflow.started', $attachment, null, [
+            'workflow_id' => $workflow->id, 'instance_id' => $instance->id,
+        ], "Workflow {$workflow->name} aus Postkorb gestartet (#{$attachment->id})");
+
+        return redirect()->route('workflow-instances.show', $instance)
+            ->with('status', 'Workflow gestartet.');
+    }
+
     public function show(Attachment $attachment, Request $request): View
     {
         if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
@@ -75,6 +144,35 @@ class DocumentController extends Controller
             'attachment' => $attachment->load('attachable', 'uploader'),
             'versions' => $versions,
         ]);
+    }
+
+    public function updateIndexedFields(Request $request, Attachment $attachment): RedirectResponse
+    {
+        if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
+
+        $fields = (array) $request->input('fields', []);
+        // Nur erlaubte Schluessel uebernehmen — aus dem Schema.
+        $schema = \App\Support\DocumentFieldSchema::forType((string) $attachment->document_type);
+        $allowed = array_column($schema, 'key');
+        $clean = [];
+        foreach ($fields as $k => $v) {
+            $k = trim((string) $k);
+            if ($k === '' || ! in_array($k, $allowed, true)) continue;
+            $v = trim((string) $v);
+            if ($v === '') continue;
+            $clean[$k] = $v;
+        }
+
+        $original = $attachment->indexed_fields ?? [];
+        $attachment->forceFill([
+            'indexed_fields' => $clean,
+            'indexed_at' => now(),
+        ])->save();
+
+        $this->audit->log('document.fields.corrected', $attachment, $original, $clean,
+            "Erkannte Felder manuell korrigiert (#{$attachment->id})");
+
+        return back()->with('status', 'Felder gespeichert.');
     }
 
     public function reindex(Attachment $attachment, OcrExtractor $ocr): RedirectResponse

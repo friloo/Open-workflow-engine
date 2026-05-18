@@ -120,7 +120,7 @@ class WorkflowEngine
                 break;
 
             case 'condition':
-                $branchIdx = $this->evaluateCondition($node['data'] ?? [], $instance->data ?? []);
+                $branchIdx = $this->evaluateCondition($node['data'] ?? [], $this->buildContext($instance));
                 $branches = $node['data']['branches'] ?? [];
                 $outputKey = $branchIdx !== null
                     ? 'output_'.($branchIdx + 1)
@@ -553,10 +553,12 @@ class WorkflowEngine
         return $conn ? (string) $conn['node'] : null;
     }
 
-    private function evaluateCondition(array $data, array $form): ?int
+    private function evaluateCondition(array $data, array $context): ?int
     {
         foreach ($data['branches'] ?? [] as $idx => $branch) {
-            $value = $form[$branch['field'] ?? ''] ?? null;
+            $field = (string) ($branch['field'] ?? '');
+            // Unterstuetze Punktnotation, damit doc.indexed_fields.kostenstelle etc. funktioniert.
+            $value = str_contains($field, '.') ? data_get($context, $field) : ($context[$field] ?? null);
             $expect = $branch['value'] ?? null;
             $op = $branch['operator'] ?? 'eq';
 
@@ -696,14 +698,33 @@ class WorkflowEngine
             'supervisor_of_previous' => [
                 'user_id' => $this->previousSupervisor($instance)?->id,
             ],
-            'list_lookup' => $this->resolveFromList(
-                (int) ($data['list_id'] ?? 0),
-                (string) ($data['lookup_source'] ?? ''),
-                \App\Models\LookupList::ROLE_RESPONSIBLE,
-                $instance,
-            ),
+            'list_lookup' => $this->resolveFromListWithFallback($data, $instance),
             default => [],
         };
+    }
+
+    /**
+     * Wie list_lookup, aber mit konfigurierbarem Fallback wenn der Lookup
+     * leer ist (z. B. kein Kostenstellen-Code im Dokument).
+     */
+    private function resolveFromListWithFallback(array $data, WorkflowInstance $instance): array
+    {
+        $result = $this->resolveFromList(
+            (int) ($data['list_id'] ?? 0),
+            (string) ($data['lookup_source'] ?? ''),
+            \App\Models\LookupList::ROLE_RESPONSIBLE,
+            $instance,
+        );
+        if (! empty($result)) return $result;
+
+        // Fallback aus Knoten-Konfiguration: erst User, dann Rolle.
+        if (! empty($data['fallback_user_id'])) {
+            return ['user_id' => (int) $data['fallback_user_id']];
+        }
+        if (! empty($data['fallback_role_id'])) {
+            return ['role_id' => (int) $data['fallback_role_id']];
+        }
+        return [];
     }
 
     /**
@@ -719,7 +740,13 @@ class WorkflowEngine
         $list = \App\Models\LookupList::find($listId);
         if (! $list) return [];
 
-        $key = $instance->data[$source] ?? null;
+        // Source unterstuetzt Punktnotation: "kostenstelle" oder
+        // "doc.indexed_fields.kostenstelle" — damit klappt das Routing auch,
+        // wenn der Wert aus extrahierten Dokument-Feldern kommt.
+        $context = $this->buildContext($instance);
+        $key = str_contains($source, '.')
+            ? data_get($context, $source)
+            : ($instance->data[$source] ?? null);
         if ($key === null || $key === '') return [];
 
         $email = $list->emailForRole((string) $key, $role);
@@ -833,6 +860,25 @@ class WorkflowEngine
         $initiator = $instance->starter()->first();
         $subject = $instance->subjectUser();
 
+        // doc.*-Kontext aus dem zugeordneten Dokument (falls vorhanden).
+        // Wird gesetzt wenn der Workflow aus dem Postkorb / IMAP heraus
+        // mit einem konkreten Attachment gestartet wird.
+        $doc = [];
+        $attachmentId = $instance->data['doc_attachment_id'] ?? null;
+        if ($attachmentId) {
+            $att = \App\Models\Attachment::find($attachmentId);
+            if ($att) {
+                $doc = [
+                    'id' => $att->id,
+                    'original_name' => $att->original_name,
+                    'document_type' => $att->document_type ?? '',
+                    'mime_type' => $att->mime_type,
+                    'size' => $att->size,
+                    'indexed_fields' => $att->indexed_fields ?? [],
+                ];
+            }
+        }
+
         return array_merge(
             $instance->data ?? [],
             [
@@ -848,6 +894,7 @@ class WorkflowEngine
                 'subject_user_custom' => $subject?->custom_fields ?? [],
                 'secret' => \App\Models\Secret::asMap(),
                 'response' => $instance->data['response'] ?? [],
+                'doc' => $doc,
             ],
         );
     }

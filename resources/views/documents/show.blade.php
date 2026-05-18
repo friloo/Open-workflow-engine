@@ -25,19 +25,35 @@
                 </x-card>
             @endif
 
-            @if(! empty($attachment->indexed_fields))
-                <x-card title="Erkannte Felder" description="Automatisch aus dem OCR-Text extrahiert (Schema des Dokumenttyps).">
-                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                        @foreach($attachment->indexed_fields as $k => $v)
-                            <div class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-                                <dt class="text-xs font-medium text-slate-500 font-mono">{{ $k }}</dt>
-                                <dd class="text-sm text-slate-900">{{ $v }}</dd>
-                            </div>
-                        @endforeach
-                    </dl>
-                    @if($attachment->indexed_at)
-                        <p class="mt-2 text-xs text-slate-500">Indexiert {{ $attachment->indexed_at->diffForHumans() }}.</p>
-                    @endif
+            @php($schema = \App\Support\DocumentFieldSchema::forType((string) $attachment->document_type))
+            @if(! empty($schema))
+                <x-card title="Erkannte Felder" description="Automatisch aus dem OCR-Text extrahiert. Korrekturen werden gespeichert (Audit-Log).">
+                    <form method="POST" action="{{ route('documents.fields.update', $attachment) }}" class="space-y-3">
+                        @csrf
+                        @php($current = (array) ($attachment->indexed_fields ?? []))
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            @foreach($schema as $f)
+                                <div class="rounded-md border border-slate-200 bg-slate-50 p-2">
+                                    <label class="block text-xs font-medium text-slate-500">
+                                        <span class="font-mono">{{ $f['key'] }}</span>
+                                        <span class="text-slate-400"> · {{ $f['label'] }}</span>
+                                    </label>
+                                    <input type="{{ in_array($f['type'], ['date'], true) ? 'date' : 'text' }}"
+                                           name="fields[{{ $f['key'] }}]"
+                                           value="{{ $current[$f['key']] ?? '' }}"
+                                           class="mt-1 block w-full rounded-md border-slate-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="flex items-center justify-between">
+                            @if($attachment->indexed_at)
+                                <p class="text-xs text-slate-500">Indexiert {{ $attachment->indexed_at->diffForHumans() }}.</p>
+                            @else
+                                <span></span>
+                            @endif
+                            <x-primary-button>Felder speichern</x-primary-button>
+                        </div>
+                    </form>
                 </x-card>
             @endif
 

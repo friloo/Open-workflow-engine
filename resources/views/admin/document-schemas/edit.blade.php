@@ -48,9 +48,22 @@
                                 <template x-if="f.extractor === 'regex'">
                                     <div class="md:col-span-12">
                                         <label class="block text-xs font-medium text-slate-600">Regex (Wert kommt aus Capture-Group 1)</label>
-                                        <input type="text" :name="`fields[${idx}][pattern]`" x-model="f.pattern" placeholder="/Auftrag\s*Nr\.?\s*([A-Z0-9\-]+)/i"
+                                        <input type="text" :name="`fields[${idx}][pattern]`" x-model="f.pattern" placeholder="Auftrag\s*Nr\.?\s*([A-Z0-9\-]+)"
                                                class="mt-1 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
-                                        <p class="mt-1 text-xs text-slate-500">Wenn keine Delimiter (z. B. <code>/.../i</code>) vorhanden sind, wird automatisch <code>/…/i</code> drumherum gesetzt.</p>
+                                        <p class="mt-1 text-xs text-slate-500">Ohne Delimiter wird automatisch <code>#…#i</code> drumherum gesetzt. Slash muss nicht escaped werden.</p>
+                                    </div>
+                                </template>
+                                <template x-if="f.extractor === 'lookup'">
+                                    <div class="md:col-span-12">
+                                        <label class="block text-xs font-medium text-slate-600">Lookup-Liste (Slug)</label>
+                                        <select :name="`fields[${idx}][pattern]`" x-model="f.pattern"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            <option value="">— Liste waehlen —</option>
+                                            @foreach(($lookupLists ?? []) as $ll)
+                                                <option value="{{ $ll->slug }}">{{ $ll->name }} ({{ $ll->slug }})</option>
+                                            @endforeach
+                                        </select>
+                                        <p class="mt-1 text-xs text-slate-500">Findet alle Schluessel der Liste im OCR-Text. Bei mehreren Treffern gewinnt der laengste (spezifischste).</p>
                                     </div>
                                 </template>
                                 <div class="md:col-span-12">

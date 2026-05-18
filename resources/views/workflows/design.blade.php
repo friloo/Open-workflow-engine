@@ -165,15 +165,43 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs font-medium text-slate-600">Schluessel aus Feld</label>
-                                                    <select x-model="selectedNode.data.lookup_source"
-                                                        class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                        <option value="">— Feld waehlen —</option>
+                                                    <input type="text" x-model="selectedNode.data.lookup_source"
+                                                        placeholder="z. B. kostenstelle oder doc.indexed_fields.kostenstelle"
+                                                        list="lookup-source-options"
+                                                        class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <datalist id="lookup-source-options">
                                                         <template x-for="f in formSchema" :key="f.key">
                                                             <option :value="f.key" x-text="f.label || f.key"></option>
                                                         </template>
-                                                    </select>
+                                                        <option value="doc.indexed_fields.kostenstelle">doc.indexed_fields.kostenstelle</option>
+                                                        <option value="doc.indexed_fields.rechnungsnummer">doc.indexed_fields.rechnungsnummer</option>
+                                                        <option value="doc.document_type">doc.document_type</option>
+                                                    </datalist>
+                                                    <p class="mt-1 text-xs text-slate-500">Direkter Formularfeld-Name (z. B. <code>kostenstelle</code>) oder Punktnotation fuer Dokument-Felder (z. B. <code>doc.indexed_fields.kostenstelle</code>).</p>
                                                 </div>
-                                                <p class="text-xs text-slate-500">Der Workflow nimmt die Verantwortlich-E-Mail aus der Liste und sucht den entsprechenden Benutzer.</p>
+                                                <div class="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-slate-600">Fallback-Rolle</label>
+                                                        <select x-model.number="selectedNode.data.fallback_role_id"
+                                                            class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            <option value="">— keine —</option>
+                                                            <template x-for="r in directory.roles" :key="r.id">
+                                                                <option :value="r.id" x-text="r.name"></option>
+                                                            </template>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-slate-600">Fallback-Benutzer</label>
+                                                        <select x-model.number="selectedNode.data.fallback_user_id"
+                                                            class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            <option value="">— keiner —</option>
+                                                            <template x-for="u in directory.users" :key="u.id">
+                                                                <option :value="u.id" x-text="u.name"></option>
+                                                            </template>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <p class="text-xs text-slate-500">Wenn der Lookup nichts findet (z. B. keine Kostenstelle im Dokument), geht die Aufgabe an Fallback-Benutzer, sonst Fallback-Rolle.</p>
                                             </div>
                                         </template>
                                         <template x-if="selectedNode.data.recipient_type==='role'">
@@ -268,12 +296,18 @@
                                                     <input type="text" x-model="branch.label" placeholder="Bezeichnung (z. B. IT-Bestellung)"
                                                         class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                     <div class="grid grid-cols-3 gap-2">
-                                                        <select x-model="branch.field" class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                            <option value="">Feld waehlen</option>
+                                                        <input type="text" x-model="branch.field" list="condition-field-options"
+                                                            placeholder="Feld (z. B. kostenstelle oder doc.indexed_fields.kostenstelle)"
+                                                            class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                        <datalist id="condition-field-options">
                                                             <template x-for="f in formSchema" :key="f.key">
                                                                 <option :value="f.key" x-text="f.label || f.key"></option>
                                                             </template>
-                                                        </select>
+                                                            <option value="doc.document_type">doc.document_type</option>
+                                                            <option value="doc.indexed_fields.kostenstelle">doc.indexed_fields.kostenstelle</option>
+                                                            <option value="doc.indexed_fields.rechnungsnummer">doc.indexed_fields.rechnungsnummer</option>
+                                                            <option value="doc.indexed_fields.betrag_brutto">doc.indexed_fields.betrag_brutto</option>
+                                                        </datalist>
                                                         <select x-model="branch.operator" class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                             <option value="eq">ist gleich</option>
                                                             <option value="neq">ist ungleich</option>
@@ -443,7 +477,7 @@
                                                 <label class="block text-xs font-medium text-slate-600">Body</label>
                                                 <textarea x-model="selectedNode.data.body_template" rows="8" spellcheck="false"
                                                     class="mt-1 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono"></textarea>
-                                                <p class="mt-1 text-xs text-slate-500">Platzhalter: <code>@{{ initiator_email }}</code>, <code>@{{ instance_id }}</code>, beliebige Formularfelder, <code>@{{ subject_user_email }}</code>, <code>@{{ initiator_custom.kostenstelle }}</code>.</p>
+                                                <p class="mt-1 text-xs text-slate-500">Platzhalter: <code>@{{ initiator_email }}</code>, <code>@{{ instance_id }}</code>, Formularfelder, <code>@{{ subject_user_email }}</code>, <code>@{{ doc.indexed_fields.kostenstelle }}</code> u. a. (Hilfe: <a href="{{ route('help.show', 'placeholders') }}" target="_blank" class="text-indigo-600 hover:text-indigo-500 underline">Platzhalter-Referenz</a>).</p>
                                             </div>
                                         </template>
 

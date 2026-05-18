@@ -40,6 +40,7 @@ class DocumentSchemaController extends Controller
             'fields' => DocumentFieldSchema::forType($type),
             'fieldTypes' => DocumentFieldSchema::FIELD_TYPES,
             'extractors' => DocumentFieldSchema::EXTRACTORS,
+            'lookupLists' => \App\Models\LookupList::orderBy('name')->get(['id', 'name', 'slug']),
             'sampleCount' => Attachment::where('document_type', $type)->whereNotNull('indexed_fields')->count(),
         ]);
     }
