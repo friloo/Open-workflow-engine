@@ -60,6 +60,29 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // 2FA-Verwaltung pro Benutzer (opt-in)
+    Route::get('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'show'])->name('two-factor.show');
+    Route::post('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'confirm'])->name('two-factor.confirm');
+    Route::delete('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'disable'])->name('two-factor.disable');
+    Route::post('/profile/two-factor/recovery', [\App\Http\Controllers\TwoFactorController::class, 'regenerateCodes'])->name('two-factor.recovery');
+
+    // API-Tokens
+    Route::get('/profile/tokens', [\App\Http\Controllers\ApiTokenController::class, 'index'])->name('tokens.index');
+    Route::post('/profile/tokens', [\App\Http\Controllers\ApiTokenController::class, 'store'])->name('tokens.store');
+    Route::delete('/profile/tokens/{token}', [\App\Http\Controllers\ApiTokenController::class, 'destroy'])->name('tokens.destroy');
+
+    // In-App-Notifications
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/dropdown', [\App\Http\Controllers\NotificationController::class, 'dropdown'])->name('notifications.dropdown');
+    Route::get('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.read_all');
+});
+
+// 2FA-Challenge nach erfolgreichem Passwort-Login
+Route::middleware('guest')->group(function () {
+    Route::get('/two-factor-challenge', [\App\Http\Controllers\Auth\TwoFactorChallengeController::class, 'show'])->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [\App\Http\Controllers\Auth\TwoFactorChallengeController::class, 'store']);
 });
 
 Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(function () {

@@ -24,6 +24,8 @@ class HelpController extends Controller
         'pdf-node' => 'PDF-Knoten',
         'mailbox' => 'E-Mail-Eingang',
         'retention' => 'Aufbewahrungsregeln',
+        '2fa' => 'Zwei-Faktor-Anmeldung',
+        'api-tokens' => 'API-Tokens',
         'secrets' => 'Secrets-Vault',
         'webhooks' => 'Webhooks',
         'm365' => 'Microsoft 365',

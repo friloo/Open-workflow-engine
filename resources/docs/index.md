@@ -23,6 +23,8 @@ Dokumenten-Ablage.
   System: Anhaenge werden klassifiziert und optional starten sie einen
   Workflow.
 - **Aufbewahrungsregeln** pro Dokumenttyp — taeglich angewendet.
+- **2FA**, **API-Tokens**, **In-App-Benachrichtigungen** (Glocke in der
+  Topbar) — Produktiv-Basis.
 - **KI-Workflow-Designer**: gib der KI eine Beschreibung, sie liefert
   einen kompletten Workflow-Entwurf.
 - **Webhooks** benachrichtigen externe Systeme bei Workflow-Ereignissen.
@@ -47,6 +49,8 @@ Siehe Abschnitt **Erste Schritte**.
 - E-Mail-Eingang — IMAP-Postfaecher, Anhang->Dokument, optional Workflow-Trigger
 - Aufbewahrungsregeln — Min-/Max-Jahre pro Dokumenttyp, Auto-Aktion
 - Webhooks — outgoing HTTP-Events
+- Zwei-Faktor-Anmeldung — TOTP per Authenticator-App
+- API-Tokens — persoenliche Tokens fuer die JSON-API
 - Microsoft 365 — SSO und Benutzer-Sync
 - Administration — Benutzer, Rollen, Cron, Custom Fields, Branding, DSGVO
 - Revisionssicherheit — drei Ebenen: Audit-Hashkette, immutable Versionen, Datei-Hash

@@ -107,6 +107,15 @@ class MailboxFetcher
                 'last_status' => 'FEHLER',
                 'last_error' => substr($e->getMessage(), 0, 1000),
             ])->save();
+            if ($mailbox->created_by) {
+                \App\Models\AppNotification::send(
+                    \App\Models\User::find($mailbox->created_by),
+                    'mailbox.error',
+                    "Postfach {$mailbox->name}: Fehler",
+                    substr($e->getMessage(), 0, 200),
+                    route('admin.mailboxes.edit', $mailbox),
+                );
+            }
             throw $e;
         } finally {
             try { $client->disconnect(); } catch (\Throwable) {}

@@ -5,9 +5,11 @@ namespace App\Models;
 use App\Concerns\HasRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Crypt;
 
 class User extends Authenticatable
 {
@@ -43,6 +45,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'email_notifications_enabled' => 'boolean',
@@ -68,5 +71,56 @@ class User extends Authenticatable
         }
 
         return $this->supervisor;
+    }
+
+    public function apiTokens(): HasMany
+    {
+        return $this->hasMany(ApiToken::class);
+    }
+
+    public function appNotifications(): HasMany
+    {
+        return $this->hasMany(AppNotification::class)->latest();
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return ! empty($this->two_factor_secret_enc) && $this->two_factor_confirmed_at !== null;
+    }
+
+    public function getTwoFactorSecret(): ?string
+    {
+        if (empty($this->two_factor_secret_enc)) return null;
+        try {
+            return Crypt::decryptString($this->two_factor_secret_enc);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    public function setTwoFactorSecret(?string $secret): void
+    {
+        $this->two_factor_secret_enc = $secret === null ? null : Crypt::encryptString($secret);
+    }
+
+    /** @return array<int,string>|null */
+    public function getTwoFactorRecoveryCodes(): ?array
+    {
+        if (empty($this->two_factor_recovery_codes_enc)) return null;
+        try {
+            $json = Crypt::decryptString($this->two_factor_recovery_codes_enc);
+            $decoded = json_decode($json, true);
+            return is_array($decoded) ? $decoded : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** @param array<int,string>|null $codes */
+    public function setTwoFactorRecoveryCodes(?array $codes): void
+    {
+        $this->two_factor_recovery_codes_enc = $codes === null
+            ? null
+            : Crypt::encryptString(json_encode(array_values($codes)));
     }
 }

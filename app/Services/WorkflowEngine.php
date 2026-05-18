@@ -625,7 +625,15 @@ class WorkflowEngine
     private function notifyAssignee(WorkflowStepExecution $step): void
     {
         $recipients = $this->stepRecipients($step);
+        $workflow = $step->instance?->workflow;
         foreach ($recipients as $user) {
+            \App\Models\AppNotification::send(
+                $user,
+                'task.assigned',
+                'Neue Aufgabe: '.($workflow?->name ?? 'Workflow'),
+                'Du wurdest einer Genehmigungs-Aufgabe zugewiesen.',
+                route('tasks.show', $step),
+            );
             if (! $user->email_notifications_enabled) continue;
             try {
                 Mail::to($user->email)->send(new WorkflowTaskAssignedMail($step, $user));

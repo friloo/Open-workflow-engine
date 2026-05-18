@@ -64,7 +64,15 @@ class ReviewShareLinks extends Command
 
         $sent = 0;
         foreach ($due as $s) {
-            if (! $s->creator?->email) continue;
+            if (! $s->creator) continue;
+            \App\Models\AppNotification::send(
+                $s->creator,
+                'share.review_due',
+                'Freigabe pruefen: '.($s->attachment?->original_name ?? 'Dokument'),
+                'Die Freigabe muss bestaetigt oder widerrufen werden.',
+                route('shares.index'),
+            );
+            if (! $s->creator->email) continue;
             if (! $s->creator->email_notifications_enabled) continue;
             try {
                 Mail::to($s->creator->email)->send(new ShareReviewMail($s));
