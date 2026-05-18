@@ -1,221 +1,321 @@
+<div align="center">
+
 # Open Workflow Engine
 
-Self-hosted workflow- und formularbasiertes Automatisierungstool fuer
-Shared-Hosting (PHP 8.2+ / MySQL oder MariaDB).
+**Self-hosted Workflows · Light-DMS · Postkorb · Genehmigungen — fuer KMU auf Shared Hosting.**
 
-> **Status:** Phase 4 + 5 — Microsoft 365 Single-Sign-On + Benutzer-Sync,
-> wiederkehrende Workflows (Wiedervorlagen, z. B. Fuehrerschein-Pruefung)
-> und ein Stand-Alone-Form-Builder. Phasen 1-3 sind enthalten.
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white)]()
+[![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white)]()
+[![Tests](https://img.shields.io/badge/tests-190%20passing-10B981)]()
+[![License](https://img.shields.io/badge/license-MIT-475569)]()
 
-## Geplanter Funktionsumfang
+PDF-Rechnungen per Mail rein → Kostenstelle erkannt → richtige Person genehmigt — *ohne* Cloud, *ohne* SSH, *ohne* Composer auf dem Server.
 
-- Drag-and-Drop Workflow-Designer (Drawflow) — *Phase 2*
-- Formular-Builder mit oeffentlich und intern erreichbaren Formularen — *Phase 2*
-- Workflows ausgeloest durch Formulare, manuelle Starts, Zeitplaene und
-  wiederkehrende Pruefungen (z. B. Fuehrerschein-Kontrolle alle X Monate) — *Phase 2*
-- Mehrstufige Genehmigungen (Vorgesetzte oder Rollen) mit Karenzzeit
-  und automatischer Eskalation an die naechste Instanz — *Phase 3*
-- Microsoft 365 Single-Sign-On und Benutzer-Sync (inkl. Vorgesetzten-Feld) — *Phase 4*
-- E-Mail-Benachrichtigungen pro Workflow-Schritt
-- Rollenbasiertes Rechtesystem (keine Einzelberechtigungen)
-- Revisionssichere, hashverkettete Audit-Historie
+</div>
 
-## Phase 4 — Microsoft 365 SSO + Benutzer-Sync
+---
 
-- **Konfiguration im Admin-Backend** unter *Systemeinstellungen*:
-  Client-ID, Client-Secret (verschluesselt), Tenant-ID, Redirect-URI,
-  Auto-Provisioning-Schalter und Standardrolle fuer neu angelegte
-  Benutzer.
-- **Login-Button** „Mit Microsoft anmelden" erscheint auf der
-  Anmeldeseite, sobald M365 aktiviert und konfiguriert ist.
-- **OAuth-Callback** legt unbekannte Benutzer optional automatisch an
-  (Auto-Provisioning) und verknuepft sie ueber `m365_object_id`.
-  Bestehende Benutzer werden anhand der E-Mail erkannt und verknuepft.
-- **Benutzer-Sync** ueber den Microsoft-Graph-Endpoint mit Client-
-  Credentials-Flow (App-only). Importiert/aktualisiert Name, E-Mail,
-  Abteilung, Funktion, Telefon und Vorgesetzten (`manager`). Manueller
-  Trigger im Admin-Backend oder per Cron: `php artisan m365:sync-users`.
-  Voraussetzung: Application-Permission `User.Read.All` mit Admin
-  Consent.
+## Was OWE kann
 
-## Phase 5 — Wiederkehrende Workflows + Form-Builder
+<table>
+<tr>
+<td width="50%" valign="top">
 
-- **Wiederkehrende Workflows:** Workflows mit Trigger `recurring`
-  koennen Wiedervorlagen haben (Bezugs-Person, Intervall in
-  Tagen/Wochen/Monaten/Jahren). Beispiel: "Fuehrerschein-Pruefung
-  alle 6 Monate" je Mitarbeiter.
-- **Scheduler-Command:** `php artisan workflow:run-schedules` laeuft
-  stuendlich via Laravel-Scheduler, startet faellige Workflows mit dem
-  jeweiligen Subject als Initiator, setzt `last_run_at` und
-  berechnet `next_run_at` automatisch.
-- **Stand-Alone-Form-Builder** unter *Automatisierung → Formulare*:
-  Formulare mit eigenem Schema, optionalem `workflow_id`-Link und
-  oeffentlichem Pfad `/formular/{slug}`. Live-Vorschau, Drag-and-Drop-
-  freie Reihenfolge-Bearbeitung. Eingaenge starten den verknuepften
-  Workflow oder werden nur in `form_submissions` gespeichert.
+### 🔄 Workflows
+- Drag-and-Drop-Designer (Drawflow), Versionierung
+- Knotentypen: Start, Bedingung, Genehmigung, HTTP, PDF, Mail, Ende
+- Empfaenger: User · Rolle · Vorgesetzter · Lookup-Liste · **Parallel-Quorum (n-aus-m / alle)**
+- Trigger: Formular · manuell · wiederkehrend · IMAP · Webhook
+- **Vertretungsregelung** (Urlaub) automatisch
+- **Trockenlauf** mit Testdaten vor Aktivierung
+- **3 fertige Vorlagen** zum Importieren (Rechnung, Urlaub, Bestellung)
 
-## Phase 3 — Runtime, oeffentliche Formulare, Mail-Versand
+</td>
+<td width="50%" valign="top">
 
-- **Workflow-Engine** (`App\Services\WorkflowEngine`) startet Instanzen,
-  laeuft Start/Bedingung/Notify-Knoten ab und pausiert bei Approval-
-  Schritten bis zur Entscheidung. Tiefenlimit gegen Endlos-Loops.
-- **Bedingungs-Auswertung** unterstuetzt `eq`, `neq`, `contains`, `gt`,
-  `gte`, `lt`, `lte`, `checked`, `unchecked`, `empty`, `not_empty`. Trifft
-  keine Bedingung zu, wird der Else-Ausgang genutzt.
-- **Empfaenger-Auflosung** dynamisch: Vorgesetzter des Antragstellers,
-  Vorgesetzter des vorigen Bearbeiters, Mitglieder einer Rolle oder
-  konkrete Person. Beruecksichtigt `prefer_m365_supervisor`.
-- **Karenzzeit-Eskalation:** Console-Command `php artisan workflow:check-due`
-  laeuft alle 5 Minuten via Laravel-Scheduler und eskaliert offene
-  Schritte mit ueberschrittener `due_at` an Rolle oder Vorgesetzten.
-- **Task-Inbox** (`/tasks`) zeigt offene Aufgaben mit Frist-Hervorhebung
-  (rot fuer ueberfaellig) und Sidebar-Badge mit Zaehler.
-- **Genehmigungs-Aktionen:** Genehmigen, Ablehnen, optional Weiterleiten
-  an dritte Person inkl. Kommentar.
-- **Oeffentliche Formulare** unter `/f/{public_slug}` — kein Login noetig.
-  Honeypot gegen Spam, Validierung anhand des Form-Schemas.
-- **Interner Workflow-Start** unter `Workflows -> Starten` fuer
-  authentifizierte Antragsteller (Mitarbeiter-Rolle).
-- **Mail-Versand:**
-  - `WorkflowTaskAssignedMail` bei jeder neuen Aufgabe.
-  - `WorkflowNotificationMail` fuer Notify-Knoten mit Platzhaltern
-    (`@{{ feld_key }}`, `@{{ initiator }}`).
-  - Respektiert `email_notifications_enabled` pro Benutzer.
-- **SMTP-Konfiguration im Admin-Backend** unter
-  *Verwaltung → Systemeinstellungen.* Aenderungen ueberschreiben die
-  `.env`-Werte zur Laufzeit; Passwoerter werden verschluesselt (`Crypt::encryptString`)
-  gespeichert. Inklusive Test-Mail-Button.
+### 📄 Light-DMS
+- Bulk-Upload, Inline-Vorschau, OCR-Volltext, Versionierung
+- **Dokumenttyp-Schemas**: Rechnungsnummer, Datum, Betrag, Kostenstelle, IBAN, USt-ID automatisch extrahieren
+- Erkennung: Heuristik · Regex · **Lookup-Liste (anlernen)** · KI optional
+- **Postkorb** fuer eingehende Mails ohne Auto-Workflow
+- Filter auf erkannte Felder + **CSV-Export**
+- Sharing-Links mit Passwort, Ablauf-Cap, Auto-Review
+- Aufbewahrungsregeln pro Typ (DSGVO)
 
-### Cron-Setup auf Shared-Hosting
+</td>
+</tr>
+<tr>
+<td valign="top">
 
-Ein einziger Cron-Eintrag fuehrt alle Laravel-Scheduler-Tasks aus
-(inkl. der Karenzzeit-Pruefung):
+### ✉️ Integrationen
+- **IMAP-Eingang** (multi Postfaecher, Anhang → Dokument → Workflow)
+- **Outgoing Webhooks** mit HMAC-Signatur
+- **Incoming Webhooks** unter `POST /api/incoming/<token>`
+- **HTTP-Knoten** mit Body-Templates, Response-Mapping, KI-Assistent
+- **Microsoft 365** SSO + Benutzer-Sync (App-only Graph)
+- **JSON-API** unter `/api/v1` mit persoenlichen API-Tokens
+- **PDF-Render-Knoten** (HTML-Template → revisionssicheres Attachment)
+- **Genehmigung per Mail** ueber signierten Link (kein Login)
+
+</td>
+<td valign="top">
+
+### 🛡️ Betrieb
+- **Web-Installer** (Schritt-fuer-Schritt, ohne SSH/Composer)
+- **Backup & Restore** taeglich, mit „Backup beim Install hochladen"
+- **Update aus der UI** (Channel-Factory, atomar, Maintenance-Flag)
+- **2FA / TOTP** pro Benutzer optional
+- **Audit-Hashkette** (SHA-256-verkettet, manipulationssicher)
+- **System-Health-Seite** + JSON-Endpoint fuer Monitoring
+- **Dashboard** mit persoenlichen Tasks, Postkorb, Ampel
+- Rollen-/Permission-System, keine Einzel-Berechtigungen
+
+</td>
+</tr>
+</table>
+
+---
+
+## Quick-Start
+
+```bash
+# 1. Release-ZIP entpacken und per FTP hochladen (enthaelt vendor/)
+# 2. Browser oeffnen → automatischer Redirect nach /install
+```
+
+Der **Web-Installer** macht den Rest:
+
+```
+  ┌──────────────────┐
+  │ 1. System-Check  │  PHP-Version · Extensions · Schreibrechte
+  ├──────────────────┤
+  │ 2. Datenbank     │  SQLite (Default) oder MySQL/MariaDB
+  ├──────────────────┤
+  │ 3. Admin-Konto   │  Name · E-Mail · Passwort
+  ├──────────────────┤
+  │ 4. Fertig        │  Login + Cookbook-Hinweise
+  └──────────────────┘
+```
+
+**Migration auf neuen Host?** Auf der Welcome-Seite Karte *Aus Backup wiederherstellen* — ZIP hochladen, DB-Credentials angeben, fertig.
+
+> **Kein Composer auf dem Server noetig.** Release-ZIPs enthalten `vendor/`
+> vorgebaut. Update-System ueberspringt `composer install` falls `proc_open`
+> oder die CLI fehlen.
+
+---
+
+## Beispiel: Rechnungseingang
+
+So sieht ein typischer End-to-End-Flow aus — Setup-Zeit ca. 30 Minuten,
+komplett ohne KI:
+
+```
+                Mail mit PDF-Rechnung
+                        │
+                        ▼
+              ┌──────────────────┐
+              │ IMAP-Postfach    │
+              │ Doku-Typ:Rechnung│
+              └────────┬─────────┘
+                       │
+                       ▼
+              ┌──────────────────┐
+              │ OCR + Schema     │   ← Heuristik fuer Nummer/Datum/Brutto
+              │ "Rechnung"       │   ← Lookup-Liste 'Kostenstellen'
+              └────────┬─────────┘     fuer kostenstelle-Feld
+                       │
+                       ▼
+              ┌──────────────────┐
+              │ Workflow startet │
+              │ (Anhang gehaengt)│
+              └────────┬─────────┘
+                       │
+            ┌──────────┴───────────┐
+            ▼                      ▼
+   doc.indexed_fields.       sonst → Buchhaltung
+   kostenstelle erkannt?
+            │
+            ▼
+   Lookup-Empfaenger
+   = Verantwortlich(er)
+   aus Kostenstellen-Liste
+```
+
+Vollstaendige Schritt-fuer-Schritt-Anleitung: **Cookbook: Rechnungseingang einrichten** in der Online-Hilfe.
+
+---
+
+## Architektur in einem Satz
+
+Laravel 11 + Eloquent + Tailwind + Alpine.js + Drawflow — SQLite by default, MySQL optional, alles als File-Storage in `storage/app/`, kein Redis/Queue/Worker fuer den Betrieb noetig (Scheduler reicht via 1 Cron-Eintrag).
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Browser ────────┐                                           │
+│                  ▼                                           │
+│  Laravel 11  ◄──────── Web-Installer (vor Setup)             │
+│       │                                                      │
+│       ├── WorkflowEngine        (Drawflow-JSON walker)       │
+│       ├── AttachmentStorage     (SHA-256, Versionen, OCR)    │
+│       ├── FieldExtractor        (Heuristik/Regex/Lookup/KI)  │
+│       ├── BackupService         (ZIP DB+Anhaenge)            │
+│       └── UpdateManager         (Channel-Factory, atomar)    │
+│                                                              │
+│  storage/app/                                                │
+│   ├── attachments/<Y>/<M>/<ulid>.<ext>   (Datei-Hashes!)     │
+│   ├── backups/owe-<datum>.zip                                │
+│   ├── .installed   (Marker)                                  │
+│   └── .update-progress                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Anforderungen
+
+| | Mindestens |
+|---|---|
+| **PHP** | 8.2 |
+| **Extensions (Pflicht)** | pdo, mbstring, openssl, json, zip, fileinfo, curl, tokenizer, xml, ctype, dom |
+| **Datenbank** | SQLite oder MySQL/MariaDB |
+| **Webserver** | Apache / nginx / Caddy / shared hosting |
+| **Optional** | `pdftotext` + `pdftoppm` + `tesseract` fuer OCR · `gd` fuer Bildverarbeitung |
+
+---
+
+## Cron — genau ein Eintrag
 
 ```cron
 * * * * * cd /pfad/zur/app && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-## Phase 2 — Workflow-Designer
+Damit laufen:
 
-- **Drag-and-Drop-Editor** (Drawflow) mit Knoten-Palette und Settings-Panel.
-- **Knotentypen:**
-  - *Start* — automatischer Einstiegspunkt fuer den Trigger.
-  - *Genehmigung* — Empfaenger nach Wahl (Vorgesetzter des Antragstellers,
-    Vorgesetzter des vorigen Bearbeiters, Mitglieder einer Rolle, oder
-    eine konkrete Person), Karenzzeit (Stunden/Tage/Monate), optionale
-    Eskalation an Vorgesetzten oder Rolle, optionale Weiterleitung.
-    Ausgaenge: Genehmigt / Abgelehnt / (Weitergeleitet).
-  - *Bedingung* — beliebig viele Verzweigungen mit Operatoren
-    (`ist gleich`, `enthaelt`, `groesser`, `ist angekreuzt`, `ist leer` …)
-    plus implizitem **Else-Ausgang**. Felder kommen aus dem Form-Schema.
-  - *Benachrichtigung* — sendet E-Mail mit Platzhaltern (`@{{ feld }}`).
-  - *Ende* — markiert das Ergebnis (abgeschlossen / abgelehnt / abgebrochen).
-- **Form-Schema-Editor** im Designer fuer formulargetriggerte Workflows
-  (Text, Textarea, Zahl, Datum, Select, Radio, Checkbox).
-- **Immutable Versionierung:** Jeder Speichervorgang erzeugt eine neue
-  `workflow_version`. Aeltere Versionen koennen wiederhergestellt werden
-  (was als neuer Versions-Eintrag dokumentiert wird).
-- **Audit-Log:** Anlegen, Speichern, Aktivieren, Archivieren, Loeschen
-  jedes Workflows landet in der hashverketteten Audit-Historie.
+| Task | Frequenz | Was |
+|---|---|---|
+| `workflow:check-due` | alle 5 Minuten | Eskalationen + Frist-Reminder |
+| `workflow:run-schedules` | stuendlich | wiederkehrende Workflows |
+| `mail:fetch` | alle 5 Minuten | IMAP-Postfaecher |
+| `tasks:remind` | taeglich 09:00 | Erinnerung fuer lange offene Tasks |
+| `asset:check-due` | taeglich 06:00 | Asset-Faelligkeiten |
+| `ocr:run-pending` | taeglich 02:30 | OCR-Nachzieher |
+| `documents:retention-check` | taeglich 03:15 | DSGVO-Aufbewahrung |
+| `backup:run` | taeglich 01:30 | Tagessicherung |
+| `shares:review` | taeglich 07:00 | Sharing-Link-Pruefung |
+| `audit:cleanup` | monatlich | IP/UA aelter 2 Jahre anonymisieren |
 
-## Phase 1 — was bereits funktioniert
+---
 
-- **Auth:** Login via E-Mail/Passwort (Microsoft 365 vorbereitet, kommt in Phase 4).
-  Oeffentliche Registrierung ist deaktiviert; Konten werden ausschliesslich
-  von Administratoren angelegt oder importiert.
-- **Benutzerverwaltung:** CRUD mit Vorgesetzten-Verknuepfung,
-  Abteilung, Funktion, Personalnummer, M365-Object-ID,
-  Praeferenz "M365-Vorgesetzter verwenden", E-Mail-Benachrichtigungs-Schalter.
-- **Rollen & Permissions:** Permissions werden ausschliesslich an Rollen
-  haengen; Benutzer erhalten ihre Rechte ueber Rollen. Vier System-Rollen
-  (`admin`, `workflow-designer`, `employee`, `auditor`) und 16 Permissions
-  werden geseedet.
-- **CSV-Import:** Benutzer per CSV anlegen oder aktualisieren, inkl.
-  Mapping auf Vorgesetzte (per E-Mail) und Rollen (per Slug).
-- **Audit-Log:** Jede sicherheitsrelevante Aktion (Login, Logout,
-  Benutzer-/Rollenaenderung, Importe …) wird in einer SHA-256-verketteten
-  Audit-Kette gespeichert. Eintraege koennen nicht ueber das ORM modifiziert
-  oder geloescht werden; die Integritaet kann ueber die Admin-UI verifiziert
-  werden.
-- **DB-Schema fuer Workflows und Formulare ist bereits angelegt**, damit
-  die folgenden Phasen darauf aufsetzen koennen, ohne destruktive Migrationen
-  zu erzwingen.
+## Dokumentation
 
-## Lokale Einrichtung
+In der App unter `/hilfe` (Topbar-Fragezeichen-Icon). Themen:
 
-```bash
-# 1. Dependencies installieren
-composer install
-npm install
+<details>
+<summary><strong>Einstieg</strong></summary>
 
-# 2. .env vorbereiten und App-Key erzeugen
-cp .env.example .env
-php artisan key:generate
+- Erstinstallation (Web-Installer)
+- Erste Schritte
+- Dashboard / Startseite
+- **Cookbook: Rechnungseingang einrichten**
 
-# 3. DB-Zugang in .env eintragen (MySQL/MariaDB)
-#    DB_DATABASE / DB_USERNAME / DB_PASSWORD
+</details>
 
-# 4. Migrationen und Seeds ausfuehren
-php artisan migrate --seed
+<details>
+<summary><strong>Workflows</strong></summary>
 
-# 5. Assets bauen (oder `npm run dev`)
-npm run build
+- Workflows entwerfen
+- Workflow-Vorlagen (Import/Export)
+- Workflow-Simulation (Trockenlauf)
+- Workflow-Statistik
+- Vertretungsregelung
+- Genehmigung per Mail
+- KI im Designer
+- Formulare
 
-# 6. Server starten
-php artisan serve
+</details>
+
+<details>
+<summary><strong>Daten</strong></summary>
+
+- Listen (Kostenstellen etc.)
+- Assets (Fuehrerschein etc.)
+- Dokumente (Versionen, OCR, Bulk)
+- **Felder-Schemas pro Dokumenttyp**
+- **Postkorb + Lookup-Routing**
+- Aufbewahrungsregeln
+- Sharing-Links
+
+</details>
+
+<details>
+<summary><strong>Integration</strong></summary>
+
+- HTTP-Knoten
+- PDF-Knoten
+- E-Mail-Eingang (IMAP)
+- Webhooks (outgoing)
+- **Eingehende Webhooks**
+- Microsoft 365 SSO
+- API-Tokens
+- Secrets-Vault
+
+</details>
+
+<details>
+<summary><strong>Betrieb</strong></summary>
+
+- Administration
+- System-Health
+- System-Update
+- **Backup & Restore**
+- Zwei-Faktor-Anmeldung
+- Revisionssicherheit
+- Platzhalter-Referenz
+
+</details>
+
+Source: `resources/docs/*.md`.
+
+---
+
+## Lifecycle ohne SSH
+
+```
+   Frischer Upload              Update                    Migration
+   ─────────────────            ─────────                  ─────────
+   FTP-Upload                   Browser → /admin/update    Backup auf altem Host
+   Release-ZIP                                             Browser auf neuem Host
+   (mit vendor/)                Channel waehlen            → /install Welcome
+        │                       (stable / dev)             → "Aus Backup
+        ▼                       Button „Update jetzt"        wiederherstellen"
+   Browser →                    installieren"              → ZIP hochladen
+   /install                     Maintenance an              + DB-Credentials
+   Wizard                       atomarer Tausch            → fertig (Login mit
+        │                       Maintenance aus              alten Daten)
+        ▼
+   Login
 ```
 
-Standard-Logins nach dem Seeding:
+---
 
-| Rolle              | E-Mail                    | Passwort   |
-| ------------------ | ------------------------- | ---------- |
-| Administrator      | `admin@example.com`       | `password` |
-| Workflow-Designer  | `designer@example.com`    | `password` |
-| Mitarbeiter        | `employee@example.com`    | `password` |
+## Tests
 
-> Die Demo-Accounts werden nur in `APP_ENV=local` angelegt. Auf Produktion
-> wird nur der Admin geseedet — bitte direkt nach dem ersten Login das
-> Passwort aendern.
+```bash
+php artisan test
+```
 
-## CSV-Import-Format
+190 Feature-Tests · 595 Assertions · ca. 8 Sekunden. SQLite `:memory:` in
+`phpunit.xml`, `RefreshDatabase` pro Test.
 
-Die erste Zeile enthaelt die Spaltennamen. Folgende Spalten werden gelesen:
-
-| Spalte                          | Pflicht | Beispiel                          |
-| ------------------------------- | ------- | --------------------------------- |
-| `name`                          | ja      | `Max Mustermann`                  |
-| `email`                         | ja      | `max@example.com`                 |
-| `department`                    | nein    | `IT`                              |
-| `job_title`                     | nein    | `Developer`                       |
-| `phone`                         | nein    | `+49 30 12345`                    |
-| `employee_id`                   | nein    | `42`                              |
-| `supervisor_email`              | nein    | `chef@example.com`                |
-| `role_slugs`                    | nein    | `employee,workflow-designer`      |
-| `is_active`                     | nein    | `1` / `0` / `ja` / `nein`         |
-| `email_notifications_enabled`   | nein    | `1` / `0`                         |
-
-Existierende Konten werden anhand der E-Mail erkannt und aktualisiert
-(soft-deleted Konten werden wiederhergestellt).
-
-## Audit-Log
-
-Jeder Eintrag enthaelt `prev_hash` und `hash`, wobei der Hash ueber die
-serialisierten Felder gebildet wird. Das Model verhindert Updates und
-Deletes ueber Eloquent. Administratoren mit der Permission `audit.verify`
-koennen unter *Audit-Log → Integritaetskette pruefen* die Kette komplett
-nachvollziehen und manipulierte Datensaetze identifizieren.
-
-## Naechste Schritte
-
-Damit ist der initial geplante Funktionsumfang erreicht. Sinnvolle
-Erweiterungen:
-
-- Drag-and-Drop fuer Formularfelder (statt manueller Reihenfolge).
-- Pruefung/Test fuer M365-Credentials direkt im Backend (analog zur Test-Mail).
-- Asset-Verwaltung (z. B. Fuehrerschein als eigene Entitaet mit
-  Ablaufdatum, statt rein zeitintervallbasierter Schedules).
-- Quartz/Calendar-aehnliche Schedules (Wochentage, Uhrzeiten).
+---
 
 ## Lizenz
 
-MIT
+MIT — siehe `LICENSE`.
+
+---
+
+<div align="center">
+<sub>Gebaut fuer KMU und Vereine, die ihre Workflows behalten wollen — statt SaaS-Ketten anzuschmieden.</sub>
+</div>
