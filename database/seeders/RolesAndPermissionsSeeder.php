@@ -50,6 +50,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Dokumente / OCR-Suche
             ['slug' => 'documents.search', 'name' => 'Dokumente durchsuchen', 'group' => 'Dokumente'],
 
+            // Secrets-Vault (Tokens fuer HTTP-Knoten)
+            ['slug' => 'secrets.manage', 'name' => 'Secrets verwalten', 'group' => 'Integrationen'],
+
             // System
             ['slug' => 'system.settings', 'name' => 'Systemeinstellungen', 'group' => 'System'],
         ];

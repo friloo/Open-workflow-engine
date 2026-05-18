@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Attachment extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'attachable_type', 'attachable_id', 'original_name', 'disk',
         'path', 'mime_type', 'size', 'content_hash', 'label', 'uploaded_by',
@@ -32,10 +35,9 @@ class Attachment extends Model
         });
 
         static::deleting(function (Attachment $a) {
-            try {
-                Storage::disk($a->disk)->delete($a->path);
-            } catch (\Throwable) {
-                // best-effort
+            // Nur bei force-delete physisch loeschen (revisionssicher).
+            if ($a->isForceDeleting()) {
+                try { Storage::disk($a->disk)->delete($a->path); } catch (\Throwable) {}
             }
         });
     }

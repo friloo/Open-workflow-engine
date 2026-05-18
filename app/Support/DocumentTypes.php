@@ -60,10 +60,17 @@ class DocumentTypes
         return array_values(array_unique($allowed));
     }
 
+    /**
+     * Default-Verhalten fuer unklassifizierte Dokumente:
+     * - Admin sieht alles
+     * - sonst nur, wenn `attachments.unclassified_visible_for_all` aktiv ist
+     */
     public static function canViewType(User $user, ?string $type): bool
     {
-        if ($type === null || $type === '') return true;
         if ($user->hasRole('admin')) return true;
+        if ($type === null || $type === '') {
+            return (bool) Settings::get('attachments.unclassified_visible_for_all', false);
+        }
         return in_array($type, self::visibleForUser($user), true);
     }
 }

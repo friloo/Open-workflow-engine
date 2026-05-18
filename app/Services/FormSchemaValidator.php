@@ -21,8 +21,11 @@ class FormSchemaValidator
             $key = $field['key'] ?? null;
             if (! $key) continue;
             $attributes[$key] = $field['label'] ?? $key;
+            // show_if: Wenn Feld serverseitig nicht sichtbar ist, ignoriere
+            // die Pflichtfeld-Pruefung.
+            $visible = $this->isVisible($field, $input);
             $rule = [];
-            $rule[] = ($field['required'] ?? false) ? 'required' : 'nullable';
+            $rule[] = ($field['required'] ?? false) && $visible ? 'required' : 'nullable';
             switch ($field['type'] ?? 'text') {
                 case 'number': $rule[] = 'numeric'; break;
                 case 'date': $rule[] = 'date'; break;
@@ -71,5 +74,26 @@ class FormSchemaValidator
     public function fileFields(array $schema): array
     {
         return array_values(array_filter($schema, fn ($f) => ($f['type'] ?? null) === 'file'));
+    }
+
+    /**
+     * Wertet show_if eines Feldes gegen die Form-Daten aus.
+     */
+    private function isVisible(array $field, array $input): bool
+    {
+        $cond = $field['show_if'] ?? null;
+        if (! is_array($cond) || empty($cond['field'])) return true;
+        $actual = $input[$cond['field']] ?? null;
+        $expect = $cond['value'] ?? null;
+        return match ($cond['operator'] ?? 'eq') {
+            'eq' => (string) $actual === (string) $expect,
+            'neq' => (string) $actual !== (string) $expect,
+            'contains' => is_string($actual) && str_contains((string) $actual, (string) $expect),
+            'checked' => in_array($actual, ['1', 1, true, 'true'], true),
+            'unchecked' => ! in_array($actual, ['1', 1, true, 'true'], true),
+            'empty' => $actual === null || $actual === '',
+            'not_empty' => ! ($actual === null || $actual === ''),
+            default => true,
+        };
     }
 }

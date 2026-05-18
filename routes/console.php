@@ -25,3 +25,15 @@ Schedule::command('asset:check-due')
     ->dailyAt('06:00')
     ->withoutOverlapping()
     ->runInBackground();
+
+// OCR fuer Anhaenge, die noch nicht extrahiert wurden (best-effort, nachts).
+Schedule::command('ocr:run-pending')
+    ->dailyAt('02:30')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// DSGVO-Audit-Cleanup: monatlich IP/UA aelter als 2 Jahre anonymisieren.
+Schedule::command('audit:cleanup --days=730')
+    ->monthlyOn(1, '03:00')
+    ->withoutOverlapping()
+    ->runInBackground();

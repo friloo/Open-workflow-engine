@@ -180,6 +180,9 @@ window.designerApp = function designerApp() {
                 ...f,
                 _optionsText: Array.isArray(f.options) ? f.options.join('\n') : '',
                 options: Array.isArray(f.options) ? f.options : [],
+                show_if_field: f.show_if?.field || '',
+                show_if_op: f.show_if?.operator || 'eq',
+                show_if_value: f.show_if?.value ?? '',
             }));
 
             if (this.triggerType !== 'form') {
@@ -487,8 +490,13 @@ window.designerApp = function designerApp() {
             this.saveError = false;
 
             try {
-                // Strip the helper fields we keep only in the editor
-                const formSchemaOut = this.formSchema.map(({ _optionsText, ...rest }) => rest);
+                // Strip die Editor-Hilfsfelder und baue show_if in der Server-Form.
+                const formSchemaOut = this.formSchema.map(({ _optionsText, show_if_field, show_if_op, show_if_value, ...rest }) => {
+                    if (show_if_field) {
+                        rest.show_if = { field: show_if_field, operator: show_if_op || 'eq', value: show_if_value ?? '' };
+                    }
+                    return rest;
+                });
 
                 const payload = {
                     definition: this.editor.export(),

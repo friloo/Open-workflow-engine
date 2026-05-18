@@ -97,7 +97,6 @@ class MicrosoftGraphSync
             'department' => $row['department'] ?? null,
             'phone' => $row['mobilePhone'] ?? null,
             'is_active' => ! isset($row['accountEnabled']) || $row['accountEnabled'] === true,
-            'prefer_m365_supervisor' => true,
         ];
 
         $user = User::withTrashed()->where('m365_object_id', $oid)->first()
@@ -110,8 +109,10 @@ class MicrosoftGraphSync
             return ['updated', $user, null];
         }
 
+        // Bei NEU angelegten Benutzern: M365-Vorgesetzten bevorzugen.
         $user = User::create([
             ...$payload,
+            'prefer_m365_supervisor' => true,
             'email_verified_at' => now(),
             'email_notifications_enabled' => true,
         ]);

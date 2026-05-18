@@ -29,10 +29,21 @@
     </form>
 
     <x-card>
+        <form method="POST" action="{{ route('workflow-instances.bulk_cancel') }}" x-data="{ selected: [] }">
+        @csrf
+        @if(auth()->user()->hasAnyPermission(['workflows.design','workflows.publish']))
+            <div class="mb-3 flex items-center gap-2 text-sm" x-show="selected.length" style="display:none;">
+                <span x-text="`${selected.length} ausgewaehlt`" class="text-slate-700"></span>
+                <input type="text" name="reason" placeholder="Grund (optional)" class="flex-1 rounded-lg border-slate-300 text-sm shadow-sm focus:border-rose-500 focus:ring-rose-500">
+                <button type="submit" onclick="return confirm('Ausgewaehlte Instanzen abbrechen?')"
+                    class="inline-flex items-center justify-center rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50">Abbrechen</button>
+            </div>
+        @endif
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead>
                     <tr class="text-left text-xs font-semibold uppercase text-slate-500">
+                        <th class="py-2 pr-2"></th>
                         <th class="py-2 pr-4">#</th>
                         @if(! isset($workflow))<th class="py-2 pr-4">Workflow</th>@endif
                         <th class="py-2 pr-4">Status</th>
@@ -46,6 +57,11 @@
                     @forelse($instances as $i)
                         @php($nodeLabel = data_get($i->workflow?->currentVersion?->definition, "drawflow.Home.data.{$i->current_step_key}.data.label"))
                         <tr>
+                            <td class="py-3 pr-2">
+                                @if($i->status==='running' && auth()->user()->hasAnyPermission(['workflows.design','workflows.publish']))
+                                    <input type="checkbox" name="ids[]" value="{{ $i->id }}" x-model="selected" class="rounded border-slate-300 text-rose-600 focus:ring-rose-500">
+                                @endif
+                            </td>
                             <td class="py-3 pr-4 text-slate-700">#{{ $i->id }}</td>
                             @if(! isset($workflow))<td class="py-3 pr-4 font-medium text-slate-900">{{ $i->workflow->name }}</td>@endif
                             <td class="py-3 pr-4">
@@ -64,11 +80,12 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="{{ isset($workflow) ? 6 : 7 }}" class="py-6 text-center text-slate-500">Keine Instanzen.</td></tr>
+                        <tr><td colspan="{{ isset($workflow) ? 7 : 8 }}" class="py-6 text-center text-slate-500">Keine Instanzen.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
         <div class="mt-4">{{ $instances->links() }}</div>
+        </form>
     </x-card>
 </x-app-layout>

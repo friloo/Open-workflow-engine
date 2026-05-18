@@ -98,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vorgaenge/{instance}', [WorkflowInstanceController::class, 'show'])->name('workflow-instances.show');
     Route::post('/vorgaenge/{instance}/abbrechen', [WorkflowInstanceController::class, 'cancel'])->name('workflow-instances.cancel');
     Route::post('/vorgaenge/{instance}/kommentar', [WorkflowInstanceController::class, 'comment'])->name('workflow-instances.comment');
+    Route::post('/vorgaenge/bulk-abbrechen', [WorkflowInstanceController::class, 'bulkCancel'])->name('workflow-instances.bulk_cancel');
 });
 
 // Lookup-Listen (Kostenstellen etc.)
@@ -220,9 +221,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     });
 
     // KI-Vorschlaege brauchen nur workflows.design (oder darueber).
-    Route::middleware('permission:workflows.design')->group(function () {
+    // Rate-Limit verhindert versehentliche Kosten-Explosion.
+    Route::middleware(['permission:workflows.design', 'throttle:10,1'])->group(function () {
         Route::post('ai/suggest-http', [AIController::class, 'suggestHttp'])->name('ai.suggest_http');
         Route::post('ai/suggest-workflow', [AIController::class, 'suggestWorkflow'])->name('ai.suggest_workflow');
+    });
+
+    Route::middleware('permission:secrets.manage')->group(function () {
+        Route::get('secrets', [\App\Http\Controllers\Admin\SecretController::class, 'index'])->name('secrets.index');
+        Route::post('secrets', [\App\Http\Controllers\Admin\SecretController::class, 'store'])->name('secrets.store');
+        Route::put('secrets/{secret}', [\App\Http\Controllers\Admin\SecretController::class, 'update'])->name('secrets.update');
+        Route::delete('secrets/{secret}', [\App\Http\Controllers\Admin\SecretController::class, 'destroy'])->name('secrets.destroy');
     });
 
     Route::middleware('permission:webhooks.manage')->group(function () {

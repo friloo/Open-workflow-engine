@@ -155,12 +155,19 @@ class WorkflowEngine
             throw new \RuntimeException('Aufgabe wurde bereits abgeschlossen.');
         }
 
-        $step->update([
-            'completed_at' => now(),
-            'completed_by' => $userId,
-            'decision' => $decision,
-            'comment' => $comment,
-        ]);
+        DB::transaction(function () use ($step, $decision, $comment, $userId) {
+            $step->update([
+                'completed_at' => now(),
+                'completed_by' => $userId,
+                'decision' => $decision,
+                'comment' => $comment,
+            ]);
+            $this->continueAfterStep($step, $decision, $comment, $userId);
+        });
+    }
+
+    private function continueAfterStep(WorkflowStepExecution $step, string $decision, ?string $comment, ?int $userId): void
+    {
 
         $instance = $step->instance()->firstOrFail();
         $version = $instance->version()->firstOrFail();
@@ -189,9 +196,8 @@ class WorkflowEngine
         if ($next) {
             $this->run($instance, $next);
         } else {
-            // No edge from this output: treat as termination.
             $instance->update([
-                'status' => $decision === 'rejected' ? WorkflowInstance::STATUS_COMPLETED : WorkflowInstance::STATUS_COMPLETED,
+                'status' => WorkflowInstance::STATUS_COMPLETED,
                 'completed_at' => now(),
                 'current_step_key' => null,
             ]);
@@ -343,6 +349,17 @@ class WorkflowEngine
             return false;
         }
 
+        // SSRF-Schutz: keine internen IPs, keine file:// und Co.
+        try {
+            \App\Support\SafeHttpUrl::assertSafe($url);
+        } catch (\Throwable $e) {
+            $this->audit->log('workflow.http.blocked', $instance, null, [
+                'url' => \App\Support\SafeHttpUrl::redactForLog($url),
+                'reason' => $e->getMessage(),
+            ], "HTTP-Knoten blockiert: {$e->getMessage()}");
+            return false;
+        }
+
         $headers = [];
         foreach (($d['headers'] ?? []) as $h) {
             $k = trim((string) ($h['key'] ?? ''));
@@ -389,8 +406,9 @@ class WorkflowEngine
         $status = $response->status();
         $ok = $response->successful();
 
-        // Response-Mapping
-        $updates = [];
+        // Response-Mapping in response.<save_as> (Namespace verhindert,
+        // dass reservierte Felder wie subject_user_id ueberschrieben werden).
+        $mapped = [];
         $json = null;
         try { $json = $response->json(); } catch (\Throwable) {}
         foreach (($d['response_mapping'] ?? []) as $m) {
@@ -398,15 +416,25 @@ class WorkflowEngine
             $path = trim((string) ($m['path'] ?? ''));
             if ($saveAs === '') continue;
             $value = $path === '' || $path === '$' ? $json : data_get($json ?? [], $path);
-            $updates[$saveAs] = $value;
+            $mapped[$saveAs] = $value;
         }
-        if ($updates) {
-            $instance->update(['data' => array_merge($instance->data ?? [], $updates)]);
+        if ($mapped) {
+            $data = $instance->data ?? [];
+            $data['response'] = array_merge($data['response'] ?? [], $mapped);
+            // Kompatibilitaet: zusaetzlich top-level (deprecated, aber wird in
+            // Templates noch erwartet). Ueberschreibt reservierte Felder nicht.
+            foreach ($mapped as $k => $v) {
+                if (! array_key_exists($k, ['subject_user_id', 'subject_user_email', 'subject_user_name', 'asset_id'])) {
+                    $data[$k] = $v;
+                }
+            }
+            $instance->update(['data' => $data]);
         }
 
+        $logUrl = \App\Support\SafeHttpUrl::redactForLog($url);
         $this->audit->log($ok ? 'workflow.http.ok' : 'workflow.http.failed', $instance, null, [
-            'url' => $url, 'method' => $method, 'status' => $status, 'mapped' => array_keys($updates),
-        ], "HTTP {$method} {$url} -> {$status}");
+            'url' => $logUrl, 'method' => $method, 'status' => $status, 'mapped' => array_keys($mapped),
+        ], "HTTP {$method} {$logUrl} -> {$status}");
 
         return $ok;
     }
@@ -701,8 +729,8 @@ class WorkflowEngine
     }
 
     /**
-     * Erstellt den Platzhalter-Kontext aus Instanz-Daten, Antragsteller-
-     * und Subject-User-Custom-Feldern.
+     * Erstellt den Platzhalter-Kontext aus Instanz-Daten, Antragsteller-,
+     * Subject-User-Custom-Feldern und Secrets ({{ secret.<key> }}).
      */
     private function buildContext(WorkflowInstance $instance): array
     {
@@ -722,6 +750,8 @@ class WorkflowEngine
                 'subject_user_name' => $subject?->name ?? '',
                 'subject_user_email' => $subject?->email ?? '',
                 'subject_user_custom' => $subject?->custom_fields ?? [],
+                'secret' => \App\Models\Secret::asMap(),
+                'response' => $instance->data['response'] ?? [],
             ],
         );
     }

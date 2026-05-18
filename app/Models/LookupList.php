@@ -53,7 +53,11 @@ class LookupList extends Model
     /** @return array<string,mixed>|null */
     public function lookup(string $key): ?array
     {
-        $entry = $this->entries()->where('key_value', $key)->first();
+        $key = trim($key);
+        if ($key === '') return null;
+        // Erst exakte Suche, dann case-insensitive Fallback
+        $entry = $this->entries()->where('key_value', $key)->first()
+            ?? $this->entries()->whereRaw('LOWER(key_value) = ?', [mb_strtolower($key)])->first();
         return $entry?->data;
     }
 

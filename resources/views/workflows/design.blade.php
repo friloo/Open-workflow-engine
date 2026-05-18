@@ -567,6 +567,27 @@
                                         <textarea x-model="field._optionsText" @input="field.options = field._optionsText.split('\n').map(s => s.trim()).filter(Boolean)" rows="3" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                                     </div>
                                 </template>
+                                <div class="mt-2 rounded-md bg-slate-50 p-2">
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Nur anzeigen wenn (optional)</label>
+                                    <div class="grid grid-cols-3 gap-1">
+                                        <select x-model="field.show_if_field" class="rounded border-slate-300 text-xs">
+                                            <option value="">— immer zeigen —</option>
+                                            <template x-for="f in formSchema.filter(f => f.key !== field.key)" :key="f.key">
+                                                <option :value="f.key" x-text="f.label || f.key"></option>
+                                            </template>
+                                        </select>
+                                        <select x-model="field.show_if_op" class="rounded border-slate-300 text-xs">
+                                            <option value="eq">ist gleich</option>
+                                            <option value="neq">ist ungleich</option>
+                                            <option value="contains">enthaelt</option>
+                                            <option value="checked">ist angekreuzt</option>
+                                            <option value="unchecked">nicht angekreuzt</option>
+                                            <option value="not_empty">nicht leer</option>
+                                            <option value="empty">leer</option>
+                                        </select>
+                                        <input type="text" x-model="field.show_if_value" placeholder="Wert" class="rounded border-slate-300 text-xs">
+                                    </div>
+                                </div>
                             </div>
                         </template>
                         <button type="button" @click="addField()" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Feld hinzufuegen</button>

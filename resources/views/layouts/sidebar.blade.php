@@ -44,6 +44,7 @@
                 ['name' => 'Audit-Log', 'route' => 'admin.audit.index', 'icon' => 'list', 'active' => request()->routeIs('admin.audit.*'), 'when' => $user?->hasPermission('audit.view')],
                 ['name' => 'Systemeinstellungen', 'route' => 'admin.settings.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.settings.*'), 'when' => $user?->hasPermission('system.settings')],
                 ['name' => 'Webhooks', 'route' => 'admin.webhooks.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.webhooks.*'), 'when' => $user?->hasPermission('webhooks.manage')],
+                ['name' => 'Secrets', 'route' => 'admin.secrets.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.secrets.*'), 'when' => $user?->hasPermission('secrets.manage')],
             ],
         ],
     ];

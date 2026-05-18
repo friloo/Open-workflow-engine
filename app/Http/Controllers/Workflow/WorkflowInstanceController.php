@@ -26,7 +26,10 @@ class WorkflowInstanceController extends Controller
             ->when($request->get('status'), fn ($q, $s) => $q->where('status', $s))
             ->when($request->get('workflow_id'), fn ($q, $w) => $q->where('workflow_id', $w))
             ->when($request->get('q'), function ($q, $term) {
-                $q->whereHas('workflow', fn ($qq) => $qq->where('name', 'like', "%{$term}%"));
+                $q->where(function ($qq) use ($term) {
+                    $qq->whereHas('workflow', fn ($w) => $w->where('name', 'like', "%{$term}%"))
+                       ->orWhere('data', 'like', "%{$term}%");
+                });
             })
             ->orderByDesc('id');
 
@@ -111,6 +114,26 @@ class WorkflowInstanceController extends Controller
 
         return redirect()->route('workflow-instances.show', $instance)
             ->with('status', 'Workflow-Instanz abgebrochen.');
+    }
+
+    public function bulkCancel(Request $request): RedirectResponse
+    {
+        if (! $request->user()->hasAnyPermission(['workflows.design', 'workflows.publish'])) abort(403);
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+        $instances = WorkflowInstance::whereIn('id', $data['ids'])
+            ->where('status', WorkflowInstance::STATUS_RUNNING)->get();
+        $count = 0;
+        foreach ($instances as $i) {
+            try {
+                $this->engine->cancelInstance($i, $data['reason'] ?? 'Bulk-Abbruch', $request->user()->id);
+                $count++;
+            } catch (\Throwable) {}
+        }
+        return back()->with('status', "{$count} Instanzen abgebrochen.");
     }
 
     public function comment(Request $request, WorkflowInstance $instance): RedirectResponse

@@ -25,8 +25,17 @@ class DocumentController extends Controller
 
         // Rollenbasierte Berechtigung auf Dokumenttypen
         if (! $allowAll) {
-            $query->where(function ($w) use ($visibleTypes) {
-                $w->whereNull('document_type')->orWhereIn('document_type', $visibleTypes);
+            $includeUnclassified = (bool) \App\Support\Settings::get('attachments.unclassified_visible_for_all', false);
+            $query->where(function ($w) use ($visibleTypes, $includeUnclassified) {
+                if ($includeUnclassified) {
+                    $w->whereNull('document_type');
+                }
+                if (! empty($visibleTypes)) {
+                    $w->orWhereIn('document_type', $visibleTypes);
+                }
+                if (! $includeUnclassified && empty($visibleTypes)) {
+                    $w->whereRaw('1=0');
+                }
             });
         }
 

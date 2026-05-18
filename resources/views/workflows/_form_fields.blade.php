@@ -1,12 +1,35 @@
-@php($schema = $schema ?? [])
+@php
+    $schema = $schema ?? [];
+    // Initiale Form-Daten als Alpine-Store fuer show_if-Bedingungen
+    $initialData = collect($schema)->mapWithKeys(fn ($f) => [$f['key'] => old($f['key'], null)])->all();
+@endphp
+<div x-data='@json(["d" => $initialData])'>
 @foreach($schema as $field)
-    @php($key = $field['key'])
-    @php($label = $field['label'] ?? $key)
-    @php($type = $field['type'] ?? 'text')
-    @php($required = ! empty($field['required']))
-    @php($options = $field['options'] ?? [])
-    @php($old = old($key))
-    <div>
+    @php
+        $key = $field['key'];
+        $label = $field['label'] ?? $key;
+        $type = $field['type'] ?? 'text';
+        $required = ! empty($field['required']);
+        $options = $field['options'] ?? [];
+        $old = old($key);
+        $showIf = $field['show_if'] ?? null;
+        $xShow = 'true';
+        if (is_array($showIf) && ! empty($showIf['field'])) {
+            $f = json_encode($showIf['field']);
+            $v = json_encode($showIf['value'] ?? '');
+            $op = $showIf['operator'] ?? 'eq';
+            $xShow = match ($op) {
+                'neq' => "d[{$f}] != {$v}",
+                'contains' => "(d[{$f}] || '').toString().includes({$v})",
+                'checked' => "['1', 1, true, 'true'].includes(d[{$f}])",
+                'unchecked' => "!['1', 1, true, 'true'].includes(d[{$f}])",
+                'empty' => "!d[{$f}]",
+                'not_empty' => "!!d[{$f}]",
+                default => "d[{$f}] == {$v}",
+            };
+        }
+    @endphp
+    <div x-show="{{ $xShow }}" style="display:none;">
         <label for="f-{{ $key }}" class="block text-sm font-medium text-slate-700 mb-1">
             {{ $label }}@if($required) <span class="text-rose-500">*</span>@endif
         </label>
@@ -14,21 +37,22 @@
         @switch($type)
             @case('textarea')
                 <textarea id="f-{{ $key }}" name="{{ $key }}" rows="4"
+                    x-model="d['{{ $key }}']"
                     @if($required) required @endif
                     class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ $old }}</textarea>
                 @break
             @case('number')
-                <input id="f-{{ $key }}" name="{{ $key }}" type="number" value="{{ $old }}"
+                <input id="f-{{ $key }}" name="{{ $key }}" type="number" value="{{ $old }}" x-model="d['{{ $key }}']"
                     @if($required) required @endif
                     class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 @break
             @case('date')
-                <input id="f-{{ $key }}" name="{{ $key }}" type="date" value="{{ $old }}"
+                <input id="f-{{ $key }}" name="{{ $key }}" type="date" value="{{ $old }}" x-model="d['{{ $key }}']"
                     @if($required) required @endif
                     class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 @break
             @case('select')
-                <select id="f-{{ $key }}" name="{{ $key }}"
+                <select id="f-{{ $key }}" name="{{ $key }}" x-model="d['{{ $key }}']"
                     @if($required) required @endif
                     class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <option value="">— bitte waehlen —</option>
@@ -41,7 +65,7 @@
                 <div class="space-y-1">
                     @foreach($options as $opt)
                         <label class="flex items-center gap-2 text-sm">
-                            <input type="radio" name="{{ $key }}" value="{{ $opt }}" @checked($old==$opt) @if($required) required @endif
+                            <input type="radio" name="{{ $key }}" value="{{ $opt }}" x-model="d['{{ $key }}']" @checked($old==$opt) @if($required) required @endif
                                 class="border-slate-300 text-indigo-600 focus:ring-indigo-500">
                             {{ $opt }}
                         </label>
@@ -51,7 +75,7 @@
             @case('checkbox')
                 <label class="flex items-center gap-2 text-sm">
                     <input type="hidden" name="{{ $key }}" value="0">
-                    <input type="checkbox" name="{{ $key }}" value="1" @checked($old=='1')
+                    <input type="checkbox" name="{{ $key }}" value="1" x-model="d['{{ $key }}']" @checked($old=='1')
                         class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                     {{ $label }}
                 </label>
@@ -64,7 +88,7 @@
                 <p class="mt-1 text-xs text-slate-500">PDF, Bild oder Office-Dokument (max. 15 MB).</p>
                 @break
             @default
-                <input id="f-{{ $key }}" name="{{ $key }}" type="text" value="{{ $old }}"
+                <input id="f-{{ $key }}" name="{{ $key }}" type="text" value="{{ $old }}" x-model="d['{{ $key }}']"
                     @if($required) required @endif
                     class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
         @endswitch
@@ -74,3 +98,4 @@
 @endforeach
 
 <input type="text" name="_honeypot" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+</div>
