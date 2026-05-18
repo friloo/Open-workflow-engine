@@ -66,6 +66,22 @@ Vor Ablauf bekommt der Empfaenger eine Erinnerungsmail (24 Stunden vorher).
 Wird nach Ablauf nicht reagiert, eskaliert die Aufgabe an die konfigurierte
 Eskalations-Person/-Rolle/-Liste.
 
+Zusaetzlich versendet `tasks:remind` (taeglich 09:00) eine Erinnerung an
+Empfaenger, deren Aufgabe laenger als drei Tage (Default) offen ist.
+Konfigurierbar ueber Settings-Keys `tasks.reminder_after_days` und
+`tasks.reminder_interval_days`.
+
+## Pflichtkommentar bei Genehmigung / Ablehnung
+
+Pro Genehmigungs-Knoten kannst du eine Begruendung erzwingen:
+
+- **Kommentar bei Genehmigung verpflichtend**
+- **Begruendung bei Ablehnung verpflichtend**
+
+Wird auch bei *Genehmigung per Mail* respektiert — wer ohne
+Pflichtkommentar absendet, bekommt einen Fehler statt einer
+Speicherung.
+
 ## Versionierung
 
 Jeder Klick auf **Speichern** legt eine neue, unveraenderbare Version an.

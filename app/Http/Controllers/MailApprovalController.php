@@ -49,8 +49,19 @@ class MailApprovalController extends Controller
         $decision = $request->query('decision');
         abort_unless(in_array($decision, ['approved', 'rejected'], true), 400);
 
+        $node = $step->instance->version->definition['drawflow']['Home']['data'][$step->step_key] ?? null;
+        $requireOnApproval = (bool) data_get($node, 'data.require_comment_on_approval', false);
+        $requireOnRejection = (bool) data_get($node, 'data.require_comment_on_rejection', false);
+        $commentRule = 'nullable';
+        if ($decision === 'approved' && $requireOnApproval) $commentRule = 'required';
+        if ($decision === 'rejected' && $requireOnRejection) $commentRule = 'required';
+
         $data = $request->validate([
-            'comment' => ['nullable', 'string', 'max:2000'],
+            'comment' => [$commentRule, 'string', 'max:2000'],
+        ], [
+            'comment.required' => $decision === 'rejected'
+                ? 'Bitte gib eine Begruendung fuer die Ablehnung ein.'
+                : 'Bitte gib einen Kommentar zur Genehmigung ein.',
         ]);
 
         $this->engine->completeStep($step, $decision, $data['comment'] ?? null, $user->id);

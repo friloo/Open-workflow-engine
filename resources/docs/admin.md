@@ -112,6 +112,8 @@ Damit laufen automatisch:
 - `audit:cleanup --days=730` (monatlich) — DSGVO-Anonymisierung
 - `documents:retention-check` (taeglich 03:15) — Aufbewahrungsregeln
 - `mail:fetch` (alle 5 Minuten) — IMAP-Postfaecher abrufen
+- `tasks:remind` (taeglich 09:00) — Erinnerung an offene Aufgaben
+- `backup:run` (taeglich 01:30) — Tagessicherung + Retention
 - `shares:review` (taeglich 07:00) — Sharing-Link-Pruefungs-Mails
 - Scheduler-Sentinel (jede Minute) — Health-Check weiss damit, dass
   der Cron laeuft

@@ -117,6 +117,19 @@ Dateien ohne Auto-Workflow am Postfach. Pro Zeile siehst du die
 erkannten Felder als Chips und kannst direkt einen Workflow starten.
 Die Felder wandern als Kontext in den Workflow (`{{ doc.* }}`).
 
+**Bulk-Aktion**: oben in der Aktionsleiste mehrere Zeilen anhaken,
+einen Workflow waehlen und auf *Fuer ausgewaehlte starten* klicken —
+fuer jeden Anhang wird eine eigene Instanz angelegt.
+
+## CSV-Export
+
+Mit den aktuell aktiven Filtern (Volltext, Typ, Status, erkannte
+Felder) kann die Ergebnisliste direkt als CSV heruntergeladen werden
+(*Als CSV exportieren* in der Aktionsleiste). Spalten: ID, Dateiname,
+Dokumenttyp, Beschriftung, MIME, Groesse, Upload-Datum, Hochgeladen
+von, OCR-Status — plus pro Schema-Feld eine Spalte `feld_<key>`.
+Trennzeichen `;`, UTF-8 mit BOM (Excel-kompatibel).
+
 ## Sicherheit
 
 - SHA-256 fuer jede Datei beim Upload (`content_hash`).

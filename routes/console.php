@@ -62,3 +62,15 @@ Schedule::command('mail:fetch')
     ->everyFiveMinutes()
     ->withoutOverlapping(10)
     ->runInBackground();
+
+// Reminder fuer offene Aufgaben: taeglich 09:00.
+Schedule::command('tasks:remind')
+    ->dailyAt('09:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Tagessicherung: jede Nacht 01:30. Retention via Settings.
+Schedule::command('backup:run')
+    ->dailyAt('01:30')
+    ->withoutOverlapping(120)
+    ->runInBackground();

@@ -668,7 +668,7 @@ class WorkflowEngine
     }
 
     /** @return \Illuminate\Support\Collection<User> */
-    private function stepRecipients(WorkflowStepExecution $step): \Illuminate\Support\Collection
+    public function stepRecipients(WorkflowStepExecution $step): \Illuminate\Support\Collection
     {
         if ($step->assigned_to_user_id) {
             $u = User::find($step->assigned_to_user_id);

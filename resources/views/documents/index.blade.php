@@ -15,6 +15,7 @@
 
     <div class="mb-4 flex items-center justify-end gap-3">
         <a href="{{ route('documents.inbox') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Postkorb</a>
+        <a href="{{ route('documents.export_csv', request()->query()) }}" class="text-sm text-indigo-600 hover:text-indigo-500">Als CSV exportieren</a>
         <a href="{{ route('documents.bulk') }}"><x-primary-button type="button">Bulk-Upload</x-primary-button></a>
     </div>
 

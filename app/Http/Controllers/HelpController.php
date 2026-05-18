@@ -36,6 +36,7 @@ class HelpController extends Controller
         'mail-approval' => 'Genehmigung per Mail',
         'health' => 'System-Health',
         'update' => 'System-Update',
+        'backup' => 'Backup & Restore',
         'secrets' => 'Secrets-Vault',
         'webhooks' => 'Webhooks',
         'm365' => 'Microsoft 365',

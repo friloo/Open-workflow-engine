@@ -207,6 +207,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'permission:documents.search'])->prefix('dokumente')->name('documents.')->group(function () {
     Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
     Route::get('postkorb', [\App\Http\Controllers\DocumentController::class, 'inbox'])->name('inbox');
+    Route::post('postkorb/bulk-start', [\App\Http\Controllers\DocumentController::class, 'bulkStartWorkflow'])->name('inbox.bulk_start');
+    Route::get('export.csv', [\App\Http\Controllers\DocumentController::class, 'exportCsv'])->name('export_csv');
     Route::get('upload', [\App\Http\Controllers\DocumentController::class, 'bulkUploadShow'])->name('bulk');
     Route::post('upload', [\App\Http\Controllers\DocumentController::class, 'bulkUploadStore'])->name('bulk.store');
     Route::get('{attachment}', [\App\Http\Controllers\DocumentController::class, 'show'])->name('show');
@@ -311,6 +313,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::middleware('permission:system.health')->group(function () {
         Route::get('health', [\App\Http\Controllers\Admin\HealthController::class, 'index'])->name('health.index');
         Route::get('health.json', [\App\Http\Controllers\Admin\HealthController::class, 'json'])->name('health.json');
+    });
+
+    Route::middleware('permission:system.backup')->group(function () {
+        Route::get('backups', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('backups.index');
+        Route::post('backups', [\App\Http\Controllers\Admin\BackupController::class, 'store'])->name('backups.store');
+        Route::get('backups/{file}/download', [\App\Http\Controllers\Admin\BackupController::class, 'download'])->name('backups.download');
+        Route::delete('backups/{file}', [\App\Http\Controllers\Admin\BackupController::class, 'destroy'])->name('backups.destroy');
+        Route::post('backups/retention', [\App\Http\Controllers\Admin\BackupController::class, 'updateRetention'])->name('backups.retention');
     });
 
     Route::middleware('permission:system.update')->group(function () {

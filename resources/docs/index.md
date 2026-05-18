@@ -94,6 +94,7 @@ Siehe Abschnitt **Erste Schritte**.
 - Administration — Benutzer, Rollen, Cron, Custom Fields, Branding, DSGVO
 - System-Health — Statusseite + JSON-Endpoint fuer Monitoring
 - System-Update — Update aus der UI, Channel-Factory, atomar
+- **Backup & Restore** — taegliche ZIP-Sicherung, Restore via CLI
 - Zwei-Faktor-Anmeldung — TOTP per Authenticator-App
 - Revisionssicherheit — Audit-Hashkette, immutable Versionen, Datei-Hash
 - Platzhalter-Referenz — alle verfuegbaren `{{ ... }}`-Variablen

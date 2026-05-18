@@ -50,6 +50,7 @@
                 ['name' => 'E-Mail-Postfaecher', 'route' => 'admin.mailboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.mailboxes.*'), 'when' => $user?->hasPermission('mailboxes.manage')],
                 ['name' => 'System-Health', 'route' => 'admin.health.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.health.*'), 'when' => $user?->hasPermission('system.health')],
                 ['name' => 'System-Update', 'route' => 'admin.update.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.update.*'), 'when' => $user?->hasPermission('system.update')],
+                ['name' => 'Backups', 'route' => 'admin.backups.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.backups.*'), 'when' => $user?->hasPermission('system.backup')],
             ],
         ],
     ];

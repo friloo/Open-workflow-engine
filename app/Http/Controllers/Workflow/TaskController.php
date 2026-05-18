@@ -78,10 +78,27 @@ class TaskController extends Controller
     {
         $this->authorizeStep($step, $request->user());
 
+        // Bedingte Pflichtfelder aus dem Approval-Knoten lesen.
+        $node = $step->instance->version->definition['drawflow']['Home']['data'][$step->step_key] ?? null;
+        $requireOnApproval = (bool) data_get($node, 'data.require_comment_on_approval', false);
+        $requireOnRejection = (bool) data_get($node, 'data.require_comment_on_rejection', false);
+
+        $decision = $request->input('decision');
+        $commentRule = 'nullable';
+        if ($decision === 'approved' && $requireOnApproval) {
+            $commentRule = 'required';
+        } elseif ($decision === 'rejected' && $requireOnRejection) {
+            $commentRule = 'required';
+        }
+
         $data = $request->validate([
             'decision' => ['required', 'in:approved,rejected,forwarded'],
-            'comment' => ['nullable', 'string', 'max:2000'],
+            'comment' => [$commentRule, 'string', 'max:2000'],
             'forward_user_id' => ['nullable', 'integer', 'exists:users,id'],
+        ], [
+            'comment.required' => $decision === 'rejected'
+                ? 'Bitte gib eine Begruendung fuer die Ablehnung ein.'
+                : 'Bitte gib einen Kommentar zur Genehmigung ein.',
         ]);
 
         if ($data['decision'] === 'forwarded') {

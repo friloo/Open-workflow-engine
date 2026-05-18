@@ -108,6 +108,111 @@ class DocumentController extends Controller
     }
 
     /**
+     * Exportiert die aktuelle Suche (gleiche Filter wie /dokumente) als
+     * CSV. Inkl. erkannter Felder, falls ein Dokumenttyp gewaehlt ist.
+     */
+    public function exportCsv(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $user = $request->user();
+        $q = trim((string) $request->get('q', ''));
+        $type = $request->get('type');
+        $status = $request->get('status');
+        $fieldFilters = (array) $request->get('fields', []);
+
+        $visibleTypes = DocumentTypes::visibleForUser($user);
+        $allowAll = $user->hasRole('admin');
+
+        $query = Attachment::with('uploader')->where('is_current_version', true)->orderByDesc('id');
+
+        if (! $allowAll) {
+            $includeUnclassified = (bool) \App\Support\Settings::get('attachments.unclassified_visible_for_all', false);
+            $query->where(function ($w) use ($visibleTypes, $includeUnclassified) {
+                if ($includeUnclassified) $w->whereNull('document_type');
+                if (! empty($visibleTypes)) $w->orWhereIn('document_type', $visibleTypes);
+                if (! $includeUnclassified && empty($visibleTypes)) $w->whereRaw('1=0');
+            });
+        }
+        if ($type) {
+            if (! $allowAll && ! in_array($type, $visibleTypes, true)) abort(403);
+            $query->where('document_type', $type);
+        }
+        if ($status) $query->where('ocr_status', $status);
+        if ($q !== '') {
+            $query->where(function ($qq) use ($q) {
+                $qq->where('original_name', 'like', "%{$q}%")
+                   ->orWhere('label', 'like', "%{$q}%")
+                   ->orWhere('ocr_text', 'like', "%{$q}%");
+            });
+        }
+
+        $schema = $type ? \App\Support\DocumentFieldSchema::forType((string) $type) : [];
+        if ($schema && $fieldFilters) {
+            $allowedKeys = array_column($schema, 'key');
+            $byKey = collect($schema)->keyBy('key');
+            foreach ($fieldFilters as $key => $rawValue) {
+                if (! in_array($key, $allowedKeys, true)) continue;
+                $field = $byKey[$key];
+                if (is_array($rawValue)) {
+                    $from = trim((string) ($rawValue['from'] ?? ''));
+                    $to = trim((string) ($rawValue['to'] ?? ''));
+                    if ($from !== '') $query->where('indexed_fields->'.$key, '>=', $from);
+                    if ($to !== '') $query->where('indexed_fields->'.$key, '<=', $to);
+                } else {
+                    $value = trim((string) $rawValue);
+                    if ($value === '') continue;
+                    if (in_array($field['type'], ['string', 'iban', 'email'], true)) {
+                        $query->where('indexed_fields->'.$key, 'like', '%'.$value.'%');
+                    } else {
+                        $query->where('indexed_fields->'.$key, $value);
+                    }
+                }
+            }
+        }
+
+        $fieldKeys = array_column($schema, 'key');
+        $filename = 'dokumente-export-'.now()->format('Y-m-d-Hi').'.csv';
+
+        $this->audit->log('documents.exported', null, null, [
+            'filters' => array_filter(['q' => $q, 'type' => $type, 'status' => $status, 'fields' => $fieldFilters]),
+        ], "CSV-Export Dokumente ({$user->email})", $user->id);
+
+        return response()->streamDownload(function () use ($query, $fieldKeys) {
+            $out = fopen('php://output', 'w');
+            // BOM fuer Excel
+            fwrite($out, "\xEF\xBB\xBF");
+            $header = ['id', 'dateiname', 'dokumenttyp', 'beschriftung',
+                'mime', 'groesse_bytes', 'hochgeladen_am', 'hochgeladen_von',
+                'ocr_status'];
+            foreach ($fieldKeys as $k) {
+                $header[] = 'feld_'.$k;
+            }
+            fputcsv($out, $header, ';');
+
+            $query->chunk(500, function ($chunk) use ($out, $fieldKeys) {
+                foreach ($chunk as $att) {
+                    $row = [
+                        $att->id,
+                        $att->original_name,
+                        $att->document_type,
+                        $att->label,
+                        $att->mime_type,
+                        $att->size,
+                        $att->created_at?->format('Y-m-d H:i'),
+                        $att->uploader?->email,
+                        $att->ocr_status,
+                    ];
+                    $fields = (array) ($att->indexed_fields ?? []);
+                    foreach ($fieldKeys as $k) {
+                        $row[] = $fields[$k] ?? '';
+                    }
+                    fputcsv($out, $row, ';');
+                }
+            });
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
      * Postkorb: alle Anhaenge, die noch keinem Objekt angehaengt sind
      * (z. B. via IMAP eingegangen, ohne Workflow-Trigger). Pro Zeile kann
      * ein Workflow manuell gestartet werden — die erkannten Felder
@@ -135,6 +240,51 @@ class DocumentController extends Controller
             'documents' => $query->paginate(25),
             'workflows' => $workflows,
         ]);
+    }
+
+    public function bulkStartWorkflow(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'workflow_id' => ['required', 'integer', 'exists:workflows,id'],
+            'attachment_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'attachment_ids.*' => ['integer', 'exists:attachments,id'],
+        ]);
+
+        $workflow = \App\Models\Workflow::findOrFail($data['workflow_id']);
+        if ($workflow->status !== \App\Models\Workflow::STATUS_ACTIVE) {
+            return back()->withErrors(['workflow_id' => 'Workflow ist nicht aktiv.']);
+        }
+
+        $attachments = Attachment::whereIn('id', $data['attachment_ids'])
+            ->whereNull('attachable_type')
+            ->where('is_current_version', true)
+            ->get();
+
+        $started = 0; $skipped = 0;
+        foreach ($attachments as $att) {
+            if (! DocumentTypes::canViewType($request->user(), $att->document_type)) {
+                $skipped++;
+                continue;
+            }
+            $form = array_merge((array) ($att->indexed_fields ?? []), [
+                'doc_attachment_id' => $att->id,
+                'doc_original_name' => $att->original_name,
+                'doc_document_type' => $att->document_type,
+            ]);
+            $instance = app(\App\Services\WorkflowEngine::class)->start($workflow, $form, $request->user());
+            $att->update([
+                'attachable_type' => $instance->getMorphClass(),
+                'attachable_id' => $instance->id,
+            ]);
+            $this->audit->log('document.workflow.started', $att, null, [
+                'workflow_id' => $workflow->id, 'instance_id' => $instance->id, 'via' => 'bulk',
+            ], "Workflow {$workflow->name} aus Postkorb gestartet (#{$att->id}, bulk)");
+            $started++;
+        }
+
+        return redirect()->route('documents.inbox')
+            ->with('status', "Workflow {$workflow->name}: {$started} gestartet"
+                .($skipped ? ", {$skipped} ohne Berechtigung uebersprungen" : '').'.');
     }
 
     public function startWorkflow(Request $request, Attachment $attachment): RedirectResponse

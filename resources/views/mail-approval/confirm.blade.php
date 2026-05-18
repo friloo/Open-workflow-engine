@@ -42,11 +42,27 @@
         </details>
     @endif
 
+    @php($reqApprove = (bool) data_get($node, 'data.require_comment_on_approval', false))
+    @php($reqReject = (bool) data_get($node, 'data.require_comment_on_rejection', false))
+    @php($commentRequired = ($isApprove && $reqApprove) || (! $isApprove && $reqReject))
+
+    @if ($errors->any())
+        <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            <ul class="list-disc ps-5 space-y-1">
+                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+            </ul>
+        </div>
+    @endif
+
     <form method="POST" action="{{ $fullUrl }}" class="space-y-4">
         @csrf
         <div>
-            <label for="comment" class="block text-sm font-medium text-slate-700">Kommentar (optional)</label>
-            <textarea id="comment" name="comment" rows="3" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-{{ $color }}-500 focus:ring-{{ $color }}-500"></textarea>
+            <label for="comment" class="block text-sm font-medium text-slate-700">
+                {{ $isApprove ? 'Kommentar' : 'Begruendung' }}
+                @if($commentRequired)<span class="text-rose-600">*</span>@else (optional)@endif
+            </label>
+            <textarea id="comment" name="comment" rows="3" @if($commentRequired) required @endif
+                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-{{ $color }}-500 focus:ring-{{ $color }}-500"></textarea>
         </div>
         <button type="submit"
                 class="inline-flex w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90

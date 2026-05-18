@@ -87,10 +87,18 @@
                         <x-input-error :messages="$errors->get('forward_user_id')" />
                     </div>
 
+                    @php($reqApprove = (bool) data_get($node, 'data.require_comment_on_approval', false))
+                    @php($reqReject = (bool) data_get($node, 'data.require_comment_on_rejection', false))
                     <div>
-                        <label for="comment" class="block text-sm font-medium text-slate-700 mb-1">Kommentar (optional)</label>
+                        <label for="comment" class="block text-sm font-medium text-slate-700 mb-1">
+                            <span x-show="decision === 'approved'">Kommentar @if($reqApprove)<span class="text-rose-600">*</span>@else(optional)@endif</span>
+                            <span x-show="decision === 'rejected'">Begruendung @if($reqReject)<span class="text-rose-600">*</span>@else(optional)@endif</span>
+                            <span x-show="decision !== 'approved' && decision !== 'rejected'">Kommentar (optional)</span>
+                        </label>
                         <textarea id="comment" name="comment" rows="3"
+                            x-bind:required="(decision === 'approved' && {{ $reqApprove ? 'true' : 'false' }}) || (decision === 'rejected' && {{ $reqReject ? 'true' : 'false' }})"
                             class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                        @error('comment')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div class="flex justify-end gap-3">

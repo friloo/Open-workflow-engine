@@ -270,6 +270,16 @@
                                             <input type="checkbox" x-model="selectedNode.data.allow_forward" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                                             Empfaenger darf an dritte Person weiterleiten
                                         </label>
+                                        <div class="rounded-md bg-slate-50 p-2 space-y-1">
+                                            <label class="flex items-center gap-2 text-xs text-slate-700">
+                                                <input type="checkbox" x-model="selectedNode.data.require_comment_on_approval" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                Kommentar bei Genehmigung verpflichtend
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs text-slate-700">
+                                                <input type="checkbox" x-model="selectedNode.data.require_comment_on_rejection" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                Begruendung bei Ablehnung verpflichtend
+                                            </label>
+                                        </div>
                                         <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgaenge: <strong>Genehmigt</strong> / <strong>Abgelehnt</strong> <span x-show="selectedNode.data.allow_forward">/ <strong>Weitergeleitet</strong></span></p>
                                     </div>
                                 </template>
