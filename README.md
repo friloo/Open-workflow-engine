@@ -23,7 +23,7 @@ Eingehende Rechnung per Mail → Kostenstelle automatisch erkannt → richtige P
 [![Revisionssicher](https://img.shields.io/badge/Revisionssicher-SHA--256-F59E0B?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-475569?style=flat-square)]()
 
-[**Was kann es?**](#-was-owe-kann) · [**Quick-Start**](#-quick-start-in-3-minuten) · [**Live-Beispiel**](#-live-beispiel-rechnungseingang) · [**Vergleich**](#%EF%B8%8F-owe-vs-saas-vs-selbst-zusammenstecken) · [**Architektur**](#%EF%B8%8F-architektur) · [**Roadmap**](#%EF%B8%8F-roadmap)
+[**Was kann es?**](#-was-owe-kann) · [**Installation**](#-installation-nur-eine-datei-hochladen) · [**Live-Beispiel**](#-live-beispiel-rechnungseingang) · [**Vergleich**](#%EF%B8%8F-owe-vs-saas-vs-selbst-zusammenstecken) · [**Architektur**](#%EF%B8%8F-architektur) · [**Roadmap**](#%EF%B8%8F-roadmap)
 
 </div>
 
@@ -258,35 +258,101 @@ OWE geht weiter:
 
 ---
 
-## 🚀 Quick-Start in 3 Minuten
+## 🚀 Installation: nur eine Datei hochladen
 
-### Variante A: Bootstrap-Installer (empfohlen — einfachster Weg)
+> **TL;DR:** Eine einzige `installer.php` (~12 KB) per FTP in dein Webroot,
+> im Browser oeffnen, fertig. Den Rest macht der Installer.
 
-Lade **eine einzige PHP-Datei** (`tools/owe-installer.php`, ca. 12 KB) per FTP in dein Webroot hoch und oeffne sie im Browser:
+### Schritt-fuer-Schritt
+
+#### 1️⃣ FTP-Zugang oeffnen
+
+In deinem Hosting-Backend (1&1, Hetzner, Webgo, All-Inkl. ...) findest du
+deine FTP-Daten:
 
 ```
-https://deine-domain.de/owe-installer.php
+Host:     ftp.deine-domain.de
+Benutzer: u123456
+Passwort: ●●●●●●●●
 ```
+
+Oeffne dein FTP-Programm (FileZilla, Cyberduck, Transmit, Total Commander)
+und verbinde dich.
+
+#### 2️⃣ `installer.php` herunterladen und hochladen
+
+Lade [`tools/owe-installer.php`](tools/owe-installer.php) aus diesem Repo
+herunter (Rechtsklick → Ziel speichern unter, oder direkt aus den
+GitHub-Releases). Benenne sie auf dem Weg in deinem Computer um zu
+**`installer.php`** (kuerzer, einfacher zu tippen) — der Inhalt aendert
+sich dadurch nicht.
+
+Lade die Datei per FTP in **dein Webroot** hoch. Das ist der Ordner, in
+dem auch normalerweise dein `index.html` oder `index.php` liegt:
+
+| Hoster | Webroot-Pfad (typisch) |
+|---|---|
+| All-Inkl. · Webgo · Strato | `/` (root nach Login) oder `httpdocs/` |
+| 1&1 / IONOS | `/` oder `clickandbuilds/` |
+| Hetzner Webhosting | `public_html/` |
+| Eigener Server | `/var/www/html/` |
+
+> 🟢 **Wichtig:** Der Ordner muss **leer** sein (oder zumindest darf darin
+> noch keine OWE-Installation existieren — der Installer prueft das und
+> bricht sicher ab, wenn er was findet).
+
+#### 3️⃣ Im Browser oeffnen
+
+```
+https://deine-domain.de/installer.php
+```
+
+Du siehst die folgende Seite:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                                                            │
+│  Open Workflow Engine                                      │
+│  Bootstrap-Installer · holt die aktuelle Version vom       │
+│  Update-Proxy                                              │
+│                                                            │
+│  ● 1. Start    ○ 2. Download    ○ 3. Entpacken   ○ 4. ...  │
+│                                                            │
+│  Bootstrap-Installer                                       │
+│  Dieses kleine PHP-Skript laedt die aktuelle Version der   │
+│  Open Workflow Engine vom Update-Proxy update.loheide.eu,  │
+│  entpackt sie hier ins Webroot und leitet anschliessend    │
+│  zum eingebauten App-Installer /install weiter.            │
+│                                                            │
+│  Channel                                                   │
+│  ◉ Stable — empfohlen fuer Produktion                      │
+│  ○ Development — Vorschau, nicht produktiv nutzen          │
+│                                                            │
+│  Geladen von: update.loheide.eu/open-workflow-engine       │
+│                                                            │
+│                                       [ Loslegen → ]       │
+└────────────────────────────────────────────────────────────┘
+```
+
+#### 4️⃣ „Loslegen" klicken
 
 Das Skript:
-1. Pruft PHP-Version, Extensions und Schreibrechte
-2. Laedt die aktuelle OWE-Version direkt vom Update-Proxy
-3. Entpackt alles ins Webroot
-4. Loescht sich selbst
-5. Leitet automatisch zum App-Installer `/install` weiter
 
-> 💡 **Du musst nicht Hunderte Dateien per FTP hochladen.**
-> Diese eine PHP-Datei reicht. Der Rest kommt vom Proxy ueber HTTPS.
-
-### Variante B: Release-ZIP manuell hochladen
-
-```bash
-# 1. Release-ZIP entpacken
-# 2. Per FTP auf deinen Webspace hochladen (enthaelt vendor/)
-# 3. Browser oeffnen → automatischer Redirect nach /install
+```
+✓ Channel:           stable
+✓ Version geladen:   abc123def456...  (40-stelliger SHA)
+✓ ZIP heruntergeladen: 24.7 MB
+✓ Entpackt:          1 248 Datei(en)
+✓ vendor/autoload.php gefunden — Laravel bootet.
 ```
 
-### Der eigentliche **App-Installer** unter `/install`
+#### 5️⃣ „Selbst loeschen und zum /install" klicken
+
+Der Installer:
+- 🗑️ loescht sich selbst (du musst nichts manuell entfernen)
+- 🚀 leitet dich automatisch zum **App-Installer** unter `/install` weiter
+
+#### 6️⃣ App-Installer durchlaufen
 
 ```
   ┌───────────────────────────────────────────────────────┐
@@ -299,7 +365,7 @@ Das Skript:
   │  2. DATENBANK                                         │
   │     SQLite (Default, ideal Shared Hosting) ◯          │
   │     MySQL / MariaDB                        ◯          │
-  │     Connection-Test läuft live.                       │
+  │     Connection-Test laeuft live.                      │
   │     Migrate + Seeder werden ausgefuehrt.              │
   ├───────────────────────────────────────────────────────┤
   │  3. ADMIN-KONTO                                       │
@@ -312,9 +378,68 @@ Das Skript:
   └───────────────────────────────────────────────────────┘
 ```
 
-**Migration auf neuen Host?** Im ersten Schritt einfach Karte *Aus Backup
-wiederherstellen* — ZIP hochladen, DB-Credentials, fertig. Dein bisheriger
-Admin-Account ist sofort gueltig.
+**Fertig.** Du landest mit deinem Admin-Account im Dashboard.
+
+---
+
+### 🔄 Umzug auf neuen Host?
+
+**Auch nur eine Datei hochladen.** Im App-Installer-Schritt 1 waehlst du
+statt *Frische Installation* die Karte **„Aus Backup wiederherstellen"**,
+laedst dein altes Backup-ZIP hoch + DB-Credentials — und dein bisheriger
+Admin-Account funktioniert sofort.
+
+---
+
+### Troubleshooting
+
+<details>
+<summary><strong>„PHP-Version zu alt"</strong></summary>
+
+Im Hosting-Backend gibt es meist einen PHP-Versions-Schalter. Stelle
+auf <strong>PHP 8.2 oder neuer</strong>.
+</details>
+
+<details>
+<summary><strong>„PHP-Extension 'zip' fehlt"</strong></summary>
+
+Bei den meisten Hostern ist <code>zip</code> bereits aktiviert. Falls
+nicht: im Hosting-Backend unter „PHP-Erweiterungen" aktivieren oder
+beim Hosting-Support nachfragen.
+</details>
+
+<details>
+<summary><strong>„Verzeichnis nicht beschreibbar"</strong></summary>
+
+Setze auf dem Webroot-Verzeichnis Rechte <code>755</code> oder
+<code>775</code>. Im FTP-Programm: Rechtsklick auf den Ordner →
+Dateirechte/Permissions.
+</details>
+
+<details>
+<summary><strong>„vendor/autoload.php existiert bereits"</strong></summary>
+
+Der Installer erkennt eine bereits vorhandene OWE-Installation und
+bricht sicher ab, damit nichts ueberschrieben wird. Wenn das gewollt
+ist: alte Installation per FTP komplett loeschen und neu starten.
+</details>
+
+<details>
+<summary><strong>Alternative: Komplettes ZIP manuell hochladen</strong></summary>
+
+Wenn der Bootstrap-Installer aus irgendeinem Grund nicht klappt (z. B.
+Proxy nicht erreichbar, Firewall, ...) kannst du auch das Release-ZIP
+manuell entpacken und alle Dateien per FTP hochladen:
+
+```bash
+# 1. Release-ZIP von GitHub entpacken (enthaelt vendor/)
+# 2. Per FTP komplett auf den Webspace hochladen
+# 3. Browser oeffnen → automatischer Redirect nach /install
+```
+</details>
+
+> 💡 **Du musst nicht Hunderte Dateien per FTP hochladen.** Eine 12-KB-PHP-Datei
+> reicht. Der Rest kommt vom Update-Proxy ueber HTTPS direkt auf deinen Server.
 
 > 💡 **Kein Composer auf dem Server noetig.** Release-ZIPs enthalten
 > `vendor/` vorgebaut. Update-System ueberspringt `composer install` falls
