@@ -428,6 +428,10 @@ class WorkflowEngine
         return match ($type) {
             'user' => ['user_id' => $data['recipient_user_id'] ?? null],
             'role' => ['role_id' => $data['recipient_role_id'] ?? null],
+            'subject_user' => ['user_id' => $instance->subjectUser()?->id],
+            'supervisor_of_subject' => [
+                'user_id' => $instance->subjectUser()?->effectiveSupervisor()?->id,
+            ],
             'supervisor_of_initiator' => [
                 'user_id' => $instance->starter()->first()?->effectiveSupervisor()?->id,
             ],
@@ -509,14 +513,33 @@ class WorkflowEngine
         $type = $data['recipient_type'] ?? 'initiator';
         return match ($type) {
             'initiator' => array_filter([$instance->starter()->first()]),
+            'subject_user' => array_filter([$instance->subjectUser()]),
             'supervisor_of_initiator' => array_filter([
                 $instance->starter()->first()?->effectiveSupervisor(),
+            ]),
+            'supervisor_of_subject' => array_filter([
+                $instance->subjectUser()?->effectiveSupervisor(),
             ]),
             'role' => \App\Models\Role::find($data['recipient_role_id'] ?? 0)
                 ?->users?->all() ?? [],
             'user' => array_filter([User::find($data['recipient_user_id'] ?? 0)]),
+            'list_lookup' => $this->resolveUsersFromList(
+                (int) ($data['list_id'] ?? 0),
+                (string) ($data['lookup_source'] ?? ''),
+                \App\Models\LookupList::ROLE_RESPONSIBLE,
+                $instance,
+            ),
             default => [],
         };
+    }
+
+    /** @return array<User> */
+    private function resolveUsersFromList(int $listId, string $source, string $role, WorkflowInstance $instance): array
+    {
+        $resolved = $this->resolveFromList($listId, $source, $role, $instance);
+        if (! isset($resolved['user_id'])) return [];
+        $u = User::find($resolved['user_id']);
+        return $u ? [$u] : [];
     }
 
     private function graceDeadline(array $data): ?\Carbon\CarbonInterface

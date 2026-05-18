@@ -44,7 +44,26 @@ class CheckDueAssets extends Command
             ];
 
             try {
-                $engine->start($workflow, $data, $asset->user);
+                $instance = $engine->start($workflow, $data, $asset->user);
+                // Asset-Anhaenge fuer die Instanz duplizieren (eigene Dateien,
+                // damit Lebenszyklus von Asset und Instanz unabhaengig ist).
+                foreach ($asset->attachments as $att) {
+                    $disk = \Illuminate\Support\Facades\Storage::disk($att->disk);
+                    if (! $disk->exists($att->path)) continue;
+                    $newPath = 'attachments/'.now()->format('Y/m').'/'.\Illuminate\Support\Str::ulid().'.'.pathinfo($att->path, PATHINFO_EXTENSION);
+                    $disk->copy($att->path, $newPath);
+                    \App\Models\Attachment::create([
+                        'attachable_type' => $instance->getMorphClass(),
+                        'attachable_id' => $instance->id,
+                        'original_name' => $att->original_name,
+                        'disk' => $att->disk,
+                        'path' => $newPath,
+                        'mime_type' => $att->mime_type,
+                        'size' => $att->size,
+                        'label' => 'Asset-Scan: '.($att->label ?? $att->original_name),
+                        'uploaded_by' => $att->uploaded_by,
+                    ]);
+                }
                 $asset->forceFill(['last_review_at' => now()])->save();
                 $started++;
             } catch (\Throwable $e) {

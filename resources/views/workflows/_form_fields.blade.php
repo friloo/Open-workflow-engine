@@ -56,6 +56,13 @@
                     {{ $label }}
                 </label>
                 @break
+            @case('file')
+                <input id="f-{{ $key }}" name="{{ $key }}" type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx,.txt,.csv"
+                    @if($required) required @endif
+                    class="block w-full text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100">
+                <p class="mt-1 text-xs text-slate-500">PDF, Bild oder Office-Dokument (max. 15 MB).</p>
+                @break
             @default
                 <input id="f-{{ $key }}" name="{{ $key }}" type="text" value="{{ $old }}"
                     @if($required) required @endif

@@ -64,7 +64,7 @@ class WorkflowDesignerController extends Controller
             'form_schema' => ['nullable', 'array'],
             'form_schema.*.key' => ['required_with:form_schema', 'string', 'max:64'],
             'form_schema.*.label' => ['required_with:form_schema', 'string', 'max:255'],
-            'form_schema.*.type' => ['required_with:form_schema', 'string', 'in:text,textarea,number,select,radio,checkbox,date'],
+            'form_schema.*.type' => ['required_with:form_schema', 'string', 'in:text,textarea,number,select,radio,checkbox,date,file'],
             'form_schema.*.required' => ['nullable', 'boolean'],
             'form_schema.*.options' => ['nullable', 'array'],
             'change_summary' => ['nullable', 'string', 'max:500'],

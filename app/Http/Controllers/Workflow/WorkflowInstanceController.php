@@ -68,7 +68,7 @@ class WorkflowInstanceController extends Controller
         }
 
         $instance->load([
-            'workflow', 'version', 'starter',
+            'workflow', 'version', 'starter', 'attachments',
             'stepExecutions.assignedUser',
             'stepExecutions.assignedRole',
             'stepExecutions.completedBy',

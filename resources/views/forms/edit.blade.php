@@ -94,6 +94,7 @@
                                             <option value="select">Dropdown</option>
                                             <option value="radio">Radio</option>
                                             <option value="checkbox">Checkbox (ja/nein)</option>
+                                            <option value="file">Datei-Upload</option>
                                         </select>
                                     </div>
                                 </div>

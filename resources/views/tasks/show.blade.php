@@ -4,6 +4,29 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
+            @php($attachments = $instance->attachments)
+            @if($attachments->isNotEmpty())
+                <x-card title="Beigefuegte Dateien" description="Vom Antragsteller oder aus Asset-Daten mitgegeben.">
+                    <ul class="divide-y divide-slate-100">
+                        @foreach($attachments as $a)
+                            <li class="py-2 flex items-center justify-between gap-2 text-sm">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    @if($a->isPdf())<span class="grid h-7 w-7 place-items-center rounded bg-rose-100 text-rose-700 text-xs font-bold">PDF</span>
+                                    @elseif($a->isImage())<span class="grid h-7 w-7 place-items-center rounded bg-sky-100 text-sky-700 text-xs font-bold">IMG</span>
+                                    @else<span class="grid h-7 w-7 place-items-center rounded bg-slate-100 text-slate-700 text-xs font-bold">DOC</span>
+                                    @endif
+                                    <div class="min-w-0">
+                                        <a href="{{ route('attachments.download', $a) }}" class="font-medium text-indigo-600 hover:text-indigo-500 truncate block" target="_blank">{{ $a->original_name }}</a>
+                                        <div class="text-xs text-slate-500">{{ $a->label }}{{ $a->label ? ' · ' : '' }}{{ $a->sizeFormatted() }}</div>
+                                    </div>
+                                </div>
+                                <a href="{{ route('attachments.download', $a) }}" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-500 shrink-0">oeffnen &uarr;</a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-card>
+            @endif
+
             <x-card title="Antragsdaten">
                 @php($schema = $instance->version?->form_schema ?? [])
                 @if(empty($schema) && empty($instance->data))

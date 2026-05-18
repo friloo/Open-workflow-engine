@@ -112,6 +112,8 @@
                                                 class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                 <option value="supervisor_of_initiator">Vorgesetzter des Antragstellers</option>
                                                 <option value="supervisor_of_previous">Vorgesetzter des vorherigen Bearbeiters</option>
+                                                <option value="subject_user">Asset-Inhaber / Subject-User</option>
+                                                <option value="supervisor_of_subject">Vorgesetzter des Subject-Users</option>
                                                 <option value="role">Mitglieder einer Rolle</option>
                                                 <option value="user">Konkrete Person</option>
                                                 <option value="list_lookup">Aus Liste nachschlagen</option>
@@ -276,9 +278,12 @@
                                             <select x-model="selectedNode.data.recipient_type"
                                                 class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                 <option value="initiator">Antragsteller</option>
+                                                <option value="subject_user">Asset-Inhaber / Subject-User</option>
                                                 <option value="supervisor_of_initiator">Vorgesetzter des Antragstellers</option>
+                                                <option value="supervisor_of_subject">Vorgesetzter des Subject-Users</option>
                                                 <option value="role">Mitglieder einer Rolle</option>
                                                 <option value="user">Konkrete Person</option>
+                                                <option value="list_lookup">Aus Liste nachschlagen</option>
                                             </select>
                                         </div>
                                         <template x-if="selectedNode.data.recipient_type==='role'">
@@ -366,6 +371,7 @@
                                             <option value="select">Dropdown</option>
                                             <option value="radio">Radio (Einzelauswahl)</option>
                                             <option value="checkbox">Checkbox (ja/nein)</option>
+                                            <option value="file">Datei-Upload</option>
                                         </select>
                                     </div>
                                 </div>

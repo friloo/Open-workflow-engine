@@ -103,7 +103,23 @@
             </div>
 
             <div class="space-y-6">
-                <x-card title="Antragsdaten">
+                @php($attachments = $instance->attachments)
+            @if($attachments->isNotEmpty())
+                <x-card title="Beigefuegte Dateien">
+                    <ul class="divide-y divide-slate-100">
+                        @foreach($attachments as $a)
+                            <li class="py-2 flex items-center justify-between gap-2 text-sm">
+                                <div class="min-w-0">
+                                    <a href="{{ route('attachments.download', $a) }}" class="font-medium text-indigo-600 hover:text-indigo-500 truncate block" target="_blank">{{ $a->original_name }}</a>
+                                    <div class="text-xs text-slate-500">{{ $a->label }}{{ $a->label ? ' · ' : '' }}{{ $a->sizeFormatted() }} · {{ $a->mime_type }}</div>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-card>
+            @endif
+
+            <x-card title="Antragsdaten">
                     @php($schema = $instance->version?->form_schema ?? [])
                     @if(empty($schema) && empty($instance->data))
                         <p class="text-sm text-slate-500">Keine Antragsdaten.</p>

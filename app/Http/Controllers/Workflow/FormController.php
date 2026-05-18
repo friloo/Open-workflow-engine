@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\Workflow;
+use App\Services\AttachmentStorage;
 use App\Services\AuditLogger;
 use App\Services\FormSchemaValidator;
 use App\Services\WorkflowEngine;
@@ -20,6 +21,7 @@ class FormController extends Controller
         private readonly AuditLogger $audit,
         private readonly FormSchemaValidator $validator,
         private readonly WorkflowEngine $engine,
+        private readonly AttachmentStorage $attachments,
     ) {}
 
     public function index(): View
@@ -97,21 +99,43 @@ class FormController extends Controller
     public function submitPublic(Request $request, string $slug): RedirectResponse
     {
         $form = $this->lookupPublic($slug);
-        $clean = $this->validator->validateAgainstSchema($request->all(), $form->schema ?? []);
+        $schema = $form->schema ?? [];
+        $input = array_merge($request->all(), $request->allFiles());
+        $clean = $this->validator->validateAgainstSchema($input, $schema);
 
-        $instanceId = null;
+        $instance = null;
         if ($form->workflow_id && $form->workflow && $form->workflow->status === Workflow::STATUS_ACTIVE) {
             $instance = $this->engine->start($form->workflow, $clean, null);
-            $instanceId = $instance->id;
         }
 
-        FormSubmission::create([
+        $submission = FormSubmission::create([
             'form_id' => $form->id,
-            'workflow_instance_id' => $instanceId,
+            'workflow_instance_id' => $instance?->id,
             'data' => $clean,
             'ip_address' => $request->ip(),
             'user_agent' => substr((string) $request->userAgent(), 0, 512),
         ]);
+
+        foreach ($this->validator->fileFields($schema) as $field) {
+            if (! $request->hasFile($field['key'])) continue;
+            try {
+                // Datei an die Submission haengen (immer) und zusaetzlich an
+                // die Workflow-Instanz, damit Approver sie sehen.
+                $att = $this->attachments->store($request->file($field['key']), $submission, $field['label'] ?? $field['key'], null);
+                if ($instance) {
+                    \App\Models\Attachment::create([
+                        'attachable_type' => $instance->getMorphClass(),
+                        'attachable_id' => $instance->id,
+                        'original_name' => $att->original_name,
+                        'disk' => $att->disk, 'path' => $att->path,
+                        'mime_type' => $att->mime_type, 'size' => $att->size,
+                        'label' => 'Formular: '.($field['label'] ?? $field['key']),
+                    ]);
+                }
+            } catch (\Throwable) {
+                // best-effort
+            }
+        }
 
         return redirect()->route('forms.public.thanks', $slug);
     }
@@ -140,7 +164,7 @@ class FormController extends Controller
             'schema' => ['nullable', 'array'],
             'schema.*.key' => ['required_with:schema', 'string', 'max:64'],
             'schema.*.label' => ['required_with:schema', 'string', 'max:255'],
-            'schema.*.type' => ['required_with:schema', 'string', 'in:text,textarea,number,select,radio,checkbox,date'],
+            'schema.*.type' => ['required_with:schema', 'string', 'in:text,textarea,number,select,radio,checkbox,date,file'],
             'schema.*.required' => ['nullable', 'boolean'],
             'schema.*.options' => ['nullable', 'array'],
         ];

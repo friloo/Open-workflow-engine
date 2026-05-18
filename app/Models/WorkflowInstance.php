@@ -44,4 +44,15 @@ class WorkflowInstance extends Model
     {
         return $this->hasMany(WorkflowStepExecution::class);
     }
+
+    public function attachments(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->latest();
+    }
+
+    public function subjectUser(): ?User
+    {
+        $id = $this->data['subject_user_id'] ?? null;
+        return $id ? User::find($id) : null;
+    }
 }

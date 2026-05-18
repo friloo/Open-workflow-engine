@@ -53,6 +53,7 @@ class AssetController extends Controller
 
     public function edit(Asset $asset): View
     {
+        $asset->load('attachments');
         return view('assets.edit', [
             'asset' => $asset,
             'users' => User::where('is_active', true)->orderBy('name')->get(['id', 'name', 'email']),

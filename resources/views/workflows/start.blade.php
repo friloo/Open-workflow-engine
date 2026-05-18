@@ -3,7 +3,7 @@
     <x-slot name="subheader">{{ $workflow->description }}</x-slot>
 
     <x-card>
-        <form method="POST" action="{{ route('workflows.start.submit', $workflow) }}" class="space-y-4">
+        <form method="POST" enctype="multipart/form-data" action="{{ route('workflows.start.submit', $workflow) }}" class="space-y-4">
             @csrf
             @include('workflows._form_fields', ['schema' => $schema])
             <div class="pt-2 flex justify-end gap-3">

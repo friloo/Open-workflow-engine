@@ -31,7 +31,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ $submitUrl ?? route('public.form.submit', $workflow->public_slug) }}" class="mt-6 space-y-4">
+            <form method="POST" enctype="multipart/form-data" action="{{ $submitUrl ?? route('public.form.submit', $workflow->public_slug) }}" class="mt-6 space-y-4">
                 @csrf
                 @include('workflows._form_fields', ['schema' => $schema])
                 <div class="pt-2">

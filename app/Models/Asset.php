@@ -32,6 +32,11 @@ class Asset extends Model
         return $this->belongsTo(Workflow::class);
     }
 
+    public function attachments(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->latest();
+    }
+
     /**
      * Asset ist zur Pruefung faellig: valid_until - lead_time_days <= heute,
      * und entweder noch nie geprueft oder das letzte Review liegt vor dem

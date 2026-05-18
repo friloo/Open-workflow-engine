@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Workflow;
 use App\Http\Controllers\Controller;
 use App\Models\FormSubmission;
 use App\Models\Workflow;
+use App\Services\AttachmentStorage;
 use App\Services\FormSchemaValidator;
 use App\Services\WorkflowEngine;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,7 @@ class PublicFormController extends Controller
     public function __construct(
         private readonly FormSchemaValidator $validator,
         private readonly WorkflowEngine $engine,
+        private readonly AttachmentStorage $attachments,
     ) {}
 
     public function show(string $slug): View
@@ -33,11 +35,12 @@ class PublicFormController extends Controller
         $workflow = $this->lookup($slug);
         $schema = $workflow->currentVersion->form_schema ?? [];
 
-        $clean = $this->validator->validateAgainstSchema($request->all(), $schema);
+        $input = array_merge($request->all(), $request->allFiles());
+        $clean = $this->validator->validateAgainstSchema($input, $schema);
 
         $instance = $this->engine->start($workflow, $clean, null);
 
-        FormSubmission::create([
+        $submission = FormSubmission::create([
             'form_id' => null,
             'workflow_instance_id' => $instance->id,
             'submitted_by' => null,
@@ -45,6 +48,22 @@ class PublicFormController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => substr((string) $request->userAgent(), 0, 512),
         ]);
+
+        // Datei-Felder als Attachments an die Instanz haengen.
+        foreach ($this->validator->fileFields($schema) as $field) {
+            if ($request->hasFile($field['key'])) {
+                try {
+                    $this->attachments->store(
+                        $request->file($field['key']),
+                        $instance,
+                        $field['label'] ?? $field['key'],
+                        null,
+                    );
+                } catch (\Throwable) {
+                    // best-effort: Workflow laeuft trotzdem weiter
+                }
+            }
+        }
 
         return redirect()->route('public.form.thanks', $slug);
     }

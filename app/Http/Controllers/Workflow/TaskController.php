@@ -46,7 +46,7 @@ class TaskController extends Controller
 
         $step->load([
             'instance.workflow', 'instance.starter', 'instance.version',
-            'instance.stepExecutions',
+            'instance.stepExecutions', 'instance.attachments',
             'assignedUser', 'assignedRole',
         ]);
 

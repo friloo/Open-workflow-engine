@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\SystemSettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\Auth\MicrosoftLoginController;
 use App\Http\Controllers\Lists\LookupListController;
 use App\Http\Controllers\Lists\LookupListEntryController;
@@ -154,6 +155,13 @@ Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () 
     Route::get('/', [TaskController::class, 'index'])->name('index');
     Route::get('{step}', [TaskController::class, 'show'])->name('show');
     Route::post('{step}/decide', [TaskController::class, 'decide'])->name('decide');
+});
+
+// Attachments (polymorph)
+Route::middleware(['auth'])->prefix('attachments')->name('attachments.')->group(function () {
+    Route::post('{type}/{id}', [AttachmentController::class, 'store'])->name('store');
+    Route::get('{attachment}/download', [AttachmentController::class, 'download'])->name('download');
+    Route::delete('{attachment}', [AttachmentController::class, 'destroy'])->name('destroy');
 });
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
