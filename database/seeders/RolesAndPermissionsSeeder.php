@@ -36,6 +36,14 @@ class RolesAndPermissionsSeeder extends Seeder
             ['slug' => 'audit.view', 'name' => 'Audit-Log ansehen', 'group' => 'Audit'],
             ['slug' => 'audit.verify', 'name' => 'Audit-Kette pruefen', 'group' => 'Audit'],
 
+            // Lookup-Listen (Kostenstellen, Abteilungen, ...)
+            ['slug' => 'lists.view', 'name' => 'Listen ansehen', 'group' => 'Listen'],
+            ['slug' => 'lists.manage', 'name' => 'Listen pflegen und importieren', 'group' => 'Listen'],
+
+            // Assets (Fuehrerscheine, Unterweisungen, ...)
+            ['slug' => 'assets.view', 'name' => 'Assets ansehen', 'group' => 'Assets'],
+            ['slug' => 'assets.manage', 'name' => 'Assets pflegen und importieren', 'group' => 'Assets'],
+
             // System
             ['slug' => 'system.settings', 'name' => 'Systemeinstellungen', 'group' => 'System'],
         ];
@@ -60,6 +68,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'permissions' => [
                     'workflows.view', 'workflows.design', 'workflows.publish', 'workflows.run',
                     'forms.view', 'forms.manage', 'users.view', 'roles.view',
+                    'lists.view', 'lists.manage', 'assets.view', 'assets.manage',
                 ],
             ],
             [

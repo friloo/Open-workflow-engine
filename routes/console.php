@@ -19,3 +19,9 @@ Schedule::command('workflow:run-schedules')
     ->hourly()
     ->withoutOverlapping()
     ->runInBackground();
+
+// Asset-Wiedervorlage: taeglich faellige Assets in Workflows ausspielen.
+Schedule::command('asset:check-due')
+    ->dailyAt('06:00')
+    ->withoutOverlapping()
+    ->runInBackground();

@@ -27,6 +27,14 @@
             ],
         ],
         [
+            'group' => 'Stammdaten',
+            'when' => $user?->hasAnyPermission(['lists.view','lists.manage','assets.view','assets.manage']),
+            'items' => [
+                ['name' => 'Listen', 'route' => 'lists.index', 'icon' => 'table', 'active' => request()->routeIs('lists.*'), 'when' => $user?->hasAnyPermission(['lists.view','lists.manage'])],
+                ['name' => 'Assets', 'route' => 'assets.index', 'icon' => 'badge', 'active' => request()->routeIs('assets.*'), 'when' => $user?->hasAnyPermission(['assets.view','assets.manage'])],
+            ],
+        ],
+        [
             'group' => 'Verwaltung',
             'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','roles.view','roles.manage','audit.view','system.settings']),
             'items' => [

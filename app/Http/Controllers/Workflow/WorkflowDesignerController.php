@@ -37,6 +37,14 @@ class WorkflowDesignerController extends Controller
                 'roles' => Role::orderBy('name')->get(['id', 'name', 'slug'])->all(),
                 'users' => User::where('is_active', true)->orderBy('name')
                     ->limit(500)->get(['id', 'name', 'email'])->all(),
+                'lists' => \App\Models\LookupList::orderBy('name')
+                    ->get(['id', 'name', 'columns'])
+                    ->map(fn ($l) => [
+                        'id' => $l->id,
+                        'name' => $l->name,
+                        'has_responsible' => (bool) collect($l->columns)->firstWhere('role', 'responsible'),
+                        'has_escalation' => (bool) collect($l->columns)->firstWhere('role', 'escalation'),
+                    ])->all(),
             ],
             'urls' => [
                 'save' => route('workflows.designer.save', $workflow),

@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
 
         $admin->assignRole('admin');
 
+        $this->call(WorkflowTemplatesSeeder::class);
+
         if (app()->environment('local')) {
             $designer = User::firstOrCreate(
                 ['email' => 'designer@example.com'],

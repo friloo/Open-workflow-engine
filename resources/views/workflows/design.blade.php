@@ -114,8 +114,34 @@
                                                 <option value="supervisor_of_previous">Vorgesetzter des vorherigen Bearbeiters</option>
                                                 <option value="role">Mitglieder einer Rolle</option>
                                                 <option value="user">Konkrete Person</option>
+                                                <option value="list_lookup">Aus Liste nachschlagen</option>
                                             </select>
                                         </div>
+                                        <template x-if="selectedNode.data.recipient_type==='list_lookup'">
+                                            <div class="space-y-2 rounded-md bg-slate-50 p-2">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600">Liste</label>
+                                                    <select x-model.number="selectedNode.data.list_id"
+                                                        class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                        <option value="">— Liste waehlen —</option>
+                                                        <template x-for="l in directory.lists" :key="l.id">
+                                                            <option :value="l.id" x-text="l.name + (l.has_responsible ? '' : ' (keine Verantwortlich-Spalte!)')"></option>
+                                                        </template>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600">Schluessel aus Feld</label>
+                                                    <select x-model="selectedNode.data.lookup_source"
+                                                        class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                        <option value="">— Feld waehlen —</option>
+                                                        <template x-for="f in formSchema" :key="f.key">
+                                                            <option :value="f.key" x-text="f.label || f.key"></option>
+                                                        </template>
+                                                    </select>
+                                                </div>
+                                                <p class="text-xs text-slate-500">Der Workflow nimmt die Verantwortlich-E-Mail aus der Liste und sucht den entsprechenden Benutzer.</p>
+                                            </div>
+                                        </template>
                                         <template x-if="selectedNode.data.recipient_type==='role'">
                                             <div>
                                                 <label class="block text-xs font-medium text-slate-600">Rolle</label>
@@ -163,6 +189,7 @@
                                                 <option value="none">Nicht eskalieren</option>
                                                 <option value="supervisor_of_current">Vorgesetzten des Empfaengers</option>
                                                 <option value="role">Mitglieder einer Rolle</option>
+                                                <option value="list_lookup">Aus Liste (Eskalations-Spalte)</option>
                                             </select>
                                         </div>
                                         <template x-if="selectedNode.data.escalation_type==='role'">
@@ -188,11 +215,19 @@
                                 {{-- Condition settings --}}
                                 <template x-if="selectedNode.type==='condition'">
                                     <div class="space-y-3">
-                                        <p class="text-xs text-slate-500">Verzweige nach Werten aus dem Formular. Trifft keine Bedingung zu, wird der <strong>Else</strong>-Ausgang genutzt.</p>
+                                        <p class="text-xs text-slate-500">Per Drag-and-Drop am Griff sortieren. Trifft keine Bedingung zu, wird der <strong>Else</strong>-Ausgang genutzt.</p>
+                                        <div class="space-y-3"
+                                             x-sort:config="{ animation: 150, handle: '.drag-handle' }"
+                                             x-sort="selectedNode.data.branches.splice($event.newIndex, 0, selectedNode.data.branches.splice($event.oldIndex, 1)[0])">
                                         <template x-for="(branch, idx) in selectedNode.data.branches" :key="idx">
-                                            <div class="rounded-lg border border-slate-200 p-3">
+                                            <div class="rounded-lg border border-slate-200 p-3 bg-white" x-sort:item="idx">
                                                 <div class="flex items-center justify-between">
-                                                    <span class="text-xs font-semibold text-slate-700">Zweig <span x-text="idx+1"></span> — Ausgang <span x-text="idx+1"></span></span>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="drag-handle cursor-grab select-none text-slate-400 hover:text-slate-600">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm7-11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg>
+                                                        </span>
+                                                        <span class="text-xs font-semibold text-slate-700">Zweig <span x-text="idx+1"></span> — Ausgang <span x-text="idx+1"></span></span>
+                                                    </div>
                                                     <button type="button" @click="removeBranch(idx)" class="text-xs text-rose-600 hover:text-rose-500">entfernen</button>
                                                 </div>
                                                 <div class="mt-2 grid grid-cols-1 gap-2">
@@ -225,6 +260,7 @@
                                                 </div>
                                             </div>
                                         </template>
+                                        </div>
                                         <button type="button" @click="addBranch()" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Verzweigung hinzufuegen</button>
                                         <div class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">
                                             Letzter Ausgang: <strong>Sonst (else)</strong>

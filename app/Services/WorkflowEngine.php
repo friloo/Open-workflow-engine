@@ -434,8 +434,37 @@ class WorkflowEngine
             'supervisor_of_previous' => [
                 'user_id' => $this->previousSupervisor($instance)?->id,
             ],
+            'list_lookup' => $this->resolveFromList(
+                (int) ($data['list_id'] ?? 0),
+                (string) ($data['lookup_source'] ?? ''),
+                \App\Models\LookupList::ROLE_RESPONSIBLE,
+                $instance,
+            ),
             default => [],
         };
+    }
+
+    /**
+     * Resolve a recipient via a lookup list. `$source` is the form-field key
+     * whose value is used as the lookup key. `$role` selects which column of
+     * the list contains the recipient e-mail.
+     *
+     * @return array{user_id?: int}
+     */
+    private function resolveFromList(int $listId, string $source, string $role, WorkflowInstance $instance): array
+    {
+        if ($listId <= 0 || $source === '') return [];
+        $list = \App\Models\LookupList::find($listId);
+        if (! $list) return [];
+
+        $key = $instance->data[$source] ?? null;
+        if ($key === null || $key === '') return [];
+
+        $email = $list->emailForRole((string) $key, $role);
+        if (! $email) return [];
+
+        $user = User::where('email', $email)->first();
+        return $user ? ['user_id' => $user->id] : [];
     }
 
     private function previousSupervisor(WorkflowInstance $instance): ?User
@@ -462,6 +491,14 @@ class WorkflowEngine
             $assignee = $step->assignedUser()->first();
             $sup = $assignee?->effectiveSupervisor();
             return $sup ? ['user_id' => $sup->id] : null;
+        }
+
+        if ($type === 'list_lookup') {
+            // Same list/source as the recipient by default; escalation column.
+            $listId = (int) ($data['escalation_list_id'] ?? $data['list_id'] ?? 0);
+            $source = (string) ($data['escalation_source'] ?? $data['lookup_source'] ?? '');
+            $resolved = $this->resolveFromList($listId, $source, \App\Models\LookupList::ROLE_ESCALATION, $instance);
+            return $resolved ?: null;
         }
         return null;
     }

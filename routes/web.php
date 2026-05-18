@@ -5,7 +5,10 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SystemSettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
+use App\Http\Controllers\AssetController;
 use App\Http\Controllers\Auth\MicrosoftLoginController;
+use App\Http\Controllers\Lists\LookupListController;
+use App\Http\Controllers\Lists\LookupListEntryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Workflow\FormController;
 use App\Http\Controllers\Workflow\FormSubmissionController;
@@ -91,6 +94,39 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vorgaenge', [WorkflowInstanceController::class, 'indexAll'])->name('workflow-instances.index');
     Route::get('/vorgaenge/{instance}', [WorkflowInstanceController::class, 'show'])->name('workflow-instances.show');
     Route::post('/vorgaenge/{instance}/abbrechen', [WorkflowInstanceController::class, 'cancel'])->name('workflow-instances.cancel');
+});
+
+// Lookup-Listen (Kostenstellen etc.)
+Route::middleware(['auth'])->prefix('listen')->name('lists.')->group(function () {
+    Route::middleware('permission:lists.view,lists.manage')->group(function () {
+        Route::get('/', [LookupListController::class, 'index'])->name('index');
+        Route::get('{list}/edit', [LookupListController::class, 'edit'])->name('edit');
+        Route::get('{list}/export', [LookupListEntryController::class, 'export'])->name('entries.export');
+    });
+    Route::middleware('permission:lists.manage')->group(function () {
+        Route::get('create', [LookupListController::class, 'create'])->name('create');
+        Route::post('/', [LookupListController::class, 'store'])->name('store');
+        Route::put('{list}', [LookupListController::class, 'update'])->name('update');
+        Route::delete('{list}', [LookupListController::class, 'destroy'])->name('destroy');
+        Route::post('{list}/entries', [LookupListEntryController::class, 'store'])->name('entries.store');
+        Route::delete('{list}/entries/{entry}', [LookupListEntryController::class, 'destroy'])->name('entries.destroy');
+        Route::post('{list}/import', [LookupListEntryController::class, 'import'])->name('entries.import');
+    });
+});
+
+// Assets (Fuehrerscheine, Unterweisungen, ...)
+Route::middleware(['auth'])->prefix('assets')->name('assets.')->group(function () {
+    Route::middleware('permission:assets.view,assets.manage')->group(function () {
+        Route::get('/', [AssetController::class, 'index'])->name('index');
+    });
+    Route::middleware('permission:assets.manage')->group(function () {
+        Route::get('create', [AssetController::class, 'create'])->name('create');
+        Route::post('/', [AssetController::class, 'store'])->name('store');
+        Route::get('{asset}/edit', [AssetController::class, 'edit'])->name('edit');
+        Route::put('{asset}', [AssetController::class, 'update'])->name('update');
+        Route::delete('{asset}', [AssetController::class, 'destroy'])->name('destroy');
+        Route::post('import', [AssetController::class, 'import'])->name('import');
+    });
 });
 
 // Stand-Alone-Formulare
