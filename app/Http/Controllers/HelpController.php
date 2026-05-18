@@ -12,6 +12,7 @@ class HelpController extends Controller
 
     private array $toc = [
         'index' => 'Uebersicht',
+        'install' => 'Erstinstallation (Web-Installer)',
         'first-steps' => 'Erste Schritte',
         'dashboard' => 'Dashboard / Startseite',
         'cookbook-rechnungseingang' => 'Cookbook: Rechnungseingang',

@@ -1,13 +1,12 @@
 # Erste Schritte
 
+> **Frische Installation?** Beim ersten Aufruf von OWE landest du im
+> **Web-Installer** (`/install`) — der fragt System-Check, Datenbank
+> und das erste Admin-Konto ab. Siehe Abschnitt **Erstinstallation**.
+
 ## 1. Anmelden
 
-Administrator-Login direkt nach `migrate --seed`:
-
-- **E-Mail:** `admin@example.com`
-- **Passwort:** `password`
-
-> Aendere das Passwort sofort unter *Mein Profil*.
+Mit dem im Installer angelegten Admin-Konto.
 
 ## 2. Systemeinstellungen
 

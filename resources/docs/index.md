@@ -51,6 +51,7 @@ Siehe Abschnitt **Erste Schritte**.
 
 ### Einstieg
 
+- **Erstinstallation** — Web-Installer ohne SSH (Wizard)
 - Erste Schritte — Login, Benutzer, erste Liste, erster Workflow
 - **Dashboard / Startseite** — was du beim Login siehst (Tasks,
   Postkorb, System-Health)

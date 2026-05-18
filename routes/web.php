@@ -354,4 +354,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     });
 });
 
+// Erstinstallations-Wizard (durch RedirectIfNotInstalled gated)
+Route::prefix('install')->name('install.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\InstallerController::class, 'welcome'])->name('welcome');
+    Route::get('/database', [\App\Http\Controllers\InstallerController::class, 'databaseShow'])->name('database');
+    Route::post('/database', [\App\Http\Controllers\InstallerController::class, 'databaseSave']);
+    Route::get('/admin', [\App\Http\Controllers\InstallerController::class, 'adminShow'])->name('admin');
+    Route::post('/admin', [\App\Http\Controllers\InstallerController::class, 'adminSave']);
+    Route::get('/finish', [\App\Http\Controllers\InstallerController::class, 'finishShow'])->name('finish');
+});
+
 require __DIR__.'/auth.php';
