@@ -25,6 +25,22 @@
                 </x-card>
             @endif
 
+            @if(! empty($attachment->indexed_fields))
+                <x-card title="Erkannte Felder" description="Automatisch aus dem OCR-Text extrahiert (Schema des Dokumenttyps).">
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                        @foreach($attachment->indexed_fields as $k => $v)
+                            <div class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
+                                <dt class="text-xs font-medium text-slate-500 font-mono">{{ $k }}</dt>
+                                <dd class="text-sm text-slate-900">{{ $v }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                    @if($attachment->indexed_at)
+                        <p class="mt-2 text-xs text-slate-500">Indexiert {{ $attachment->indexed_at->diffForHumans() }}.</p>
+                    @endif
+                </x-card>
+            @endif
+
             <x-card title="Extrahierter Text" description="OCR-Inhalt fuer Volltextsuche.">
                 @if($attachment->ocr_text)
                     <pre class="max-h-72 overflow-auto rounded-lg bg-slate-50 p-4 text-xs text-slate-800 whitespace-pre-wrap">{{ $attachment->ocr_text }}</pre>

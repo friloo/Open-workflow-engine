@@ -21,6 +21,7 @@ class HelpController extends Controller
         'lists' => 'Listen (Kostenstellen etc.)',
         'assets' => 'Assets (Fuehrerschein etc.)',
         'documents' => 'Dokumente (Versionen, OCR, Bulk)',
+        'document-schemas' => 'Felder-Schemas pro Dokumenttyp',
         'sharing' => 'Sharing-Links',
         'http-node' => 'HTTP-Knoten',
         'pdf-node' => 'PDF-Knoten',

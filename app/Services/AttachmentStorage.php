@@ -22,7 +22,10 @@ class AttachmentStorage
     ];
     public const MAX_BYTES = 15 * 1024 * 1024; // 15 MB
 
-    public function __construct(private readonly OcrExtractor $ocr) {}
+    public function __construct(
+        private readonly OcrExtractor $ocr,
+        private readonly FieldExtractor $fields,
+    ) {}
 
     public function store(UploadedFile $file, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, ?Attachment $newVersionOf = null): Attachment
     {
@@ -82,6 +85,12 @@ class AttachmentStorage
             $this->ocr->extract($att);
         } catch (\Throwable) {
             // Status bleibt pending — kann ueber 'ocr:run-pending' nachgeholt werden
+        }
+
+        // Felder-Extraktion nach OCR (best-effort, basierend auf document_type-Schema)
+        try {
+            $this->fields->extractFor($att->refresh());
+        } catch (\Throwable) {
         }
 
         return $att;
@@ -158,6 +167,10 @@ class AttachmentStorage
 
         try {
             $this->ocr->extract($att);
+        } catch (\Throwable) {
+        }
+        try {
+            $this->fields->extractFor($att->refresh());
         } catch (\Throwable) {
         }
 

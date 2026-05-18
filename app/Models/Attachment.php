@@ -16,12 +16,15 @@ class Attachment extends Model
         'attachable_type', 'attachable_id', 'original_name', 'disk',
         'path', 'mime_type', 'size', 'content_hash', 'label', 'uploaded_by',
         'document_type', 'ocr_status', 'ocr_text', 'ocr_extracted_at', 'ocr_tool',
+        'indexed_fields', 'indexed_at',
         'version_chain_id', 'version_number', 'is_current_version',
     ];
 
     protected $casts = [
         'size' => 'integer',
         'ocr_extracted_at' => 'datetime',
+        'indexed_fields' => 'array',
+        'indexed_at' => 'datetime',
         'version_number' => 'integer',
         'is_current_version' => 'boolean',
     ];
