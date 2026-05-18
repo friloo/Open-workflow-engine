@@ -31,6 +31,12 @@
                             <x-secondary-button>Archivieren</x-secondary-button>
                         </form>
                     @endif
+                    @if($workflow->current_version_id)
+                        <a href="{{ route('workflows.templates.export', $workflow) }}"
+                           class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                            Als Vorlage exportieren
+                        </a>
+                    @endif
                     <form method="POST" action="{{ route('workflows.destroy', $workflow) }}" onsubmit="return confirm('Workflow wirklich loeschen?')">
                         @csrf @method('DELETE')
                         <button type="submit" class="inline-flex items-center justify-center rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm hover:bg-rose-50">Loeschen</button>

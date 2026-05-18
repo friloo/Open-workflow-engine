@@ -1,0 +1,114 @@
+{
+    "owe_workflow_template": 1,
+    "name": "Bestellfreigabe",
+    "description": "Bestellantrag mit Stufen-Freigabe nach Betrag: bis 1.000 EUR Vorgesetzter, darueber zusaetzlich Einkauf.\n\nVor dem Aktivieren: Rolle 'einkauf' anlegen (oder existierende anpassen) und im Designer als Empfaenger setzen.",
+    "trigger_type": "form",
+    "form_schema": [
+        {"key": "lieferant", "label": "Lieferant", "type": "text", "required": true},
+        {"key": "artikel", "label": "Was soll bestellt werden?", "type": "textarea", "required": true},
+        {"key": "betrag_netto", "label": "Netto-Betrag (EUR)", "type": "number", "required": true},
+        {"key": "kostenstelle", "label": "Kostenstelle", "type": "text", "required": true},
+        {"key": "begruendung", "label": "Begruendung", "type": "textarea", "required": false}
+    ],
+    "definition": {
+        "drawflow": {
+            "Home": {
+                "data": {
+                    "1": {
+                        "id": 1, "name": "start", "class": "start",
+                        "data": {"label": "Antrag"},
+                        "pos_x": 80, "pos_y": 250,
+                        "inputs": {},
+                        "outputs": {"output_1": {"connections": [{"node": "2", "output": "input_1"}]}}
+                    },
+                    "2": {
+                        "id": 2, "name": "approval", "class": "approval",
+                        "data": {
+                            "label": "Genehmigung Vorgesetzter",
+                            "recipient_type": "supervisor_of_initiator",
+                            "grace_value": 3,
+                            "grace_unit": "days"
+                        },
+                        "pos_x": 320, "pos_y": 250,
+                        "inputs": {"input_1": {"connections": [{"node": "1", "input": "output_1"}]}},
+                        "outputs": {
+                            "output_1": {"connections": [{"node": "3", "output": "input_1"}]},
+                            "output_2": {"connections": [{"node": "6", "output": "input_1"}]}
+                        }
+                    },
+                    "3": {
+                        "id": 3, "name": "condition", "class": "condition",
+                        "data": {
+                            "label": "Betrag > 1000 EUR?",
+                            "branches": [
+                                {"label": "ja", "field": "betrag_netto", "operator": "gt", "value": "1000"}
+                            ]
+                        },
+                        "pos_x": 620, "pos_y": 250,
+                        "inputs": {"input_1": {"connections": [{"node": "2", "input": "output_1"}]}},
+                        "outputs": {
+                            "output_1": {"connections": [{"node": "4", "output": "input_1"}]},
+                            "output_2": {"connections": [{"node": "5", "output": "input_1"}]}
+                        }
+                    },
+                    "4": {
+                        "id": 4, "name": "approval", "class": "approval",
+                        "data": {
+                            "label": "Zweit-Freigabe Einkauf",
+                            "recipient_type": "role",
+                            "recipient_role_id": null,
+                            "grace_value": 3,
+                            "grace_unit": "days"
+                        },
+                        "pos_x": 900, "pos_y": 150,
+                        "inputs": {"input_1": {"connections": [{"node": "3", "input": "output_1"}]}},
+                        "outputs": {
+                            "output_1": {"connections": [{"node": "5", "output": "input_1"}]},
+                            "output_2": {"connections": [{"node": "6", "output": "input_1"}]}
+                        }
+                    },
+                    "5": {
+                        "id": 5, "name": "notify", "class": "notify",
+                        "data": {
+                            "label": "Antragsteller benachrichtigen",
+                            "recipient_type": "initiator",
+                            "subject": "Bestellung genehmigt: {{ lieferant }} ({{ betrag_netto }} EUR)",
+                            "body": "Hallo {{ initiator_name }},\n\ndeine Bestellung ist genehmigt:\n\nLieferant: {{ lieferant }}\nArtikel: {{ artikel }}\nBetrag (netto): {{ betrag_netto }} EUR\nKostenstelle: {{ kostenstelle }}\n\nDu kannst die Bestellung jetzt ausloesen."
+                        },
+                        "pos_x": 1200, "pos_y": 250,
+                        "inputs": {"input_1": {"connections": [
+                            {"node": "3", "input": "output_2"},
+                            {"node": "4", "input": "output_1"}
+                        ]}},
+                        "outputs": {"output_1": {"connections": [{"node": "7", "output": "input_1"}]}}
+                    },
+                    "6": {
+                        "id": 6, "name": "notify", "class": "notify",
+                        "data": {
+                            "label": "Antragsteller: abgelehnt",
+                            "recipient_type": "initiator",
+                            "subject": "Bestellung abgelehnt: {{ lieferant }}",
+                            "body": "Hallo {{ initiator_name }},\n\ndeine Bestellung wurde abgelehnt. Bitte sprich mit dem Genehmiger."
+                        },
+                        "pos_x": 900, "pos_y": 400,
+                        "inputs": {"input_1": {"connections": [
+                            {"node": "2", "input": "output_2"},
+                            {"node": "4", "input": "output_2"}
+                        ]}},
+                        "outputs": {"output_1": {"connections": [{"node": "7", "output": "input_1"}]}}
+                    },
+                    "7": {
+                        "id": 7, "name": "end", "class": "end",
+                        "data": {"label": "Ende", "result": "completed"},
+                        "pos_x": 1500, "pos_y": 300,
+                        "inputs": {"input_1": {"connections": [
+                            {"node": "5", "input": "output_1"},
+                            {"node": "6", "input": "output_1"}
+                        ]}},
+                        "outputs": {}
+                    }
+                }
+            }
+        }
+    }
+}

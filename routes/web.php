@@ -58,9 +58,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -99,6 +97,11 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
     });
 
     Route::middleware('permission:workflows.design')->group(function () {
+        Route::get('templates', [\App\Http\Controllers\Workflow\TemplateController::class, 'index'])->name('templates.index');
+        Route::get('templates/import', [\App\Http\Controllers\Workflow\TemplateController::class, 'importShow'])->name('templates.import.show');
+        Route::post('templates/import', [\App\Http\Controllers\Workflow\TemplateController::class, 'importStore'])->name('templates.import.store');
+        Route::get('{workflow}/export', [\App\Http\Controllers\Workflow\TemplateController::class, 'export'])->name('templates.export');
+
         Route::get('create', [WorkflowController::class, 'create'])->name('create');
         Route::post('/', [WorkflowController::class, 'store'])->name('store');
         Route::get('{workflow}/edit', [WorkflowController::class, 'edit'])->name('edit');

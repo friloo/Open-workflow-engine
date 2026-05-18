@@ -52,12 +52,16 @@ Siehe Abschnitt **Erste Schritte**.
 ### Einstieg
 
 - Erste Schritte — Login, Benutzer, erste Liste, erster Workflow
+- **Dashboard / Startseite** — was du beim Login siehst (Tasks,
+  Postkorb, System-Health)
 - **Cookbook: Rechnungseingang einrichten** — Setup von Liste, Schema,
   IMAP und Workflow in 30 Minuten (Schritt-fuer-Schritt)
 
 ### Workflows
 
 - Workflows entwerfen — Knotentypen, Bedingungen, doc.\*-Routing, KI-Entwurf
+- **Workflow-Vorlagen** — Import/Export, 3 eingebaute Cookbooks
+  (Rechnungseingang, Urlaubsantrag, Bestellfreigabe)
 - Workflow-Statistik — Durchlaufzeiten, Engpaesse, Throughput
 - Vertretungsregelung — Urlaubs-Vertretung pro Benutzer
 - Genehmigung per Mail — signierter Link, kein Login noetig

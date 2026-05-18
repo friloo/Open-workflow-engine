@@ -73,6 +73,19 @@ Dateinamen und Beschriftung.
 Suche durchforstet Dateinamen, Beschriftung und OCR-Text. Treffer im
 Volltext werden hervorgehoben angezeigt.
 
+### Filter auf erkannte Felder
+
+Sobald ein Dokumenttyp ausgewaehlt wird (z. B. `Rechnung`), erscheinen
+zusaetzliche Filter-Eingaben fuer jedes Feld aus dem Schema:
+
+- **string / iban / email** -> *enthaelt* (Teilstring)
+- **date / number / currency** -> *von / bis* (Bereich)
+- andere Typen -> exakter Vergleich
+
+So findest du z. B. *„alle Rechnungen mit Kostenstelle `K-2026`
+zwischen 01.01. und 31.03., Brutto zwischen 100 und 1000 EUR"* direkt
+aus der Suche heraus. Filter sind URL-shareable (Query-String).
+
 `php artisan ocr:run-pending` holt OCR-Extraktionen nach. Laeuft taeglich
 um 02:30 ueber den Laravel-Scheduler.
 

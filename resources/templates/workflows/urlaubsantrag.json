@@ -1,0 +1,77 @@
+{
+    "owe_workflow_template": 1,
+    "name": "Urlaubsantrag",
+    "description": "Mitarbeiter stellt Urlaubsantrag -> Vorgesetzter genehmigt -> HR-Info-Mail.\n\nVor dem Aktivieren bitte: (1) im Designer ggf. die HR-Empfaenger-Rolle setzen, (2) Workflow aktivieren.",
+    "trigger_type": "form",
+    "form_schema": [
+        {"key": "von", "label": "Von", "type": "date", "required": true},
+        {"key": "bis", "label": "Bis", "type": "date", "required": true},
+        {"key": "tage", "label": "Anzahl Tage", "type": "number", "required": true},
+        {"key": "art", "label": "Art", "type": "select", "options": ["Erholungsurlaub", "Sonderurlaub", "Unbezahlt"], "required": true},
+        {"key": "begruendung", "label": "Begruendung (bei Sonderurlaub)", "type": "textarea", "required": false, "show_if_field": "art", "show_if_op": "eq", "show_if_value": "Sonderurlaub"}
+    ],
+    "definition": {
+        "drawflow": {
+            "Home": {
+                "data": {
+                    "1": {
+                        "id": 1, "name": "start", "class": "start",
+                        "data": {"label": "Antrag"},
+                        "pos_x": 80, "pos_y": 200,
+                        "inputs": {},
+                        "outputs": {"output_1": {"connections": [{"node": "2", "output": "input_1"}]}}
+                    },
+                    "2": {
+                        "id": 2, "name": "approval", "class": "approval",
+                        "data": {
+                            "label": "Genehmigung Vorgesetzter",
+                            "recipient_type": "supervisor_of_initiator",
+                            "grace_value": 5,
+                            "grace_unit": "days"
+                        },
+                        "pos_x": 340, "pos_y": 200,
+                        "inputs": {"input_1": {"connections": [{"node": "1", "input": "output_1"}]}},
+                        "outputs": {
+                            "output_1": {"connections": [{"node": "3", "output": "input_1"}]},
+                            "output_2": {"connections": [{"node": "4", "output": "input_1"}]}
+                        }
+                    },
+                    "3": {
+                        "id": 3, "name": "notify", "class": "notify",
+                        "data": {
+                            "label": "HR informieren",
+                            "recipient_type": "initiator",
+                            "subject": "Urlaubsantrag genehmigt: {{ initiator_name }} ({{ von }} - {{ bis }})",
+                            "body": "Hallo,\n\nder Urlaubsantrag von {{ initiator_name }} ({{ initiator_email }}) wurde genehmigt:\n\nVon: {{ von }}\nBis: {{ bis }}\nTage: {{ tage }}\nArt: {{ art }}\n\nBitte im HR-System eintragen."
+                        },
+                        "pos_x": 640, "pos_y": 100,
+                        "inputs": {"input_1": {"connections": [{"node": "2", "input": "output_1"}]}},
+                        "outputs": {"output_1": {"connections": [{"node": "5", "output": "input_1"}]}}
+                    },
+                    "4": {
+                        "id": 4, "name": "notify", "class": "notify",
+                        "data": {
+                            "label": "Antragsteller informieren",
+                            "recipient_type": "initiator",
+                            "subject": "Urlaubsantrag abgelehnt",
+                            "body": "Hallo {{ initiator_name }},\n\ndein Urlaubsantrag fuer {{ von }} - {{ bis }} wurde abgelehnt. Bitte sprich mit deinem Vorgesetzten."
+                        },
+                        "pos_x": 640, "pos_y": 320,
+                        "inputs": {"input_1": {"connections": [{"node": "2", "input": "output_2"}]}},
+                        "outputs": {"output_1": {"connections": [{"node": "5", "output": "input_1"}]}}
+                    },
+                    "5": {
+                        "id": 5, "name": "end", "class": "end",
+                        "data": {"label": "Ende", "result": "completed"},
+                        "pos_x": 940, "pos_y": 200,
+                        "inputs": {"input_1": {"connections": [
+                            {"node": "3", "input": "output_1"},
+                            {"node": "4", "input": "output_1"}
+                        ]}},
+                        "outputs": {}
+                    }
+                }
+            }
+        }
+    }
+}

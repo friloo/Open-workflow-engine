@@ -1,0 +1,86 @@
+{
+    "owe_workflow_template": 1,
+    "name": "Rechnungseingang",
+    "description": "Eingehende Rechnung -> wenn Kostenstelle erkannt, geht's zum Verantwortlichen aus der Liste, sonst zur Buchhaltung.\n\nVor dem Aktivieren bitte: (1) Liste 'Kostenstellen' im Lookup-Empfaenger zuordnen, (2) Fallback-Rolle 'Buchhaltung' / 'Einkauf' setzen, (3) IMAP-Postfach mit Dokumenttyp 'Rechnung' + Workflow=dieser anlegen.",
+    "trigger_type": "manual",
+    "form_schema": [
+        {"key": "kostenstelle", "label": "Kostenstelle", "type": "text", "required": false},
+        {"key": "betrag", "label": "Brutto-Betrag", "type": "text", "required": false},
+        {"key": "rechnungsnummer", "label": "Rechnungsnummer", "type": "text", "required": false}
+    ],
+    "definition": {
+        "drawflow": {
+            "Home": {
+                "data": {
+                    "1": {
+                        "id": 1, "name": "start", "class": "start",
+                        "data": {"label": "Eingang"},
+                        "pos_x": 80, "pos_y": 200,
+                        "inputs": {},
+                        "outputs": {"output_1": {"connections": [{"node": "2", "output": "input_1"}]}}
+                    },
+                    "2": {
+                        "id": 2, "name": "condition", "class": "condition",
+                        "data": {
+                            "label": "Kostenstelle erkannt?",
+                            "branches": [
+                                {"label": "ja", "field": "doc.indexed_fields.kostenstelle", "operator": "not_empty", "value": ""}
+                            ]
+                        },
+                        "pos_x": 320, "pos_y": 200,
+                        "inputs": {"input_1": {"connections": [{"node": "1", "input": "output_1"}]}},
+                        "outputs": {
+                            "output_1": {"connections": [{"node": "3", "output": "input_1"}]},
+                            "output_2": {"connections": [{"node": "4", "output": "input_1"}]}
+                        }
+                    },
+                    "3": {
+                        "id": 3, "name": "approval", "class": "approval",
+                        "data": {
+                            "label": "Genehmigung Kostenstellen-Verantwortlicher",
+                            "recipient_type": "list_lookup",
+                            "list_id": null,
+                            "lookup_source": "doc.indexed_fields.kostenstelle",
+                            "fallback_role_id": null,
+                            "fallback_user_id": null,
+                            "grace_value": 5,
+                            "grace_unit": "days"
+                        },
+                        "pos_x": 620, "pos_y": 100,
+                        "inputs": {"input_1": {"connections": [{"node": "2", "input": "output_1"}]}},
+                        "outputs": {
+                            "output_1": {"connections": [{"node": "5", "output": "input_1"}]},
+                            "output_2": {"connections": [{"node": "5", "output": "input_1"}]}
+                        }
+                    },
+                    "4": {
+                        "id": 4, "name": "approval", "class": "approval",
+                        "data": {
+                            "label": "Genehmigung Buchhaltung",
+                            "recipient_type": "role",
+                            "recipient_role_id": null,
+                            "grace_value": 5,
+                            "grace_unit": "days"
+                        },
+                        "pos_x": 620, "pos_y": 320,
+                        "inputs": {"input_1": {"connections": [{"node": "2", "input": "output_2"}]}},
+                        "outputs": {
+                            "output_1": {"connections": [{"node": "5", "output": "input_1"}]},
+                            "output_2": {"connections": [{"node": "5", "output": "input_1"}]}
+                        }
+                    },
+                    "5": {
+                        "id": 5, "name": "end", "class": "end",
+                        "data": {"label": "Ende", "result": "completed"},
+                        "pos_x": 940, "pos_y": 200,
+                        "inputs": {"input_1": {"connections": [
+                            {"node": "3", "input": "output_1"},
+                            {"node": "4", "input": "output_1"}
+                        ]}},
+                        "outputs": {}
+                    }
+                }
+            }
+        }
+    }
+}

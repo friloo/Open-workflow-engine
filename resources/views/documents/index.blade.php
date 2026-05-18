@@ -18,25 +18,64 @@
         <a href="{{ route('documents.bulk') }}"><x-primary-button type="button">Bulk-Upload</x-primary-button></a>
     </div>
 
-    <form method="GET" class="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-2">
-        <input type="text" name="q" value="{{ $q }}" placeholder="Suchen im Dateinamen und Volltext..."
-            class="sm:col-span-3 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-        <select name="type" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-            <option value="">Alle Typen</option>
-            @foreach($types as $t)
-                <option value="{{ $t }}" @selected($type===$t)>{{ $t }}</option>
-            @endforeach
-        </select>
-        <div class="flex gap-2">
-            <select name="status" class="flex-1 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <option value="">OCR: alle</option>
-                <option value="done" @selected($status==='done')>fertig</option>
-                <option value="pending" @selected($status==='pending')>pending</option>
-                <option value="failed" @selected($status==='failed')>fehlgeschlagen</option>
-                <option value="skipped" @selected($status==='skipped')>uebersprungen</option>
+    <form method="GET" class="mb-4 space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-2">
+            <input type="text" name="q" value="{{ $q }}" placeholder="Suchen im Dateinamen und Volltext..."
+                class="sm:col-span-3 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <select name="type" onchange="this.form.submit()" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <option value="">Alle Typen</option>
+                @foreach($types as $t)
+                    <option value="{{ $t }}" @selected($type===$t)>{{ $t }}</option>
+                @endforeach
             </select>
-            <x-secondary-button type="submit">Filtern</x-secondary-button>
+            <div class="flex gap-2">
+                <select name="status" class="flex-1 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">OCR: alle</option>
+                    <option value="done" @selected($status==='done')>fertig</option>
+                    <option value="pending" @selected($status==='pending')>pending</option>
+                    <option value="failed" @selected($status==='failed')>fehlgeschlagen</option>
+                    <option value="skipped" @selected($status==='skipped')>uebersprungen</option>
+                </select>
+                <x-secondary-button type="submit">Filtern</x-secondary-button>
+            </div>
         </div>
+
+        @if(! empty($schema))
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <div class="text-xs font-semibold uppercase text-slate-500 mb-2">Felder ({{ $type }})</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    @foreach($schema as $f)
+                        @php($current = $fieldFilters[$f['key']] ?? null)
+                        @if(in_array($f['type'], ['date', 'currency', 'number'], true))
+                            @php($from = is_array($current) ? ($current['from'] ?? '') : '')
+                            @php($to = is_array($current) ? ($current['to'] ?? '') : '')
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600">{{ $f['label'] }} <span class="font-mono text-slate-400">{{ $f['key'] }}</span></label>
+                                <div class="mt-1 flex gap-1">
+                                    <input type="{{ $f['type'] === 'date' ? 'date' : 'number' }}" step="{{ $f['type'] === 'currency' ? '0.01' : 'any' }}"
+                                           name="fields[{{ $f['key'] }}][from]" value="{{ $from }}" placeholder="von"
+                                           class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <input type="{{ $f['type'] === 'date' ? 'date' : 'number' }}" step="{{ $f['type'] === 'currency' ? '0.01' : 'any' }}"
+                                           name="fields[{{ $f['key'] }}][to]" value="{{ $to }}" placeholder="bis"
+                                           class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                        @else
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600">{{ $f['label'] }} <span class="font-mono text-slate-400">{{ $f['key'] }}</span></label>
+                                <input type="text" name="fields[{{ $f['key'] }}]"
+                                       value="{{ is_array($current) ? '' : ($current ?? '') }}"
+                                       placeholder="enthaelt …"
+                                       class="mt-1 block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+                <div class="mt-2 text-right">
+                    <x-secondary-button type="submit">Felder filtern</x-secondary-button>
+                </div>
+            </div>
+        @endif
     </form>
 
     <x-card>

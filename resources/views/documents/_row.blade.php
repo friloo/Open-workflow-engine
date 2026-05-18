@@ -38,6 +38,13 @@
             @if($snippet)
                 <p class="mt-2 text-xs text-slate-700 bg-yellow-50 px-2 py-1 rounded">{!! str_ireplace($q, '<strong>'.$q.'</strong>', e($snippet)) !!}</p>
             @endif
+            @if(! empty($d->indexed_fields))
+                <div class="mt-2 flex flex-wrap gap-1">
+                    @foreach($d->indexed_fields as $k => $v)
+                        <span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs"><span class="font-mono text-slate-500">{{ $k }}:</span>&nbsp;<span class="font-medium text-slate-800">{{ \Illuminate\Support\Str::limit((string) $v, 30) }}</span></span>
+                    @endforeach
+                </div>
+            @endif
         </div>
         <div class="shrink-0 text-right space-x-3">
             <a href="{{ route('attachments.download', $d) }}" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-500">Oeffnen</a>

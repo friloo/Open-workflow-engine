@@ -26,6 +26,7 @@ class DocumentController extends Controller
         $q = trim((string) $request->get('q', ''));
         $type = $request->get('type');
         $status = $request->get('status');
+        $fieldFilters = (array) $request->get('fields', []);
 
         $visibleTypes = DocumentTypes::visibleForUser($user);
         $allowAll = $user->hasRole('admin');
@@ -57,12 +58,51 @@ class DocumentController extends Controller
             });
         }
 
+        // Filter auf indexed_fields (nur wenn ein Typ gewaehlt ist, denn nur
+        // dann gibt es ein Schema mit erlaubten Schluesseln).
+        $schema = $type ? \App\Support\DocumentFieldSchema::forType((string) $type) : [];
+        $activeFieldFilters = [];
+        if ($schema && $fieldFilters) {
+            $allowedKeys = array_column($schema, 'key');
+            $byKey = collect($schema)->keyBy('key');
+            foreach ($fieldFilters as $key => $rawValue) {
+                if (! in_array($key, $allowedKeys, true)) continue;
+                $field = $byKey[$key];
+
+                if (is_array($rawValue)) {
+                    // Range fuer date / currency / number: ['from' => ..., 'to' => ...]
+                    $from = trim((string) ($rawValue['from'] ?? ''));
+                    $to = trim((string) ($rawValue['to'] ?? ''));
+                    if ($from === '' && $to === '') continue;
+                    if ($from !== '') {
+                        $query->where('indexed_fields->'.$key, '>=', $from);
+                    }
+                    if ($to !== '') {
+                        $query->where('indexed_fields->'.$key, '<=', $to);
+                    }
+                    $activeFieldFilters[$key] = ['from' => $from, 'to' => $to];
+                } else {
+                    $value = trim((string) $rawValue);
+                    if ($value === '') continue;
+                    // String, IBAN, E-Mail: contains. Sonst exakt.
+                    if (in_array($field['type'], ['string', 'iban', 'email'], true)) {
+                        $query->where('indexed_fields->'.$key, 'like', '%'.$value.'%');
+                    } else {
+                        $query->where('indexed_fields->'.$key, $value);
+                    }
+                    $activeFieldFilters[$key] = $value;
+                }
+            }
+        }
+
         return view('documents.index', [
             'documents' => $query->paginate(25)->withQueryString(),
             'types' => $visibleTypes,
             'q' => $q,
             'type' => $type,
             'status' => $status,
+            'schema' => $schema,
+            'fieldFilters' => $activeFieldFilters,
             'ocrAvailability' => $ocr->availability(),
         ]);
     }
