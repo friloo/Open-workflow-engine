@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('attachments', function (Blueprint $table) {
             $table->id();
-            $table->morphs('attachable');
+            $table->nullableMorphs('attachable');
             $table->string('original_name');
             $table->string('disk', 64)->default('local');
             $table->string('path');

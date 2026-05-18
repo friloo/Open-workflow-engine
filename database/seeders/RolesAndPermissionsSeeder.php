@@ -24,8 +24,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // Workflows
             ['slug' => 'workflows.view', 'name' => 'Workflows ansehen', 'group' => 'Workflows'],
-            ['slug' => 'workflows.design', 'name' => 'Workflows entwerfen', 'group' => 'Workflows'],
-            ['slug' => 'workflows.publish', 'name' => 'Workflows veroeffentlichen', 'group' => 'Workflows'],
+            ['slug' => 'workflows.design', 'name' => 'Workflows entwerfen & aktivieren', 'group' => 'Workflows'],
             ['slug' => 'workflows.run', 'name' => 'Workflows starten', 'group' => 'Workflows'],
 
             // Formulare
@@ -75,7 +74,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'description' => 'Darf Workflows und Formulare entwerfen und veroeffentlichen.',
                 'is_system' => true,
                 'permissions' => [
-                    'workflows.view', 'workflows.design', 'workflows.publish', 'workflows.run',
+                    'workflows.view', 'workflows.design', 'workflows.run',
                     'forms.view', 'forms.manage', 'users.view', 'roles.view',
                     'lists.view', 'lists.manage', 'assets.view', 'assets.manage',
                     'documents.search',

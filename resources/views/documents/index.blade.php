@@ -13,6 +13,10 @@
         </div>
     @endif
 
+    <div class="mb-4 flex justify-end">
+        <a href="{{ route('documents.bulk') }}"><x-primary-button type="button">Bulk-Upload</x-primary-button></a>
+    </div>
+
     <form method="GET" class="mb-4 grid grid-cols-1 sm:grid-cols-5 gap-2">
         <input type="text" name="q" value="{{ $q }}" placeholder="Suchen im Dateinamen und Volltext..."
             class="sm:col-span-3 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">

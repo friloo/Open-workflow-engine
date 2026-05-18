@@ -28,7 +28,7 @@ class WorkflowTemplatesSeeder extends Seeder
                 'description' => 'Mitarbeiter beantragt Bestellung. Geht an Kostenstellen-Verantwortlichen (Liste), dann an Einkauf.',
                 'trigger_type' => 'form',
                 'status' => 'draft',
-                'is_public' => false,
+                
                 'created_by' => $admin->id,
                 'updated_by' => $admin->id,
             ]
@@ -81,7 +81,7 @@ class WorkflowTemplatesSeeder extends Seeder
                 'description' => 'Mitarbeiter meldet sich krank, Vorgesetzter wird benachrichtigt.',
                 'trigger_type' => 'form',
                 'status' => 'draft',
-                'is_public' => true, 'public_slug' => 'vorlage-krankmeldung',
+                
                 'created_by' => $admin->id, 'updated_by' => $admin->id,
             ]
         );

@@ -47,24 +47,18 @@ class WorkflowController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'trigger_type' => ['required', 'in:form,manual,schedule,recurring'],
-            'is_public' => ['nullable', 'boolean'],
+            'trigger_type' => ['required', 'in:form,manual,recurring'],
         ]);
 
         $workflow = Workflow::create([
             ...$data,
-            'is_public' => $request->boolean('is_public'),
             'status' => Workflow::STATUS_DRAFT,
             'created_by' => $request->user()->id,
             'updated_by' => $request->user()->id,
         ]);
 
-        if ($workflow->is_public && empty($workflow->public_slug)) {
-            $workflow->forceFill(['public_slug' => $workflow->slug])->save();
-        }
-
         $this->audit->log('workflow.created', $workflow, null, $workflow->only([
-            'id', 'name', 'slug', 'trigger_type', 'is_public',
+            'id', 'name', 'slug', 'trigger_type',
         ]), "Workflow {$workflow->name} angelegt");
 
         return redirect()->route('workflows.design', $workflow);
@@ -80,15 +74,13 @@ class WorkflowController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'trigger_type' => ['required', 'in:form,manual,schedule,recurring'],
-            'is_public' => ['nullable', 'boolean'],
+            'trigger_type' => ['required', 'in:form,manual,recurring'],
         ]);
 
         $original = $workflow->only(array_keys($data));
 
         $workflow->update([
             ...$data,
-            'is_public' => $request->boolean('is_public'),
             'updated_by' => $request->user()->id,
         ]);
 

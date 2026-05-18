@@ -31,7 +31,7 @@
     <x-card>
         <form method="POST" action="{{ route('workflow-instances.bulk_cancel') }}" x-data="{ selected: [] }">
         @csrf
-        @if(auth()->user()->hasAnyPermission(['workflows.design','workflows.publish']))
+        @if(auth()->user()->hasAnyPermission(['workflows.design']))
             <div class="mb-3 flex items-center gap-2 text-sm" x-show="selected.length" style="display:none;">
                 <span x-text="`${selected.length} ausgewaehlt`" class="text-slate-700"></span>
                 <input type="text" name="reason" placeholder="Grund (optional)" class="flex-1 rounded-lg border-slate-300 text-sm shadow-sm focus:border-rose-500 focus:ring-rose-500">
@@ -58,7 +58,7 @@
                         @php($nodeLabel = data_get($i->workflow?->currentVersion?->definition, "drawflow.Home.data.{$i->current_step_key}.data.label"))
                         <tr>
                             <td class="py-3 pr-2">
-                                @if($i->status==='running' && auth()->user()->hasAnyPermission(['workflows.design','workflows.publish']))
+                                @if($i->status==='running' && auth()->user()->hasAnyPermission(['workflows.design']))
                                     <input type="checkbox" name="ids[]" value="{{ $i->id }}" x-model="selected" class="rounded border-slate-300 text-rose-600 focus:ring-rose-500">
                                 @endif
                             </td>

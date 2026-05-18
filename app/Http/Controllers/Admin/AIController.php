@@ -132,7 +132,7 @@ TXT;
     {
         $data = $request->validate([
             'description' => ['required', 'string', 'max:6000'],
-            'trigger_type' => ['nullable', 'in:form,manual,schedule,recurring'],
+            'trigger_type' => ['nullable', 'in:form,manual,recurring'],
         ]);
         if (! $client->isConfigured()) {
             return response()->json(['error' => 'KI ist nicht konfiguriert.'], 422);

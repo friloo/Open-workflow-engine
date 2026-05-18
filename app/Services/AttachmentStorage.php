@@ -24,7 +24,7 @@ class AttachmentStorage
 
     public function __construct(private readonly OcrExtractor $ocr) {}
 
-    public function store(UploadedFile $file, Model $attachable, ?string $label, ?int $userId, ?string $documentType = null): Attachment
+    public function store(UploadedFile $file, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, ?Attachment $newVersionOf = null): Attachment
     {
         if ($file->getSize() > self::MAX_BYTES) {
             throw new \RuntimeException('Datei zu gross (max. 15 MB).');
@@ -47,9 +47,21 @@ class AttachmentStorage
             throw new \RuntimeException('Datei konnte nicht gespeichert werden.');
         }
 
+        // Versionierung: neues Dokument startet eine Chain, neue Version
+        // haengt sich in eine bestehende Chain ein.
+        if ($newVersionOf) {
+            $chainId = $newVersionOf->version_chain_id;
+            $versionNumber = ($newVersionOf->versions()->max('version_number') ?? 0) + 1;
+            // Bisherige current-Markierung in der Chain entfernen
+            Attachment::where('version_chain_id', $chainId)->update(['is_current_version' => false]);
+        } else {
+            $chainId = (string) Str::uuid();
+            $versionNumber = 1;
+        }
+
         $att = Attachment::create([
-            'attachable_type' => $attachable->getMorphClass(),
-            'attachable_id' => $attachable->getKey(),
+            'attachable_type' => $attachable?->getMorphClass(),
+            'attachable_id' => $attachable?->getKey(),
             'original_name' => Str::limit($file->getClientOriginalName(), 250, ''),
             'disk' => 'local',
             'path' => $path,
@@ -58,8 +70,11 @@ class AttachmentStorage
             'content_hash' => $hash,
             'label' => $label,
             'uploaded_by' => $userId,
-            'document_type' => $documentType,
+            'document_type' => $documentType ?? $newVersionOf?->document_type,
             'ocr_status' => 'pending',
+            'version_chain_id' => $chainId,
+            'version_number' => $versionNumber,
+            'is_current_version' => true,
         ]);
 
         // OCR-Extraktion synchron versuchen (best-effort, kein Abbruch)

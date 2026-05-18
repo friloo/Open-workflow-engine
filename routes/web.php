@@ -15,7 +15,6 @@ use App\Http\Controllers\Lists\LookupListEntryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Workflow\FormController;
 use App\Http\Controllers\Workflow\FormSubmissionController;
-use App\Http\Controllers\Workflow\PublicFormController;
 use App\Http\Controllers\Workflow\TaskController;
 use App\Http\Controllers\Workflow\WorkflowController;
 use App\Http\Controllers\Workflow\WorkflowDesignerController;
@@ -29,9 +28,6 @@ Route::get('/', function () {
 });
 
 // Public form submissions (no auth)
-Route::get('/f/{slug}', [PublicFormController::class, 'show'])->name('public.form.show');
-Route::post('/f/{slug}', [PublicFormController::class, 'submit'])->name('public.form.submit');
-Route::get('/f/{slug}/danke', [PublicFormController::class, 'thanks'])->name('public.form.thanks');
 
 // Public standalone forms (no auth)
 Route::get('/formular/{slug}', [FormController::class, 'showPublic'])->name('forms.public.show');
@@ -70,7 +66,7 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
         Route::post('{workflow}/versions/{version}/restore', [WorkflowDesignerController::class, 'restore'])->name('versions.restore');
     });
 
-    Route::middleware('permission:workflows.publish')->group(function () {
+    Route::middleware('permission:workflows.design')->group(function () {
         Route::post('{workflow}/activate', [WorkflowController::class, 'activate'])->name('activate');
         Route::post('{workflow}/archive', [WorkflowController::class, 'archive'])->name('archive');
     });
@@ -160,11 +156,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/hilfe/{topic}', [\App\Http\Controllers\HelpController::class, 'show'])->name('help.show');
 });
 
-// Dokumenten-Suche (OCR-Volltext)
+// Dokumenten-Suche (OCR-Volltext) + Versionen + Bulk-Upload
 Route::middleware(['auth', 'permission:documents.search'])->prefix('dokumente')->name('documents.')->group(function () {
     Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
+    Route::get('upload', [\App\Http\Controllers\DocumentController::class, 'bulkUploadShow'])->name('bulk');
+    Route::post('upload', [\App\Http\Controllers\DocumentController::class, 'bulkUploadStore'])->name('bulk.store');
     Route::get('{attachment}', [\App\Http\Controllers\DocumentController::class, 'show'])->name('show');
+    Route::get('{attachment}/preview', [\App\Http\Controllers\DocumentController::class, 'preview'])->name('preview');
     Route::post('{attachment}/reindex', [\App\Http\Controllers\DocumentController::class, 'reindex'])->name('reindex');
+    Route::post('{attachment}/new-version', [\App\Http\Controllers\DocumentController::class, 'uploadVersion'])->name('new_version');
 });
 
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)

@@ -119,7 +119,6 @@ const PALETTE = Object.entries(NODE_TEMPLATES).map(([type, t]) => ({
 const TRIGGER_LABELS = {
     form: 'Formular',
     manual: 'Manuell',
-    schedule: 'Zeitgesteuert',
     recurring: 'Wiederkehrend',
 };
 

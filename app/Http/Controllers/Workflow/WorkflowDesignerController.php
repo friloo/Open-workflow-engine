@@ -27,8 +27,6 @@ class WorkflowDesignerController extends Controller
                 'slug' => $workflow->slug,
                 'status' => $workflow->status,
                 'trigger_type' => $workflow->trigger_type,
-                'is_public' => $workflow->is_public,
-                'public_slug' => $workflow->public_slug,
                 'current_version_number' => $workflow->currentVersion?->version_number,
             ],
             'definition' => $workflow->currentVersion?->definition,

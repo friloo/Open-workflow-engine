@@ -19,17 +19,11 @@ class Workflow extends Model
 
     public const TRIGGER_FORM = 'form';
     public const TRIGGER_MANUAL = 'manual';
-    public const TRIGGER_SCHEDULE = 'schedule';
     public const TRIGGER_RECURRING = 'recurring';
 
     protected $fillable = [
         'name', 'slug', 'description', 'status', 'trigger_type',
-        'is_public', 'public_slug', 'current_version_id',
-        'created_by', 'updated_by',
-    ];
-
-    protected $casts = [
-        'is_public' => 'boolean',
+        'current_version_id', 'created_by', 'updated_by',
     ];
 
     protected static function booted(): void

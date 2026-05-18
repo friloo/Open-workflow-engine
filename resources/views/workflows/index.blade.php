@@ -77,7 +77,6 @@
                                 @switch($w->trigger_type)
                                     @case('form')<span class="inline-flex items-center rounded-md bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">Formular</span>@break
                                     @case('manual')<span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">Manuell</span>@break
-                                    @case('schedule')<span class="inline-flex items-center rounded-md bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">Zeitgesteuert</span>@break
                                     @case('recurring')<span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Wiederkehrend</span>@break
                                 @endswitch
                             </td>

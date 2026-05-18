@@ -100,7 +100,7 @@ class AttachmentController extends Controller
         if ($attachable instanceof WorkflowInstance) {
             // Initiator oder Workflow-Designer / Admin
             if ($attachable->started_by !== $user->id
-                && ! $user->hasAnyPermission(['workflows.design', 'workflows.publish'])) {
+                && ! $user->hasAnyPermission(['workflows.design'])) {
                 abort(403);
             }
             return;
@@ -118,7 +118,7 @@ class AttachmentController extends Controller
         $att = $a->attachable;
 
         // Admins/Workflow-Designer und Asset-/Form-Manager duerfen alles
-        if ($user->hasAnyPermission(['workflows.design', 'workflows.publish', 'audit.view'])) return;
+        if ($user->hasAnyPermission(['workflows.design', 'audit.view'])) return;
 
         if ($att instanceof Asset) {
             if ($user->hasPermission('assets.view')) return;

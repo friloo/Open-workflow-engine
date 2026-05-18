@@ -39,8 +39,6 @@ class WorkflowRuntimeTest extends TestCase
             'slug' => $slug,
             'trigger_type' => 'form',
             'status' => Workflow::STATUS_ACTIVE,
-            'is_public' => $public,
-            'public_slug' => $public ? $slug : null,
             'created_by' => 1,
             'updated_by' => 1,
         ]);
@@ -52,6 +50,14 @@ class WorkflowRuntimeTest extends TestCase
             'created_by' => 1,
         ]);
         $wf->forceFill(['current_version_id' => $version->id])->save();
+
+        if ($public) {
+            \App\Models\Form::create([
+                'name' => $wf->name, 'slug' => 'public-'.$slug, 'public_slug' => $slug,
+                'is_public' => true, 'workflow_id' => $wf->id,
+                'schema' => $formSchema,
+            ]);
+        }
         return $wf->fresh('currentVersion');
     }
 
@@ -213,9 +219,9 @@ class WorkflowRuntimeTest extends TestCase
             slug: 'bestellung-extern',
         );
 
-        $this->get('/f/bestellung-extern')->assertOk()->assertSee('Bestellantrag');
-        $this->post('/f/bestellung-extern', ['name' => 'Anonyme Anfrage'])
-            ->assertRedirect('/f/bestellung-extern/danke');
+        $this->get('/formular/bestellung-extern')->assertOk()->assertSee('Bestellantrag');
+        $this->post('/formular/bestellung-extern', ['name' => 'Anonyme Anfrage'])
+            ->assertRedirect('/formular/bestellung-extern/danke');
 
         $this->assertDatabaseHas('workflow_instances', ['workflow_id' => $wf->id]);
         $this->assertDatabaseHas('form_submissions', ['workflow_instance_id' => WorkflowInstance::first()->id]);

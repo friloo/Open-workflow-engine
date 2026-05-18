@@ -16,11 +16,14 @@ class Attachment extends Model
         'attachable_type', 'attachable_id', 'original_name', 'disk',
         'path', 'mime_type', 'size', 'content_hash', 'label', 'uploaded_by',
         'document_type', 'ocr_status', 'ocr_text', 'ocr_extracted_at', 'ocr_tool',
+        'version_chain_id', 'version_number', 'is_current_version',
     ];
 
     protected $casts = [
         'size' => 'integer',
         'ocr_extracted_at' => 'datetime',
+        'version_number' => 'integer',
+        'is_current_version' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -50,6 +53,20 @@ class Attachment extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * Alle Versionen des gleichen logischen Dokuments (chronologisch).
+     */
+    public function versions()
+    {
+        return Attachment::where('version_chain_id', $this->version_chain_id)
+            ->orderBy('version_number');
+    }
+
+    public function scopeCurrentVersions($query)
+    {
+        return $query->where('is_current_version', true);
     }
 
     public function sizeFormatted(): string

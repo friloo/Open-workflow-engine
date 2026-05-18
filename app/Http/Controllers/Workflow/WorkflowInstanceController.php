@@ -92,7 +92,7 @@ class WorkflowInstanceController extends Controller
         ];
 
         $canCancel = $instance->status === WorkflowInstance::STATUS_RUNNING
-            && $user->hasAnyPermission(['workflows.design', 'workflows.publish']);
+            && $user->hasAnyPermission(['workflows.design']);
 
         return view('workflows.instances.show', compact('instance', 'viewerPayload', 'canCancel'));
     }
@@ -100,7 +100,7 @@ class WorkflowInstanceController extends Controller
     public function cancel(Request $request, WorkflowInstance $instance): RedirectResponse
     {
         $user = $request->user();
-        if (! $user->hasAnyPermission(['workflows.design', 'workflows.publish'])) {
+        if (! $user->hasAnyPermission(['workflows.design'])) {
             abort(403);
         }
 
@@ -118,7 +118,7 @@ class WorkflowInstanceController extends Controller
 
     public function bulkCancel(Request $request): RedirectResponse
     {
-        if (! $request->user()->hasAnyPermission(['workflows.design', 'workflows.publish'])) abort(403);
+        if (! $request->user()->hasAnyPermission(['workflows.design'])) abort(403);
         $data = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['integer'],
