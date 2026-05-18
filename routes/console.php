@@ -32,6 +32,13 @@ Schedule::command('ocr:run-pending')
     ->withoutOverlapping()
     ->runInBackground();
 
+// Freigabe-Links: taeglich Pruefungs-Mails versenden und ueberfaellige
+// Links automatisch widerrufen.
+Schedule::command('shares:review')
+    ->dailyAt('07:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
 // DSGVO-Audit-Cleanup: monatlich IP/UA aelter als 2 Jahre anonymisieren.
 Schedule::command('audit:cleanup --days=730')
     ->monthlyOn(1, '03:00')

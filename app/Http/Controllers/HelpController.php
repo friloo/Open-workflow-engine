@@ -19,6 +19,7 @@ class HelpController extends Controller
         'lists' => 'Listen (Kostenstellen etc.)',
         'assets' => 'Assets (Fuehrerschein etc.)',
         'documents' => 'Dokumente (Versionen, OCR, Bulk)',
+        'sharing' => 'Sharing-Links',
         'http-node' => 'HTTP-Knoten',
         'secrets' => 'Secrets-Vault',
         'webhooks' => 'Webhooks',

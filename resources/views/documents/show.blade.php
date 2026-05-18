@@ -73,6 +73,52 @@
         </div>
 
         <div class="space-y-6">
+            @if(auth()->user()->hasPermission('shares.create') && $attachment->is_current_version)
+                <x-card title="Link teilen" description="Externer Zugriff ohne Login. Cap: {{ (int) \App\Support\Settings::get('shares.max_expiry_days', 90) }} Tage.">
+                    @if(session('shareCreated'))
+                        @php($sc = session('shareCreated'))
+                        <div class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+                            <strong>Link erstellt:</strong>
+                            <div class="mt-1 flex items-center gap-2">
+                                <input type="text" value="{{ $sc['url'] }}" readonly class="flex-1 rounded border-slate-200 text-xs bg-white" onclick="this.select()">
+                                <button type="button" onclick="navigator.clipboard.writeText('{{ $sc['url'] }}'); this.textContent='Kopiert'" class="text-xs text-emerald-700 hover:text-emerald-900">Kopieren</button>
+                            </div>
+                            @if($sc['expires'])<div class="mt-1">Laeuft ab: {{ $sc['expires'] }}</div>@endif
+                        </div>
+                    @endif
+                    <form method="POST" action="{{ route('shares.store', $attachment) }}" class="space-y-2 text-sm">
+                        @csrf
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600">Gueltig (Tage)</label>
+                                <input type="number" name="expires_in_days" min="1" max="{{ (int) \App\Support\Settings::get('shares.max_expiry_days', 90) }}"
+                                    value="{{ (int) \App\Support\Settings::get('shares.default_expiry_days', 14) }}"
+                                    class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600">Max. Zugriffe</label>
+                                <input type="number" name="max_downloads" min="1" placeholder="unbegrenzt" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600">Passwort (optional)</label>
+                            <input type="password" name="password" autocomplete="new-password" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600">Notiz (intern)</label>
+                            <input type="text" name="note" placeholder="z. B. fuer Anwalt Mueller" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                        <label class="inline-flex items-center gap-2 text-xs text-slate-700">
+                            <input type="hidden" name="follow_versions" value="0">
+                            <input type="checkbox" name="follow_versions" value="1" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                            Immer die aktuelle Version freigeben
+                        </label>
+                        <button class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Link erstellen</button>
+                    </form>
+                    <p class="mt-3 text-xs text-slate-500">Du bekommst alle {{ (int) \App\Support\Settings::get('shares.review_interval_days', 7) }} Tage eine Mail zur Bestaetigung. Reagierst du {{ (int) \App\Support\Settings::get('shares.review_grace_days', 3) }} Tage lang nicht, wird automatisch widerrufen.</p>
+                </x-card>
+            @endif
+
             <x-card title="Datei">
                 <a href="{{ route('attachments.download', $attachment) }}" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Herunterladen</a>
                 <dl class="mt-4 space-y-2 text-xs">

@@ -27,6 +27,19 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
+// Public Share-Links
+Route::get('/share/{token}', [\App\Http\Controllers\ShareController::class, 'show'])->name('share.show');
+Route::post('/share/{token}/password', [\App\Http\Controllers\ShareController::class, 'unlock'])->name('share.unlock');
+Route::get('/share/{token}/preview', [\App\Http\Controllers\ShareController::class, 'preview'])->name('share.preview');
+Route::get('/share/{token}/download', [\App\Http\Controllers\ShareController::class, 'download'])->name('share.download');
+
+// Review-Endpoints (signed, kein Login noetig)
+Route::middleware('signed')->group(function () {
+    Route::get('/share/{share}/review/confirm', [\App\Http\Controllers\ShareLinkController::class, 'reviewConfirmForm'])->name('shares.review.confirm');
+    Route::post('/share/{share}/review/confirm', [\App\Http\Controllers\ShareLinkController::class, 'reviewConfirm'])->name('shares.review.confirm.submit');
+    Route::get('/share/{share}/review/revoke', [\App\Http\Controllers\ShareLinkController::class, 'reviewRevoke'])->name('shares.review.revoke');
+});
+
 // Public form submissions (no auth)
 
 // Public standalone forms (no auth)
@@ -167,6 +180,13 @@ Route::middleware(['auth', 'permission:documents.search'])->prefix('dokumente')-
     Route::post('{attachment}/new-version', [\App\Http\Controllers\DocumentController::class, 'uploadVersion'])->name('new_version');
 });
 
+// Sharing-Links verwalten
+Route::middleware(['auth'])->prefix('freigaben')->name('shares.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\ShareLinkController::class, 'index'])->name('index');
+    Route::post('attachment/{attachment}', [\App\Http\Controllers\ShareLinkController::class, 'store'])->name('store');
+    Route::post('{share}/revoke', [\App\Http\Controllers\ShareLinkController::class, 'revoke'])->name('revoke');
+});
+
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)
 Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('index');
@@ -212,6 +232,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/branding', [SystemSettingsController::class, 'updateBranding'])->name('settings.branding.update');
         Route::post('settings/custom-fields', [SystemSettingsController::class, 'updateCustomFields'])->name('settings.custom_fields.update');
         Route::post('settings/document-types', [SystemSettingsController::class, 'updateDocumentTypes'])->name('settings.document_types.update');
+        Route::post('settings/shares', [SystemSettingsController::class, 'updateShares'])->name('settings.shares.update');
         Route::post('settings/role-document-types', [SystemSettingsController::class, 'updateRoleDocumentTypes'])->name('settings.role_document_types.update');
         Route::post('settings/ai', [AIController::class, 'update'])->name('ai.update');
     });

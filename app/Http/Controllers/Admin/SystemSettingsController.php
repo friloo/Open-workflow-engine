@@ -26,7 +26,32 @@ class SystemSettingsController extends Controller
             'customFields' => Settings::get('users.custom_fields', []),
             'documentTypes' => \App\Support\DocumentTypes::all(),
             'roleDocumentTypes' => \App\Support\DocumentTypes::roleMapping(),
+            'shares' => [
+                'max_expiry_days' => (int) Settings::get('shares.max_expiry_days', 90),
+                'default_expiry_days' => (int) Settings::get('shares.default_expiry_days', 14),
+                'review_interval_days' => (int) Settings::get('shares.review_interval_days', 7),
+                'review_grace_days' => (int) Settings::get('shares.review_grace_days', 3),
+            ],
         ]);
+    }
+
+    public function updateShares(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'max_expiry_days' => ['required', 'integer', 'between:1,3650'],
+            'default_expiry_days' => ['required', 'integer', 'between:1,3650'],
+            'review_interval_days' => ['required', 'integer', 'between:1,365'],
+            'review_grace_days' => ['required', 'integer', 'between:1,90'],
+        ]);
+        if ($data['default_expiry_days'] > $data['max_expiry_days']) {
+            $data['default_expiry_days'] = $data['max_expiry_days'];
+        }
+        foreach ($data as $k => $v) {
+            Settings::set("shares.{$k}", $v, $request->user()->id);
+        }
+        $this->audit->log('settings.shares.updated', null, null, $data,
+            'Sharing-Einstellungen aktualisiert', $request->user()->id);
+        return back()->with('status', 'Sharing-Einstellungen gespeichert.');
     }
 
     public function updateDocumentTypes(Request $request): RedirectResponse

@@ -49,6 +49,10 @@ class RolesAndPermissionsSeeder extends Seeder
             // Dokumente / OCR-Suche
             ['slug' => 'documents.search', 'name' => 'Dokumente durchsuchen', 'group' => 'Dokumente'],
 
+            // Sharing-Links
+            ['slug' => 'shares.create', 'name' => 'Dokumente per Link teilen', 'group' => 'Dokumente'],
+            ['slug' => 'shares.manage_all', 'name' => 'Alle Freigaben verwalten', 'group' => 'Dokumente'],
+
             // Secrets-Vault (Tokens fuer HTTP-Knoten)
             ['slug' => 'secrets.manage', 'name' => 'Secrets verwalten', 'group' => 'Integrationen'],
 
@@ -77,7 +81,7 @@ class RolesAndPermissionsSeeder extends Seeder
                     'workflows.view', 'workflows.design', 'workflows.run',
                     'forms.view', 'forms.manage', 'users.view', 'roles.view',
                     'lists.view', 'lists.manage', 'assets.view', 'assets.manage',
-                    'documents.search',
+                    'documents.search', 'shares.create',
                 ],
             ],
             [

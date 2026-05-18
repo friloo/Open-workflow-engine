@@ -33,6 +33,7 @@
                 ['name' => 'Listen', 'route' => 'lists.index', 'icon' => 'table', 'active' => request()->routeIs('lists.*'), 'when' => $user?->hasAnyPermission(['lists.view','lists.manage'])],
                 ['name' => 'Assets', 'route' => 'assets.index', 'icon' => 'badge', 'active' => request()->routeIs('assets.*'), 'when' => $user?->hasAnyPermission(['assets.view','assets.manage'])],
                 ['name' => 'Dokumente', 'route' => 'documents.index', 'icon' => 'list', 'active' => request()->routeIs('documents.*'), 'when' => $user?->hasPermission('documents.search')],
+                ['name' => 'Freigaben', 'route' => 'shares.index', 'icon' => 'list', 'active' => request()->routeIs('shares.*'), 'when' => $user?->hasAnyPermission(['shares.create','shares.manage_all'])],
             ],
         ],
         [
