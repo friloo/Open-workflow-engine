@@ -50,6 +50,38 @@
                     </div>
                 </x-card>
 
+                <x-card title="Kommentare">
+                    @if($instance->comments->isEmpty())
+                        <p class="text-sm text-slate-500">Noch keine Kommentare.</p>
+                    @else
+                        <ul class="space-y-3 mb-4">
+                            @foreach($instance->comments as $c)
+                                <li class="flex gap-3">
+                                    <div class="grid h-8 w-8 place-items-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold shrink-0">
+                                        {{ \Illuminate\Support\Str::of($c->user?->name ?? '?')->explode(' ')->map(fn ($p) => \Illuminate\Support\Str::substr($p, 0, 1))->take(2)->implode('') }}
+                                    </div>
+                                    <div class="flex-1 rounded-lg bg-slate-50 p-3">
+                                        <div class="flex items-baseline justify-between gap-2 text-xs">
+                                            <span class="font-medium text-slate-900">{{ $c->user?->name ?? 'System' }}</span>
+                                            <span class="text-slate-500">{{ $c->created_at->diffForHumans() }}</span>
+                                        </div>
+                                        <p class="mt-1 whitespace-pre-wrap text-sm text-slate-800">{{ $c->body }}</p>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    <form method="POST" action="{{ route('workflow-instances.comment', $instance) }}" class="space-y-2">
+                        @csrf
+                        <textarea name="body" rows="2" required placeholder="Kommentar fuer alle Beteiligten..."
+                            class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                        <x-input-error :messages="$errors->get('body')" />
+                        <div class="flex justify-end">
+                            <x-primary-button>Senden</x-primary-button>
+                        </div>
+                    </form>
+                </x-card>
+
                 <x-card title="Schritt-Historie">
                     @if($instance->stepExecutions->isEmpty())
                         <p class="text-sm text-slate-500">Noch keine Schritte ausgefuehrt.</p>

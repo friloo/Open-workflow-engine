@@ -28,6 +28,7 @@ class User extends Authenticatable
         'employee_id',
         'is_active',
         'email_notifications_enabled',
+        'custom_fields',
         'last_login_at',
         'created_by',
     ];
@@ -46,6 +47,7 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'email_notifications_enabled' => 'boolean',
             'prefer_m365_supervisor' => 'boolean',
+            'custom_fields' => 'array',
         ];
     }
 

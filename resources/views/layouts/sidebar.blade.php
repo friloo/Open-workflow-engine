@@ -42,6 +42,7 @@
                 ['name' => 'Rollen & Rechte', 'route' => 'admin.roles.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.roles.*'), 'when' => $user?->hasAnyPermission(['roles.view','roles.manage'])],
                 ['name' => 'Audit-Log', 'route' => 'admin.audit.index', 'icon' => 'list', 'active' => request()->routeIs('admin.audit.*'), 'when' => $user?->hasPermission('audit.view')],
                 ['name' => 'Systemeinstellungen', 'route' => 'admin.settings.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.settings.*'), 'when' => $user?->hasPermission('system.settings')],
+                ['name' => 'Webhooks', 'route' => 'admin.webhooks.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.webhooks.*'), 'when' => $user?->hasPermission('webhooks.manage')],
             ],
         ],
     ];
@@ -50,8 +51,8 @@
 <aside class="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col">
     <div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-slate-200 bg-white px-6 pb-4">
         <div class="flex h-16 shrink-0 items-center gap-2">
-            <div class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-600 text-white font-bold">W</div>
-            <span class="font-semibold text-slate-900">Workflow Engine</span>
+            <div class="grid h-8 w-8 place-items-center rounded-lg text-white font-bold" style="background:{{ config('branding.primary_color', '#6366f1') }};">{{ config('branding.logo_text', 'W') }}</div>
+            <span class="font-semibold text-slate-900">{{ config('app.name') }}</span>
         </div>
 
         <nav class="flex flex-1 flex-col">

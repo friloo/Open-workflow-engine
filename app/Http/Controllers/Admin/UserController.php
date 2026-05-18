@@ -40,6 +40,7 @@ class UserController extends Controller
         return view('admin.users.create', [
             'roles' => Role::orderBy('name')->get(),
             'supervisors' => User::orderBy('name')->get(['id', 'name', 'email']),
+            'customFields' => \App\Support\Settings::get('users.custom_fields', []),
         ]);
     }
 
@@ -69,6 +70,7 @@ class UserController extends Controller
             'user' => $user->load('roles'),
             'roles' => Role::orderBy('name')->get(),
             'supervisors' => User::where('id', '!=', $user->id)->orderBy('name')->get(['id', 'name', 'email']),
+            'customFields' => \App\Support\Settings::get('users.custom_fields', []),
         ]);
     }
 
@@ -109,7 +111,7 @@ class UserController extends Controller
 
     private function validateUser(Request $request, ?User $user = null): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)->whereNull('deleted_at')],
             'password' => [$user ? 'nullable' : 'nullable', 'string', 'min:8'],
@@ -121,10 +123,25 @@ class UserController extends Controller
             'is_active' => ['nullable', 'boolean'],
             'email_notifications_enabled' => ['nullable', 'boolean'],
             'prefer_m365_supervisor' => ['nullable', 'boolean'],
+            'custom_fields' => ['nullable', 'array'],
         ]) + [
             'is_active' => $request->boolean('is_active', true),
             'email_notifications_enabled' => $request->boolean('email_notifications_enabled', true),
             'prefer_m365_supervisor' => $request->boolean('prefer_m365_supervisor', false),
         ];
+
+        // Custom-Felder: nur konfigurierte Keys mit korrektem Typ uebernehmen.
+        $defined = \App\Support\Settings::get('users.custom_fields', []);
+        $cf = [];
+        $input = $request->input('custom_fields', []);
+        foreach ($defined as $f) {
+            $key = $f['key'];
+            $val = $input[$key] ?? null;
+            if ($val === '' || $val === null) continue;
+            if ($f['type'] === 'number') $val = is_numeric($val) ? +$val : null;
+            $cf[$key] = $val;
+        }
+        $data['custom_fields'] = $cf ?: null;
+        return $data;
     }
 }

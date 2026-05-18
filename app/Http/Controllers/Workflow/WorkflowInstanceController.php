@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Workflow;
 use App\Http\Controllers\Controller;
 use App\Models\Workflow;
 use App\Models\WorkflowInstance;
+use App\Models\WorkflowInstanceComment;
 use App\Services\WorkflowEngine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -69,6 +70,7 @@ class WorkflowInstanceController extends Controller
 
         $instance->load([
             'workflow', 'version', 'starter', 'attachments',
+            'comments.user',
             'stepExecutions.assignedUser',
             'stepExecutions.assignedRole',
             'stepExecutions.completedBy',
@@ -109,5 +111,26 @@ class WorkflowInstanceController extends Controller
 
         return redirect()->route('workflow-instances.show', $instance)
             ->with('status', 'Workflow-Instanz abgebrochen.');
+    }
+
+    public function comment(Request $request, WorkflowInstance $instance): RedirectResponse
+    {
+        $user = $request->user();
+        $canSeeAll = $user->hasAnyPermission(['workflows.view', 'workflows.design', 'audit.view']);
+        $isParticipant = $instance->started_by === $user->id ||
+            $instance->stepExecutions()->where(function ($q) use ($user) {
+                $q->where('assigned_to_user_id', $user->id)
+                  ->orWhereIn('assigned_to_role_id', $user->roles->pluck('id'))
+                  ->orWhere('completed_by', $user->id);
+            })->exists();
+        if (! $canSeeAll && ! $isParticipant) abort(403);
+
+        $data = $request->validate(['body' => ['required', 'string', 'max:5000']]);
+        WorkflowInstanceComment::create([
+            'workflow_instance_id' => $instance->id,
+            'user_id' => $user->id,
+            'body' => $data['body'],
+        ]);
+        return back()->with('status', 'Kommentar hinzugefuegt.');
     }
 }

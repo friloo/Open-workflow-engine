@@ -310,6 +310,154 @@
                                     </div>
                                 </template>
 
+                                {{-- HTTP-Request settings --}}
+                                <template x-if="selectedNode.type==='http'">
+                                    <div class="space-y-3" x-data="{ aiDesc:'', aiBusy:false, aiError:'' }">
+                                        <p class="text-xs text-slate-500">Body und Header sind frei anpassbar. Antwort-Felder koennen zurueck in den Workflow uebernommen werden.</p>
+
+                                        <div class="rounded-lg border border-violet-200 bg-violet-50 p-3 space-y-2">
+                                            <div class="text-xs font-semibold text-violet-800">✨ KI-Vorschlag aus API-Beschreibung</div>
+                                            <textarea x-model="aiDesc" rows="4" placeholder="z. B.: POST an https://example.atlassian.net/rest/api/3/issue mit Bearer-Token. JSON-Body mit fields.project.key='IT', fields.summary aus Antrag, fields.description aus 'beschreibung'. Antwort enthaelt 'key' = Ticket-ID."
+                                                class="block w-full rounded-lg border-violet-300 bg-white text-xs shadow-sm focus:border-violet-500 focus:ring-violet-500"></textarea>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" :disabled="aiBusy || !aiDesc"
+                                                    @click="aiBusy = true; aiError = '';
+                                                        fetch('{{ route('admin.ai.suggest_http') }}', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type':'application/json','X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept':'application/json' },
+                                                            body: JSON.stringify({ description: aiDesc, available_fields: (formSchema||[]).map(f=>f.key) }),
+                                                        }).then(async r => {
+                                                            const j = await r.json();
+                                                            if (! r.ok) { aiError = j.error || 'Fehler'; return; }
+                                                            const s = j.suggestion || {};
+                                                            ['method','url','auth_type','auth_token','auth_username','auth_password','auth_header_name','body_type','body_template'].forEach(k => { if (s[k] !== undefined) selectedNode.data[k] = s[k]; });
+                                                            if (Array.isArray(s.headers) && s.headers.length) selectedNode.data.headers = s.headers;
+                                                            if (Array.isArray(s.body_form)) selectedNode.data.body_form = s.body_form;
+                                                            if (Array.isArray(s.response_mapping) && s.response_mapping.length) selectedNode.data.response_mapping = s.response_mapping;
+                                                        }).catch(e => aiError = e.message).finally(() => aiBusy = false)"
+                                                    class="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-violet-500 disabled:opacity-50">
+                                                    <span x-show="!aiBusy">Generieren</span><span x-show="aiBusy">Generiere…</span>
+                                                </button>
+                                                <span x-text="aiError" class="text-xs text-rose-700"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <div class="col-span-1">
+                                                <label class="block text-xs font-medium text-slate-600">Methode</label>
+                                                <select x-model="selectedNode.data.method" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-span-2">
+                                                <label class="block text-xs font-medium text-slate-600">URL</label>
+                                                <input type="text" x-model="selectedNode.data.url" placeholder="https://..."
+                                                    class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Authentifizierung</label>
+                                            <select x-model="selectedNode.data.auth_type" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="none">Keine</option>
+                                                <option value="bearer">Bearer-Token</option>
+                                                <option value="basic">Basic-Auth</option>
+                                                <option value="api_key_header">API-Key Header</option>
+                                            </select>
+                                        </div>
+                                        <template x-if="selectedNode.data.auth_type==='bearer'">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Token</label>
+                                                <input type="password" x-model="selectedNode.data.auth_token" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                        </template>
+                                        <template x-if="selectedNode.data.auth_type==='basic'">
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <input type="text" x-model="selectedNode.data.auth_username" placeholder="Benutzer" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <input type="password" x-model="selectedNode.data.auth_password" placeholder="Passwort" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </div>
+                                        </template>
+                                        <template x-if="selectedNode.data.auth_type==='api_key_header'">
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <input type="text" x-model="selectedNode.data.auth_header_name" placeholder="Header" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                <input type="password" x-model="selectedNode.data.auth_token" placeholder="Key" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                        </template>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Header</label>
+                                            <template x-for="(h, hi) in selectedNode.data.headers" :key="hi">
+                                                <div class="mb-1 grid grid-cols-5 gap-1">
+                                                    <input type="text" x-model="h.key" placeholder="Header" class="col-span-2 rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <input type="text" x-model="h.value" placeholder="Wert" class="col-span-2 rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <button type="button" @click="selectedNode.data.headers.splice(hi,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                </div>
+                                            </template>
+                                            <button type="button" @click="selectedNode.data.headers.push({key:'', value:''})" class="mt-1 w-full rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Header</button>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Body-Typ</label>
+                                            <select x-model="selectedNode.data.body_type" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="none">Kein Body</option>
+                                                <option value="json">JSON (frei editierbar)</option>
+                                                <option value="form">x-www-form-urlencoded</option>
+                                                <option value="raw">Raw (Content-Type via Header)</option>
+                                            </select>
+                                        </div>
+
+                                        <template x-if="['json','raw'].includes(selectedNode.data.body_type)">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Body</label>
+                                                <textarea x-model="selectedNode.data.body_template" rows="8" spellcheck="false"
+                                                    class="mt-1 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono"></textarea>
+                                                <p class="mt-1 text-xs text-slate-500">Platzhalter: <code>@{{ initiator_email }}</code>, <code>@{{ instance_id }}</code>, beliebige Formularfelder, <code>@{{ subject_user_email }}</code>, <code>@{{ initiator_custom.kostenstelle }}</code>.</p>
+                                            </div>
+                                        </template>
+
+                                        <template x-if="selectedNode.data.body_type==='form'">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Formular-Felder</label>
+                                                <template x-for="(f, fi) in selectedNode.data.body_form" :key="fi">
+                                                    <div class="mb-1 grid grid-cols-5 gap-1">
+                                                        <input type="text" x-model="f.key" placeholder="key" class="col-span-2 rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                        <input type="text" x-model="f.value" placeholder="Wert (mit @{{...}})" class="col-span-2 rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                        <button type="button" @click="selectedNode.data.body_form.splice(fi,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                    </div>
+                                                </template>
+                                                <button type="button" @click="selectedNode.data.body_form.push({key:'', value:''})" class="mt-1 w-full rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Feld</button>
+                                            </div>
+                                        </template>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Response-Mapping</label>
+                                            <p class="text-xs text-slate-500 mb-2">Schreibt Felder aus der JSON-Antwort in den Workflow-Kontext (Pfad in Punktnotation, leer = ganze Antwort).</p>
+                                            <template x-for="(r, ri) in selectedNode.data.response_mapping" :key="ri">
+                                                <div class="mb-1 grid grid-cols-5 gap-1">
+                                                    <input type="text" x-model="r.path" placeholder="data.id" class="col-span-2 rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <input type="text" x-model="r.save_as" placeholder="ticket_id" class="col-span-2 rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <button type="button" @click="selectedNode.data.response_mapping.splice(ri,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                </div>
+                                            </template>
+                                            <button type="button" @click="selectedNode.data.response_mapping.push({path:'', save_as:''})" class="mt-1 w-full rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Feld</button>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Timeout (Sek.)</label>
+                                                <input type="number" min="1" max="120" x-model.number="selectedNode.data.timeout_seconds" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </div>
+                                            <div class="flex items-end">
+                                                <label class="inline-flex items-center gap-2 text-xs text-slate-700">
+                                                    <input type="checkbox" x-model="selectedNode.data.continue_on_error" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                    Bei Fehler weiterleiten (Ausgang Fehler)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgaenge: <strong>OK</strong> / <strong>Fehler</strong></p>
+                                    </div>
+                                </template>
+
                                 {{-- Start settings --}}
                                 <template x-if="selectedNode.type==='start'">
                                     <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Start-Knoten. Wird vom Workflow-Trigger automatisch ausgeloest.</p>

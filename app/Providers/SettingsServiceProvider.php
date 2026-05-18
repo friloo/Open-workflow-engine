@@ -11,6 +11,19 @@ class SettingsServiceProvider extends ServiceProvider
     {
         $this->applyMailConfig();
         $this->applyM365Config();
+        $this->applyBrandingConfig();
+    }
+
+    private function applyBrandingConfig(): void
+    {
+        $b = Settings::group('branding');
+        if ($b === []) return;
+        config(['branding' => [
+            'app_name' => $b['app_name'] ?? config('app.name'),
+            'primary_color' => $b['primary_color'] ?? '#6366f1',
+            'logo_text' => $b['logo_text'] ?? 'W',
+        ]]);
+        if (! empty($b['app_name'])) config(['app.name' => $b['app_name']]);
     }
 
     private function applyMailConfig(): void

@@ -44,6 +44,9 @@ class RolesAndPermissionsSeeder extends Seeder
             ['slug' => 'assets.view', 'name' => 'Assets ansehen', 'group' => 'Assets'],
             ['slug' => 'assets.manage', 'name' => 'Assets pflegen und importieren', 'group' => 'Assets'],
 
+            // Webhooks
+            ['slug' => 'webhooks.manage', 'name' => 'Webhooks verwalten', 'group' => 'Integrationen'],
+
             // System
             ['slug' => 'system.settings', 'name' => 'Systemeinstellungen', 'group' => 'System'],
         ];

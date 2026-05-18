@@ -62,6 +62,39 @@
     </label>
 </div>
 
+@if(! empty($customFields))
+    <div class="mt-8">
+        <h3 class="text-sm font-semibold text-slate-900">Benutzerdefinierte Felder</h3>
+        <p class="text-xs text-slate-500 mb-3">Im Workflow verfuegbar als <code>@{{ initiator_custom.&lt;key&gt; }}</code>.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            @foreach($customFields as $f)
+                @php($val = old("custom_fields.{$f['key']}", $user->custom_fields[$f['key']] ?? null))
+                <div>
+                    <x-input-label :for="'cf-'.$f['key']" :value="$f['label']" />
+                    @switch($f['type'])
+                        @case('select')
+                            <select id="cf-{{ $f['key'] }}" name="custom_fields[{{ $f['key'] }}]" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">—</option>
+                                @foreach(($f['options'] ?? []) as $opt)
+                                    <option value="{{ $opt }}" @selected($val==$opt)>{{ $opt }}</option>
+                                @endforeach
+                            </select>
+                            @break
+                        @case('date')
+                            <x-text-input :id="'cf-'.$f['key']" type="date" :name="'custom_fields['.$f['key'].']'" :value="$val" />
+                            @break
+                        @case('number')
+                            <x-text-input :id="'cf-'.$f['key']" type="number" :name="'custom_fields['.$f['key'].']'" :value="$val" />
+                            @break
+                        @default
+                            <x-text-input :id="'cf-'.$f['key']" :name="'custom_fields['.$f['key'].']'" :value="$val" />
+                    @endswitch
+                </div>
+            @endforeach
+        </div>
+    </div>
+@endif
+
 <div class="mt-8">
     <h3 class="text-sm font-semibold text-slate-900">Rollen</h3>
     <p class="text-xs text-slate-500 mb-3">Berechtigungen werden ausschliesslich ueber Rollen gesteuert.</p>

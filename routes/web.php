@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\AIController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SystemSettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
+use App\Http\Controllers\Admin\WebhookController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\Auth\MicrosoftLoginController;
@@ -95,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vorgaenge', [WorkflowInstanceController::class, 'indexAll'])->name('workflow-instances.index');
     Route::get('/vorgaenge/{instance}', [WorkflowInstanceController::class, 'show'])->name('workflow-instances.show');
     Route::post('/vorgaenge/{instance}/abbrechen', [WorkflowInstanceController::class, 'cancel'])->name('workflow-instances.cancel');
+    Route::post('/vorgaenge/{instance}/kommentar', [WorkflowInstanceController::class, 'comment'])->name('workflow-instances.comment');
 });
 
 // Lookup-Listen (Kostenstellen etc.)
@@ -150,6 +153,12 @@ Route::middleware(['auth'])->prefix('forms')->name('forms.')->group(function () 
     });
 });
 
+// Anleitung
+Route::middleware(['auth'])->group(function () {
+    Route::get('/hilfe', [\App\Http\Controllers\HelpController::class, 'index'])->name('help.index');
+    Route::get('/hilfe/{topic}', [\App\Http\Controllers\HelpController::class, 'show'])->name('help.show');
+});
+
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)
 Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('index');
@@ -191,6 +200,21 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/m365', [SystemSettingsController::class, 'updateM365'])->name('settings.m365.update');
         Route::post('settings/m365/sync', [SystemSettingsController::class, 'syncM365'])->name('settings.m365.sync');
         Route::post('settings/m365/test', [SystemSettingsController::class, 'testM365'])->name('settings.m365.test');
+        Route::post('settings/branding', [SystemSettingsController::class, 'updateBranding'])->name('settings.branding.update');
+        Route::post('settings/custom-fields', [SystemSettingsController::class, 'updateCustomFields'])->name('settings.custom_fields.update');
+        Route::post('settings/ai', [AIController::class, 'update'])->name('ai.update');
+        Route::post('settings/ai/ping', [AIController::class, 'ping'])->name('ai.ping');
+        Route::post('settings/ai/suggest-http', [AIController::class, 'suggestHttp'])->name('ai.suggest_http');
+    });
+
+    Route::middleware('permission:webhooks.manage')->group(function () {
+        Route::get('webhooks', [WebhookController::class, 'index'])->name('webhooks.index');
+        Route::get('webhooks/create', [WebhookController::class, 'create'])->name('webhooks.create');
+        Route::post('webhooks', [WebhookController::class, 'store'])->name('webhooks.store');
+        Route::get('webhooks/{webhook}/edit', [WebhookController::class, 'edit'])->name('webhooks.edit');
+        Route::put('webhooks/{webhook}', [WebhookController::class, 'update'])->name('webhooks.update');
+        Route::delete('webhooks/{webhook}', [WebhookController::class, 'destroy'])->name('webhooks.destroy');
+        Route::post('webhooks/{webhook}/test', [WebhookController::class, 'test'])->name('webhooks.test');
     });
 });
 

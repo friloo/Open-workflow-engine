@@ -5,11 +5,14 @@ namespace App\Services;
 use App\Mail\WorkflowNotificationMail;
 use App\Mail\WorkflowTaskAssignedMail;
 use App\Models\User;
+use App\Models\Webhook;
 use App\Models\Workflow;
 use App\Models\WorkflowInstance;
 use App\Models\WorkflowStepExecution;
 use App\Models\WorkflowVersion;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -45,6 +48,8 @@ class WorkflowEngine
                 'workflow' => $workflow->name,
                 'initiator' => $initiator?->email,
             ], "Workflow {$workflow->name} gestartet", $initiator?->id);
+
+            $this->dispatchWebhook(Webhook::EVENT_INSTANCE_STARTED, $instance);
 
             try {
                 $start = $this->findStartNode($version);
@@ -94,6 +99,18 @@ class WorkflowEngine
                 $instance->update(['status' => $status, 'completed_at' => now(), 'current_step_key' => null]);
                 $this->audit->log('workflow.instance.completed', $instance, null, ['result' => $result],
                     "Workflow-Instanz #{$instance->id} beendet ({$result})");
+                $this->dispatchWebhook(Webhook::EVENT_INSTANCE_COMPLETED, $instance);
+                break;
+
+            case 'http':
+                $ok = $this->executeHttpNode($instance, $node);
+                $next = $this->firstTarget($node, $ok ? 'output_1' : 'output_2');
+                if ($next) {
+                    $this->run($instance, $next, $depth + 1);
+                } elseif (! $ok && empty($node['data']['continue_on_error'])) {
+                    $instance->update(['status' => WorkflowInstance::STATUS_FAILED, 'completed_at' => now()]);
+                    $this->dispatchWebhook(Webhook::EVENT_INSTANCE_FAILED, $instance);
+                }
                 break;
 
             case 'condition':
@@ -165,6 +182,8 @@ class WorkflowEngine
             'comment' => $comment,
             'instance_id' => $instance->id,
         ], "Schritt {$node['data']['label']} ({$decision})", $userId);
+
+        $this->dispatchWebhook(Webhook::EVENT_STEP_COMPLETED, $instance, ['step' => $step, 'decision' => $decision]);
 
         $next = $this->firstTarget($node, $outputKey);
         if ($next) {
@@ -305,7 +324,122 @@ class WorkflowEngine
                 "Workflow-Instanz #{$instance->id} abgebrochen",
                 $byUserId,
             );
+            $this->dispatchWebhook(Webhook::EVENT_INSTANCE_CANCELLED, $instance, ['reason' => $reason]);
         });
+    }
+
+    /**
+     * Fuehrt einen HTTP-Knoten aus: rendert URL/Headers/Body anhand der
+     * Instanz-Daten und persistiert ausgewaehlte Response-Felder zurueck.
+     */
+    private function executeHttpNode(WorkflowInstance $instance, array $node): bool
+    {
+        $d = $node['data'] ?? [];
+        $context = $this->buildContext($instance);
+        $method = strtoupper($d['method'] ?? 'POST');
+        $url = $this->renderTemplate((string) ($d['url'] ?? ''), $context);
+        if ($url === '') {
+            $this->audit->log('workflow.http.failed', $instance, null, ['error' => 'empty url'], 'HTTP-Knoten ohne URL');
+            return false;
+        }
+
+        $headers = [];
+        foreach (($d['headers'] ?? []) as $h) {
+            $k = trim((string) ($h['key'] ?? ''));
+            if ($k === '') continue;
+            $headers[$k] = $this->renderTemplate((string) ($h['value'] ?? ''), $context);
+        }
+
+        $authType = $d['auth_type'] ?? 'none';
+        if ($authType === 'bearer') {
+            $headers['Authorization'] = 'Bearer '.$this->renderTemplate((string) ($d['auth_token'] ?? ''), $context);
+        } elseif ($authType === 'basic') {
+            $user = $this->renderTemplate((string) ($d['auth_username'] ?? ''), $context);
+            $pass = $this->renderTemplate((string) ($d['auth_password'] ?? ''), $context);
+            $headers['Authorization'] = 'Basic '.base64_encode($user.':'.$pass);
+        } elseif ($authType === 'api_key_header') {
+            $headers[$d['auth_header_name'] ?? 'X-API-Key'] = $this->renderTemplate((string) ($d['auth_token'] ?? ''), $context);
+        }
+
+        $timeout = max(1, (int) ($d['timeout_seconds'] ?? 30));
+        $bodyType = $d['body_type'] ?? 'json';
+
+        try {
+            $request = Http::withHeaders($headers)->timeout($timeout);
+            $response = match (true) {
+                $method === 'GET' || $method === 'DELETE' || $bodyType === 'none' =>
+                    $request->send($method, $url),
+                $bodyType === 'json' => $this->sendJsonBody($request, $method, $url, $this->renderTemplate((string) ($d['body_template'] ?? ''), $context), $headers, $timeout),
+                $bodyType === 'form' => $request->asForm()->send($method, $url, [
+                    'form_params' => $this->renderKeyValueArray($d['body_form'] ?? [], $context),
+                ]),
+                $bodyType === 'raw' => Http::withHeaders($headers)->timeout($timeout)->withBody(
+                    $this->renderTemplate((string) ($d['body_template'] ?? ''), $context),
+                    $headers['Content-Type'] ?? 'text/plain',
+                )->send($method, $url),
+                default => $request->send($method, $url),
+            };
+        } catch (\Throwable $e) {
+            $this->audit->log('workflow.http.failed', $instance, null, [
+                'url' => $url, 'method' => $method, 'error' => $e->getMessage(),
+            ], "HTTP {$method} {$url} fehlgeschlagen: {$e->getMessage()}");
+            return false;
+        }
+
+        $status = $response->status();
+        $ok = $response->successful();
+
+        // Response-Mapping
+        $updates = [];
+        $json = null;
+        try { $json = $response->json(); } catch (\Throwable) {}
+        foreach (($d['response_mapping'] ?? []) as $m) {
+            $saveAs = trim((string) ($m['save_as'] ?? ''));
+            $path = trim((string) ($m['path'] ?? ''));
+            if ($saveAs === '') continue;
+            $value = $path === '' || $path === '$' ? $json : data_get($json ?? [], $path);
+            $updates[$saveAs] = $value;
+        }
+        if ($updates) {
+            $instance->update(['data' => array_merge($instance->data ?? [], $updates)]);
+        }
+
+        $this->audit->log($ok ? 'workflow.http.ok' : 'workflow.http.failed', $instance, null, [
+            'url' => $url, 'method' => $method, 'status' => $status, 'mapped' => array_keys($updates),
+        ], "HTTP {$method} {$url} -> {$status}");
+
+        return $ok;
+    }
+
+    private function sendJsonBody($request, string $method, string $url, string $rendered, array $headers, int $timeout)
+    {
+        // Wenn die Vorlage gueltiges JSON ist, sende als JSON-Body.
+        $rendered = trim($rendered);
+        $decoded = $rendered === '' ? null : json_decode($rendered, true);
+        if ($rendered === '') {
+            return $request->send($method, $url);
+        }
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $request->asJson()->send($method, $url, [
+                \GuzzleHttp\RequestOptions::JSON => $decoded,
+            ]);
+        }
+        // Fallback: roher String mit Content-Type JSON
+        return Http::withHeaders($headers + ['Content-Type' => 'application/json'])
+            ->timeout($timeout)
+            ->withBody($rendered, 'application/json')
+            ->send($method, $url);
+    }
+
+    private function renderKeyValueArray(array $kvs, array $context): array
+    {
+        $out = [];
+        foreach ($kvs as $kv) {
+            $k = trim((string) ($kv['key'] ?? ''));
+            if ($k === '') continue;
+            $out[$k] = $this->renderTemplate((string) ($kv['value'] ?? ''), $context);
+        }
+        return $out;
     }
 
     // -- internals -----------------------------------------------------------
@@ -557,11 +691,93 @@ class WorkflowEngine
 
     private function renderTemplate(string $tpl, array $ctx): string
     {
-        return preg_replace_callback('/\{\{\s*([\w_]+)\s*\}\}/', function ($m) use ($ctx) {
-            $v = $ctx[$m[1]] ?? '';
+        return preg_replace_callback('/\{\{\s*([\w_.]+)\s*\}\}/', function ($m) use ($ctx) {
+            $v = data_get($ctx, $m[1]);
+            if ($v === null) return '';
             if (is_bool($v)) return $v ? 'ja' : 'nein';
-            if (is_array($v)) return implode(', ', $v);
+            if (is_array($v)) return json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             return (string) $v;
         }, $tpl);
+    }
+
+    /**
+     * Erstellt den Platzhalter-Kontext aus Instanz-Daten, Antragsteller-
+     * und Subject-User-Custom-Feldern.
+     */
+    private function buildContext(WorkflowInstance $instance): array
+    {
+        $initiator = $instance->starter()->first();
+        $subject = $instance->subjectUser();
+
+        return array_merge(
+            $instance->data ?? [],
+            [
+                'instance_id' => $instance->id,
+                'instance_started_at' => $instance->started_at?->toIso8601String(),
+                'workflow_name' => $instance->workflow->name ?? '',
+                'initiator' => $initiator?->name ?? '',
+                'initiator_name' => $initiator?->name ?? '',
+                'initiator_email' => $initiator?->email ?? '',
+                'initiator_custom' => $initiator?->custom_fields ?? [],
+                'subject_user_name' => $subject?->name ?? '',
+                'subject_user_email' => $subject?->email ?? '',
+                'subject_user_custom' => $subject?->custom_fields ?? [],
+            ],
+        );
+    }
+
+    /** Dispatcht einen Webhook (best-effort, sync, mit HMAC-Signatur). */
+    private function dispatchWebhook(string $event, WorkflowInstance $instance, array $extra = []): void
+    {
+        $hooks = Webhook::where('is_active', true)->get()->filter(
+            fn ($h) => in_array($event, $h->events ?? [], true)
+        );
+        if ($hooks->isEmpty()) return;
+
+        $payload = [
+            'event' => $event,
+            'timestamp' => now()->toIso8601String(),
+            'instance' => [
+                'id' => $instance->id,
+                'status' => $instance->status,
+                'workflow_id' => $instance->workflow_id,
+                'workflow_name' => $instance->workflow?->name,
+                'started_by' => $instance->starter?->email,
+                'data' => $instance->data,
+            ],
+        ];
+        if ($extra) $payload['extra'] = $this->sanitizeForWebhook($extra);
+
+        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        foreach ($hooks as $hook) {
+            $headers = array_merge(['Content-Type' => 'application/json'], $hook->headers ?? []);
+            if ($hook->secret) {
+                $headers['X-OWE-Signature'] = 'sha256='.hash_hmac('sha256', $body, $hook->secret);
+            }
+            try {
+                $resp = Http::withHeaders($headers)->timeout(10)->withBody($body, 'application/json')->post($hook->url);
+                $hook->forceFill([
+                    'last_called_at' => now(),
+                    'failure_count' => $resp->successful() ? 0 : $hook->failure_count + 1,
+                ])->save();
+            } catch (\Throwable $e) {
+                Log::warning('Webhook failed', ['url' => $hook->url, 'error' => $e->getMessage()]);
+                $hook->forceFill(['failure_count' => $hook->failure_count + 1])->save();
+            }
+        }
+    }
+
+    private function sanitizeForWebhook(array $extra): array
+    {
+        $out = [];
+        foreach ($extra as $k => $v) {
+            if ($v instanceof \Illuminate\Database\Eloquent\Model) {
+                $out[$k] = ['id' => $v->getKey(), 'type' => $v->getMorphClass()];
+            } else {
+                $out[$k] = $v;
+            }
+        }
+        return $out;
     }
 }

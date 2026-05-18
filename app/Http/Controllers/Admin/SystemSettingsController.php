@@ -22,7 +22,50 @@ class SystemSettingsController extends Controller
             'mail' => Settings::group('mail') + $this->defaults(),
             'm365' => Settings::group('auth.m365') + $this->m365Defaults(),
             'roles' => $roles,
+            'branding' => Settings::group('branding') + $this->brandingDefaults(),
+            'customFields' => Settings::get('users.custom_fields', []),
         ]);
+    }
+
+    public function updateBranding(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'app_name' => ['nullable', 'string', 'max:128'],
+            'primary_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'logo_text' => ['nullable', 'string', 'max:4'],
+        ]);
+        foreach ($data as $k => $v) Settings::set("branding.{$k}", $v ?: null, $request->user()->id);
+        $this->audit->log('settings.branding.updated', null, null, $data, 'Branding aktualisiert', $request->user()->id);
+        return back()->with('status', 'Branding gespeichert.');
+    }
+
+    public function updateCustomFields(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'fields' => ['array'],
+            'fields.*.key' => ['required', 'string', 'max:64', 'regex:/^[a-z][a-z0-9_]*$/'],
+            'fields.*.label' => ['required', 'string', 'max:128'],
+            'fields.*.type' => ['required', 'in:text,number,date,select'],
+            'fields.*.options' => ['nullable', 'string', 'max:2000'],
+        ]);
+        $fields = array_map(function ($f) {
+            $f['options'] = $f['options']
+                ? array_values(array_filter(array_map('trim', explode("\n", $f['options'])), fn ($v) => $v !== ''))
+                : [];
+            return $f;
+        }, $data['fields'] ?? []);
+        Settings::set('users.custom_fields', $fields, $request->user()->id);
+        $this->audit->log('settings.custom_fields.updated', null, null, ['count' => count($fields)], 'Custom-User-Felder aktualisiert', $request->user()->id);
+        return back()->with('status', 'Custom-Felder gespeichert.');
+    }
+
+    private function brandingDefaults(): array
+    {
+        return [
+            'app_name' => config('app.name'),
+            'primary_color' => '#6366f1',
+            'logo_text' => 'W',
+        ];
     }
 
     public function updateMail(Request $request): RedirectResponse

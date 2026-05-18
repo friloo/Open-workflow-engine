@@ -55,4 +55,9 @@ class WorkflowInstance extends Model
         $id = $this->data['subject_user_id'] ?? null;
         return $id ? User::find($id) : null;
     }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(WorkflowInstanceComment::class)->orderBy('created_at');
+    }
 }

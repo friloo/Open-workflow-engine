@@ -14,6 +14,7 @@ class Settings
     private const ENCRYPTED_KEYS = [
         'mail.password',
         'auth.m365.client_secret',
+        'ai.api_key',
     ];
 
     private static ?array $cache = null;

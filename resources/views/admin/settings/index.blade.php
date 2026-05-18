@@ -152,4 +152,101 @@
             <p class="mt-3 text-xs text-slate-500">Cron: <code>php artisan m365:sync-users</code></p>
         </x-card>
     </div>
+
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <x-card title="KI-Integration" description="OpenAI, DeepSeek oder Ollama. Wird z. B. im HTTP-Knoten genutzt, um aus API-Beschreibungen Header/Body zu generieren.">
+            @php($ai = \App\Support\Settings::group('ai') + ['provider'=>'openai','base_url'=>'https://api.openai.com/v1','model'=>'gpt-4o-mini','api_key'=>''])
+            <form method="POST" action="{{ route('admin.ai.update') }}" class="space-y-3">
+                @csrf
+                <div>
+                    <x-input-label for="ai_provider" value="Anbieter" />
+                    <select id="ai_provider" name="provider" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            x-data x-on:change="
+                                if ($event.target.value==='openai') { document.getElementById('ai_base_url').value='https://api.openai.com/v1'; document.getElementById('ai_model').value='gpt-4o-mini'; }
+                                if ($event.target.value==='deepseek') { document.getElementById('ai_base_url').value='https://api.deepseek.com/v1'; document.getElementById('ai_model').value='deepseek-chat'; }
+                                if ($event.target.value==='ollama') { document.getElementById('ai_base_url').value='http://localhost:11434/v1'; document.getElementById('ai_model').value='llama3.1'; }
+                            ">
+                        <option value="openai" @selected($ai['provider']==='openai')>OpenAI</option>
+                        <option value="deepseek" @selected($ai['provider']==='deepseek')>DeepSeek</option>
+                        <option value="ollama" @selected($ai['provider']==='ollama')>Ollama (lokal)</option>
+                        <option value="custom" @selected($ai['provider']==='custom')>Anderer (OpenAI-kompatibel)</option>
+                    </select>
+                </div>
+                <div>
+                    <x-input-label for="ai_base_url" value="Base-URL" />
+                    <x-text-input id="ai_base_url" name="base_url" value="{{ $ai['base_url'] }}" />
+                </div>
+                <div>
+                    <x-input-label for="ai_model" value="Modell" />
+                    <x-text-input id="ai_model" name="model" value="{{ $ai['model'] }}" placeholder="z. B. gpt-4o-mini" />
+                </div>
+                <div>
+                    <x-input-label for="ai_api_key" value="API-Key (bei Ollama leer)" />
+                    <x-text-input id="ai_api_key" name="api_key" type="password" autocomplete="new-password" placeholder="@if(! empty($ai['api_key']))(unveraendert lassen)@endif" />
+                    <p class="mt-1 text-xs text-slate-500">Verschluesselt gespeichert.</p>
+                </div>
+                <div class="flex gap-2">
+                    <x-primary-button>Speichern</x-primary-button>
+                    <button type="submit" formaction="{{ route('admin.ai.ping') }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Verbindung testen</button>
+                </div>
+                <x-input-error :messages="$errors->get('ai')" />
+            </form>
+        </x-card>
+
+        <x-card title="Branding" description="Wird zur Laufzeit auf das Layout angewendet.">
+            <form method="POST" action="{{ route('admin.settings.branding.update') }}" class="space-y-3">
+                @csrf
+                <div>
+                    <x-input-label for="app_name" value="App-Name" />
+                    <x-text-input id="app_name" name="app_name" value="{{ $branding['app_name'] }}" />
+                </div>
+                <div>
+                    <x-input-label for="logo_text" value="Logo-Text (1-4 Buchstaben)" />
+                    <x-text-input id="logo_text" name="logo_text" maxlength="4" value="{{ $branding['logo_text'] }}" />
+                </div>
+                <div>
+                    <x-input-label for="primary_color" value="Primaerfarbe (#hex)" />
+                    <x-text-input id="primary_color" name="primary_color" type="color" value="{{ $branding['primary_color'] }}" />
+                </div>
+                <x-primary-button>Speichern</x-primary-button>
+            </form>
+        </x-card>
+
+        <x-card title="Benutzerdefinierte Felder" description="Werden in der Benutzerverwaltung gerendert und sind in Workflows nutzbar.">
+            <form method="POST" action="{{ route('admin.settings.custom_fields.update') }}"
+                  x-data='@json(["fields" => $customFields ?: []])'>
+                @csrf
+                <div class="space-y-3"
+                     x-sort:config="{ animation: 150, handle: '.drag-handle' }"
+                     x-sort="fields.splice($event.newIndex, 0, fields.splice($event.oldIndex, 1)[0])">
+                    <template x-for="(f, idx) in fields" :key="idx">
+                        <div class="rounded-lg border border-slate-200 p-3 bg-white" x-sort:item="idx">
+                            <input type="hidden" :name="`fields[${idx}][key]`" x-model="f.key">
+                            <input type="hidden" :name="`fields[${idx}][label]`" x-model="f.label">
+                            <input type="hidden" :name="`fields[${idx}][type]`" x-model="f.type">
+                            <input type="hidden" :name="`fields[${idx}][options]`" :value="(f.options || []).join('\n')">
+                            <div class="flex items-center justify-between">
+                                <span class="drag-handle cursor-grab select-none text-xs text-slate-400">⋮⋮ Feld <span x-text="idx+1"></span></span>
+                                <button type="button" @click="fields.splice(idx,1)" class="text-xs text-rose-600 hover:text-rose-500">entfernen</button>
+                            </div>
+                            <div class="mt-2 grid grid-cols-3 gap-2">
+                                <input type="text" x-model="f.label" placeholder="Bezeichnung" class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <input type="text" x-model="f.key" @input="f.key = f.key.toString().toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'')" placeholder="key" class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                <select x-model="f.type" class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="text">Text</option><option value="number">Zahl</option><option value="date">Datum</option><option value="select">Auswahl</option>
+                                </select>
+                            </div>
+                            <template x-if="f.type==='select'">
+                                <textarea :value="(f.options||[]).join('\n')" @input="f.options = $event.target.value.split('\n').map(s=>s.trim()).filter(Boolean)" rows="2" placeholder="Optionen je Zeile" class="mt-2 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                            </template>
+                        </div>
+                    </template>
+                    <button type="button" @click="fields.push({key:'feld_'+(fields.length+1), label:'Feld '+(fields.length+1), type:'text', options:[]})" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Feld</button>
+                </div>
+                <div class="mt-3 flex justify-end">
+                    <x-primary-button>Speichern</x-primary-button>
+                </div>
+            </form>
+        </x-card>
+    </div>
 </x-app-layout>
