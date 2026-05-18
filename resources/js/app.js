@@ -1,7 +1,9 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
+import sort from '@alpinejs/sort';
 
+Alpine.plugin(sort);
 window.Alpine = Alpine;
 
 // Defer so that other entry-point modules (e.g. the workflow designer)

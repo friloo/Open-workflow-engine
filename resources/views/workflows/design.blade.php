@@ -296,12 +296,19 @@
         {{-- Form-Schema tab --}}
         <div x-show="tab==='form'" class="flex-1 overflow-y-auto bg-slate-50 p-6">
             <div class="mx-auto max-w-3xl">
-                <x-card title="Formularfelder" description="Diese Felder stehen in Bedingungen, Mails und Genehmigungen zur Verfuegung.">
-                    <div class="space-y-3">
+                <x-card title="Formularfelder" description="Per Drag-and-Drop am Griff anordnen. Diese Felder stehen in Bedingungen, Mails und Genehmigungen zur Verfuegung.">
+                    <div class="space-y-3"
+                         x-sort:config="{ animation: 150, handle: '.drag-handle' }"
+                         x-sort="formSchema.splice($event.newIndex, 0, formSchema.splice($event.oldIndex, 1)[0])">
                         <template x-for="(field, idx) in formSchema" :key="idx">
-                            <div class="rounded-lg border border-slate-200 p-3">
+                            <div class="rounded-lg border border-slate-200 p-3 bg-white" x-sort:item="idx">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-semibold text-slate-700">Feld <span x-text="idx+1"></span></span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="drag-handle cursor-grab select-none text-slate-400 hover:text-slate-600" title="Zum Verschieben halten">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm7-11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg>
+                                        </span>
+                                        <span class="text-xs font-semibold text-slate-700">Feld <span x-text="idx+1"></span></span>
+                                    </div>
                                     <button type="button" @click="removeField(idx)" class="text-xs text-rose-600 hover:text-rose-500">entfernen</button>
                                 </div>
                                 <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
