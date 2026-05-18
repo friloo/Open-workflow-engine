@@ -96,6 +96,22 @@ const NODE_TEMPLATES = {
         }),
         outputClasses: () => ['ok', 'fehler'],
     },
+    pdf_render: {
+        label: 'PDF erzeugen',
+        shortLabel: 'P',
+        color: '#dc2626',
+        help: 'Erzeugt aus einem HTML-Template ein PDF und haengt es revisionssicher an die Instanz an.',
+        inputs: 1,
+        outputs: 1,
+        defaults: () => ({
+            label: 'PDF erzeugen',
+            html_template: '<h1>Beleg #{{ instance_id }}</h1>\n<p>Workflow: {{ workflow_name }}</p>\n<p>Antragsteller: {{ initiator_name }} ({{ initiator_email }})</p>\n<p>Datum: {{ instance_started_at }}</p>',
+            filename: 'beleg-{{ instance_id }}.pdf',
+            document_type: '',
+            label: '',
+        }),
+        outputClasses: () => ['weiter'],
+    },
     end: {
         label: 'Ende',
         shortLabel: 'E',

@@ -56,6 +56,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Secrets-Vault (Tokens fuer HTTP-Knoten)
             ['slug' => 'secrets.manage', 'name' => 'Secrets verwalten', 'group' => 'Integrationen'],
 
+            // E-Mail-Eingang (IMAP)
+            ['slug' => 'mailboxes.manage', 'name' => 'E-Mail-Postfaecher verwalten', 'group' => 'Integrationen'],
+
             // System
             ['slug' => 'system.settings', 'name' => 'Systemeinstellungen', 'group' => 'System'],
         ];

@@ -234,6 +234,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/document-types', [SystemSettingsController::class, 'updateDocumentTypes'])->name('settings.document_types.update');
         Route::post('settings/shares', [SystemSettingsController::class, 'updateShares'])->name('settings.shares.update');
         Route::post('settings/role-document-types', [SystemSettingsController::class, 'updateRoleDocumentTypes'])->name('settings.role_document_types.update');
+        Route::post('settings/retention', [SystemSettingsController::class, 'updateRetention'])->name('settings.retention.update');
         Route::post('settings/ai', [AIController::class, 'update'])->name('ai.update');
     });
 
@@ -263,6 +264,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('webhooks/{webhook}', [WebhookController::class, 'update'])->name('webhooks.update');
         Route::delete('webhooks/{webhook}', [WebhookController::class, 'destroy'])->name('webhooks.destroy');
         Route::post('webhooks/{webhook}/test', [WebhookController::class, 'test'])->name('webhooks.test');
+    });
+
+    Route::middleware('permission:mailboxes.manage')->group(function () {
+        Route::get('mailboxes', [\App\Http\Controllers\Admin\MailboxController::class, 'index'])->name('mailboxes.index');
+        Route::get('mailboxes/create', [\App\Http\Controllers\Admin\MailboxController::class, 'create'])->name('mailboxes.create');
+        Route::post('mailboxes', [\App\Http\Controllers\Admin\MailboxController::class, 'store'])->name('mailboxes.store');
+        Route::get('mailboxes/{mailbox}/edit', [\App\Http\Controllers\Admin\MailboxController::class, 'edit'])->name('mailboxes.edit');
+        Route::put('mailboxes/{mailbox}', [\App\Http\Controllers\Admin\MailboxController::class, 'update'])->name('mailboxes.update');
+        Route::delete('mailboxes/{mailbox}', [\App\Http\Controllers\Admin\MailboxController::class, 'destroy'])->name('mailboxes.destroy');
+        Route::post('mailboxes/{mailbox}/test', [\App\Http\Controllers\Admin\MailboxController::class, 'test'])->name('mailboxes.test');
+        Route::post('mailboxes/{mailbox}/fetch', [\App\Http\Controllers\Admin\MailboxController::class, 'fetch'])->name('mailboxes.fetch');
     });
 });
 

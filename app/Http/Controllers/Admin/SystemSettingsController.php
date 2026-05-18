@@ -32,7 +32,33 @@ class SystemSettingsController extends Controller
                 'review_interval_days' => (int) Settings::get('shares.review_interval_days', 7),
                 'review_grace_days' => (int) Settings::get('shares.review_grace_days', 3),
             ],
+            'retention' => Settings::get('attachments.retention', []),
         ]);
+    }
+
+    public function updateRetention(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'rules' => ['array'],
+            'rules.*.document_type' => ['required', 'string', 'max:64'],
+            'rules.*.min_years' => ['required', 'integer', 'between:0,100'],
+            'rules.*.max_years' => ['nullable', 'integer', 'between:1,200'],
+            'rules.*.on_expiry' => ['required', 'in:mark_for_review,archive,delete'],
+        ]);
+        $clean = [];
+        foreach ($data['rules'] ?? [] as $r) {
+            $type = trim($r['document_type']);
+            if ($type === '') continue;
+            $clean[$type] = [
+                'min_years' => (int) $r['min_years'],
+                'max_years' => isset($r['max_years']) ? (int) $r['max_years'] : null,
+                'on_expiry' => $r['on_expiry'],
+            ];
+        }
+        Settings::set('attachments.retention', $clean, $request->user()->id);
+        $this->audit->log('settings.retention.updated', null, null, ['types' => array_keys($clean)],
+            'Aufbewahrungsregeln aktualisiert', $request->user()->id);
+        return back()->with('status', 'Aufbewahrungsregeln gespeichert.');
     }
 
     public function updateShares(Request $request): RedirectResponse

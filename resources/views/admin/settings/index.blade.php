@@ -292,6 +292,46 @@
             @endif
         </x-card>
 
+        <x-card title="Aufbewahrungsregeln pro Dokumenttyp" description="Pro Dokumenttyp eine Mindestlaufzeit und eine Aktion nach Ablauf. Wird taeglich um 03:15 ausgewertet.">
+            <form method="POST" action="{{ route('admin.settings.retention.update') }}"
+                  x-data='@json(["rules" => array_map(fn($k,$v) => ["document_type"=>$k, "min_years"=>$v["min_years"]??10, "max_years"=>$v["max_years"]??null, "on_expiry"=>$v["on_expiry"]??"mark_for_review"], array_keys($retention ?? []), array_values($retention ?? []))])'>
+                @csrf
+                <div class="space-y-2">
+                    <template x-for="(r, idx) in rules" :key="idx">
+                        <div class="grid grid-cols-12 gap-2 rounded-lg border border-slate-200 bg-white p-2">
+                            <div class="col-span-4">
+                                <label class="block text-xs font-medium text-slate-600">Dokumenttyp</label>
+                                <input type="text" :name="`rules[${idx}][document_type]`" x-model="r.document_type" placeholder="z. B. Rechnung" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-medium text-slate-600">Min. Jahre</label>
+                                <input type="number" min="0" max="100" :name="`rules[${idx}][min_years]`" x-model.number="r.min_years" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-medium text-slate-600">Max. Jahre</label>
+                                <input type="number" min="1" max="200" :name="`rules[${idx}][max_years]`" x-model.number="r.max_years" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            </div>
+                            <div class="col-span-3">
+                                <label class="block text-xs font-medium text-slate-600">Nach Ablauf</label>
+                                <select :name="`rules[${idx}][on_expiry]`" x-model="r.on_expiry" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="mark_for_review">Pruefung markieren</option>
+                                    <option value="archive">Archivieren (Soft-Delete)</option>
+                                    <option value="delete">Endgueltig loeschen</option>
+                                </select>
+                            </div>
+                            <div class="col-span-1 flex items-end justify-end">
+                                <button type="button" @click="rules.splice(idx,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                            </div>
+                        </div>
+                    </template>
+                    <button type="button" @click="rules.push({document_type:'',min_years:10,max_years:11,on_expiry:'mark_for_review'})" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Regel</button>
+                </div>
+                <div class="mt-3 flex justify-end">
+                    <x-primary-button>Speichern</x-primary-button>
+                </div>
+            </form>
+        </x-card>
+
         <x-card title="Benutzerdefinierte Felder" description="Werden in der Benutzerverwaltung gerendert und sind in Workflows nutzbar.">
             <form method="POST" action="{{ route('admin.settings.custom_fields.update') }}"
                   x-data='@json(["fields" => $customFields ?: []])'>

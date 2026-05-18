@@ -490,6 +490,37 @@
                                     </div>
                                 </template>
 
+                                {{-- PDF-Render settings --}}
+                                <template x-if="selectedNode.type==='pdf_render'">
+                                    <div class="space-y-3">
+                                        <p class="text-xs text-slate-500">Erzeugt aus einem HTML-Template ein PDF und haengt es als Attachment an die Workflow-Instanz. Hash wird gespeichert (revisionssicher).</p>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">HTML-Template</label>
+                                            <textarea x-model="selectedNode.data.html_template" rows="10" spellcheck="false"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono"></textarea>
+                                            <p class="mt-1 text-xs text-slate-500">Platzhalter: <code>@{{ instance_id }}</code>, <code>@{{ workflow_name }}</code>, <code>@{{ initiator_name }}</code>, beliebige Formularfelder. CSS via <code>&lt;style&gt;</code>-Tag.</p>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Dateiname</label>
+                                                <input type="text" x-model="selectedNode.data.filename" placeholder="beleg-INSTANZ.pdf"
+                                                    class="mt-1 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Dokumenttyp (optional)</label>
+                                                <input type="text" x-model="selectedNode.data.document_type" placeholder="z. B. Workflow-Beweis"
+                                                    class="mt-1 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Bezeichnung (optional)</label>
+                                            <input type="text" x-model="selectedNode.data.label" placeholder="z. B. Antrag bestaetigt"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        </div>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Nach dem Erzeugen verfuegbar als <code>@{{ pdf.last_attachment_id }}</code>, <code>@{{ pdf.last_filename }}</code>, <code>@{{ pdf.last_hash }}</code>.</p>
+                                    </div>
+                                </template>
+
                                 {{-- Start settings --}}
                                 <template x-if="selectedNode.type==='start'">
                                     <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Start-Knoten. Wird vom Workflow-Trigger automatisch ausgeloest.</p>

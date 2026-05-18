@@ -114,6 +114,56 @@ class AttachmentStorage
         return ['checked' => $checked, 'broken' => $broken];
     }
 
+    /**
+     * Speichert rohen Byte-String als Attachment. Wird vom PDF-Render-Knoten
+     * benutzt, der das PDF im Workflow erzeugt und revisionssicher anhaengt.
+     */
+    public function storeBytes(string $bytes, string $filename, string $mime, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null): Attachment
+    {
+        if (strlen($bytes) > self::MAX_BYTES) {
+            throw new \RuntimeException('Datei zu gross (max. 15 MB).');
+        }
+        if (! $this->mimeAllowed($mime)) {
+            throw new \RuntimeException("Dateityp nicht erlaubt ({$mime}).");
+        }
+
+        $hash = hash('sha256', $bytes);
+        $ext = Str::lower(pathinfo($filename, PATHINFO_EXTENSION) ?: 'bin');
+        $dir = 'attachments/'.now()->format('Y/m');
+        $name = Str::ulid().'.'.$ext;
+        $path = $dir.'/'.$name;
+        if (! Storage::disk('local')->put($path, $bytes)) {
+            throw new \RuntimeException('Datei konnte nicht gespeichert werden.');
+        }
+
+        $chainId = (string) Str::uuid();
+
+        $att = Attachment::create([
+            'attachable_type' => $attachable?->getMorphClass(),
+            'attachable_id' => $attachable?->getKey(),
+            'original_name' => Str::limit($filename, 250, ''),
+            'disk' => 'local',
+            'path' => $path,
+            'mime_type' => $mime,
+            'size' => strlen($bytes),
+            'content_hash' => $hash,
+            'label' => $label,
+            'uploaded_by' => $userId,
+            'document_type' => $documentType,
+            'ocr_status' => 'pending',
+            'version_chain_id' => $chainId,
+            'version_number' => 1,
+            'is_current_version' => true,
+        ]);
+
+        try {
+            $this->ocr->extract($att);
+        } catch (\Throwable) {
+        }
+
+        return $att;
+    }
+
     public function streamDownload(Attachment $attachment)
     {
         $disk = Storage::disk($attachment->disk);

@@ -113,6 +113,12 @@ class WorkflowEngine
                 }
                 break;
 
+            case 'pdf_render':
+                $this->renderPdfNode($instance, $node);
+                $next = $this->firstTarget($node, 'output_1');
+                if ($next) $this->run($instance, $next, $depth + 1);
+                break;
+
             case 'condition':
                 $branchIdx = $this->evaluateCondition($node['data'] ?? [], $instance->data ?? []);
                 $branches = $node['data']['branches'] ?? [];
@@ -468,6 +474,66 @@ class WorkflowEngine
             $out[$k] = $this->renderTemplate((string) ($kv['value'] ?? ''), $context);
         }
         return $out;
+    }
+
+    /**
+     * Erzeugt aus einem HTML-Template ein PDF und haengt es als Attachment
+     * an die Workflow-Instanz. Filename und Dokumenttyp werden ebenfalls
+     * mit Platzhaltern aufgeloest.
+     */
+    private function renderPdfNode(WorkflowInstance $instance, array $node): void
+    {
+        $d = $node['data'] ?? [];
+        $context = $this->buildContext($instance);
+
+        $html = $this->renderTemplate((string) ($d['html_template'] ?? ''), $context);
+        if (trim($html) === '') {
+            $this->audit->log('workflow.pdf.failed', $instance, null, ['reason' => 'empty template'],
+                'PDF-Knoten ohne HTML-Template');
+            return;
+        }
+
+        $filename = $this->renderTemplate((string) ($d['filename'] ?? ''), $context);
+        $filename = trim($filename) !== '' ? $filename : ('workflow-'.$instance->id.'-'.now()->format('YmdHis').'.pdf');
+        if (! str_ends_with(strtolower($filename), '.pdf')) {
+            $filename .= '.pdf';
+        }
+        $documentType = trim((string) ($d['document_type'] ?? '')) ?: null;
+        $label = trim((string) ($d['label'] ?? '')) ?: null;
+
+        try {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+            $bytes = $pdf->output();
+        } catch (\Throwable $e) {
+            $this->audit->log('workflow.pdf.failed', $instance, null, ['error' => $e->getMessage()],
+                "PDF-Erzeugung fehlgeschlagen: {$e->getMessage()}");
+            return;
+        }
+
+        try {
+            $att = app(AttachmentStorage::class)->storeBytes(
+                $bytes, $filename, 'application/pdf', $instance, $label, null, $documentType
+            );
+        } catch (\Throwable $e) {
+            $this->audit->log('workflow.pdf.failed', $instance, null, ['error' => $e->getMessage()],
+                "PDF-Ablage fehlgeschlagen: {$e->getMessage()}");
+            return;
+        }
+
+        $data = $instance->data ?? [];
+        $data['pdf'] = array_merge($data['pdf'] ?? [], [
+            'last_attachment_id' => $att->id,
+            'last_filename' => $att->original_name,
+            'last_hash' => $att->content_hash,
+        ]);
+        $instance->update(['data' => $data]);
+
+        $this->audit->log('workflow.pdf.generated', $att, null, [
+            'instance_id' => $instance->id,
+            'filename' => $att->original_name,
+            'document_type' => $documentType,
+            'sha256' => $att->content_hash,
+        ], "PDF erzeugt: {$att->original_name}");
     }
 
     // -- internals -----------------------------------------------------------

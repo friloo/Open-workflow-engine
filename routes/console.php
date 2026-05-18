@@ -44,3 +44,15 @@ Schedule::command('audit:cleanup --days=730')
     ->monthlyOn(1, '03:00')
     ->withoutOverlapping()
     ->runInBackground();
+
+// Dokumenten-Aufbewahrung: taeglich Regeln pro Dokumenttyp anwenden.
+Schedule::command('documents:retention-check')
+    ->dailyAt('03:15')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// IMAP-Postfaecher: alle 5 Minuten auf neue Mails pruefen.
+Schedule::command('mail:fetch')
+    ->everyFiveMinutes()
+    ->withoutOverlapping(10)
+    ->runInBackground();

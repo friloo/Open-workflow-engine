@@ -17,6 +17,12 @@ Dokumenten-Ablage.
   und per OCR-Volltext durchsucht werden.
 - **HTTP-Knoten** integriert externe Systeme (Ticketsysteme, ERP, HR) —
   inkl. **KI-Unterstuetzung** beim Konfigurieren.
+- **PDF-Knoten** erzeugt am Workflow-Ende einen PDF-Beleg aus einem
+  HTML-Template — wird als revisionssicheres Attachment angehaengt.
+- **E-Mail-Eingang** (IMAP) zieht eingehende Mails automatisch in das
+  System: Anhaenge werden klassifiziert und optional starten sie einen
+  Workflow.
+- **Aufbewahrungsregeln** pro Dokumenttyp — taeglich angewendet.
 - **KI-Workflow-Designer**: gib der KI eine Beschreibung, sie liefert
   einen kompletten Workflow-Entwurf.
 - **Webhooks** benachrichtigen externe Systeme bei Workflow-Ereignissen.
@@ -37,6 +43,9 @@ Siehe Abschnitt **Erste Schritte**.
 - Assets — Fuehrerschein/Unterweisung mit Wiedervorlage
 - Dokumente — Versionierung, OCR-Suche, Bulk-Upload, Vorschau
 - HTTP-Knoten — externe API-Calls mit Secrets, Body-Templates, Response-Mapping
+- PDF-Knoten — HTML-Template am Workflow-Ende, revisionssicher abgelegt
+- E-Mail-Eingang — IMAP-Postfaecher, Anhang->Dokument, optional Workflow-Trigger
+- Aufbewahrungsregeln — Min-/Max-Jahre pro Dokumenttyp, Auto-Aktion
 - Webhooks — outgoing HTTP-Events
 - Microsoft 365 — SSO und Benutzer-Sync
 - Administration — Benutzer, Rollen, Cron, Custom Fields, Branding, DSGVO
