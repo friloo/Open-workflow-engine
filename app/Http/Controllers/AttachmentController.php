@@ -46,9 +46,21 @@ class AttachmentController extends Controller
             'name' => $attachment->original_name,
             'mime' => $attachment->mime_type,
             'size' => $attachment->size,
-        ], "Datei {$attachment->original_name} hochgeladen");
+            'sha256' => $attachment->content_hash,
+        ], "Datei {$attachment->original_name} hochgeladen (sha256: ".substr($attachment->content_hash, 0, 12).")");
 
         return back()->with('status', "Datei {$attachment->original_name} hochgeladen.");
+    }
+
+    public function verifyAll(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        if (! $request->user()->hasAnyPermission(['audit.verify', 'system.settings'])) abort(403);
+        $result = app(\App\Services\AttachmentStorage::class)->verifyAll();
+        $this->audit->log('attachments.integrity_checked', null, null, [
+            'checked' => $result['checked'], 'broken' => count($result['broken']),
+        ], "Integritaetspruefung: {$result['checked']} geprueft, ".count($result['broken'])." auffaellig", $request->user()->id);
+        return back()->with('status', "Integritaet geprueft: {$result['checked']} Dateien, ".count($result['broken'])." auffaellig.")
+            ->with('integrityBroken', $result['broken']);
     }
 
     public function download(Attachment $attachment, Request $request)

@@ -159,6 +159,11 @@ window.designerApp = function designerApp() {
         saveMessage: '',
         saveError: false,
         changeSummary: '',
+        // KI-Workflow-Generierung
+        aiOpen: false,
+        aiDesc: '',
+        aiBusy: false,
+        aiError: '',
         _urls: {},
 
         boot() {
@@ -334,6 +339,143 @@ window.designerApp = function designerApp() {
 
         removeField(idx) {
             this.formSchema.splice(idx, 1);
+        },
+
+        // -- KI-Workflow-Generierung -----------------------------------------
+
+        async generateFromAI(suggestWorkflowUrl) {
+            if (this.aiBusy || !this.aiDesc.trim()) return;
+            this.aiBusy = true;
+            this.aiError = '';
+            try {
+                const res = await fetch(suggestWorkflowUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        description: this.aiDesc,
+                        trigger_type: this.triggerType,
+                    }),
+                });
+                const body = await res.json();
+                if (! res.ok) {
+                    this.aiError = body.error || `HTTP ${res.status}`;
+                    return;
+                }
+                this.applyAIDraft(body.draft);
+                this.aiOpen = false;
+                this.aiDesc = '';
+                this.saveMessage = 'KI-Entwurf geladen — bitte pruefen und speichern.';
+                this.saveError = false;
+                setTimeout(() => { this.saveMessage = ''; }, 6000);
+            } catch (e) {
+                this.aiError = e.message || 'Unbekannter Fehler';
+            } finally {
+                this.aiBusy = false;
+            }
+        },
+
+        /**
+         * Wandelt den abstrakten KI-Entwurf in Drawflow-Format und ersetzt
+         * den aktuellen Canvas-Inhalt.
+         */
+        applyAIDraft(draft) {
+            const nodes = Array.isArray(draft.nodes) ? draft.nodes : [];
+            const edges = Array.isArray(draft.edges) ? draft.edges : [];
+            const schema = Array.isArray(draft.form_schema) ? draft.form_schema : [];
+
+            // Form-Schema setzen
+            this.formSchema = schema.map(f => ({
+                key: f.key, label: f.label || f.key, type: f.type || 'text',
+                required: !! f.required, options: Array.isArray(f.options) ? f.options : [],
+                _optionsText: Array.isArray(f.options) ? f.options.join('\n') : '',
+            }));
+
+            // Topologisches Layout: bestimme Rang jedes Knotens
+            const idMap = {}, byId = {};
+            nodes.forEach(n => { byId[n.id] = n; });
+            const indeg = {};
+            nodes.forEach(n => indeg[n.id] = 0);
+            edges.forEach(e => { if (indeg[e.to] !== undefined) indeg[e.to]++; });
+
+            const rank = {};
+            const queue = nodes.filter(n => indeg[n.id] === 0 || n.type === 'start').map(n => n.id);
+            queue.forEach(id => rank[id] = 0);
+            const inflight = [...queue];
+            while (inflight.length) {
+                const id = inflight.shift();
+                edges.filter(e => e.from === id).forEach(e => {
+                    const r = (rank[id] || 0) + 1;
+                    if (rank[e.to] === undefined || rank[e.to] < r) {
+                        rank[e.to] = r;
+                        inflight.push(e.to);
+                    }
+                });
+            }
+            // Fallback fuer unverbundene Knoten
+            nodes.forEach(n => { if (rank[n.id] === undefined) rank[n.id] = 0; });
+
+            // Vertikal stapeln pro Rang
+            const perRank = {};
+            nodes.forEach(n => {
+                const r = rank[n.id];
+                perRank[r] = perRank[r] || [];
+                perRank[r].push(n.id);
+            });
+
+            // Drawflow-Definition aufbauen
+            const data = {};
+            const numericId = {};
+            let nextNum = 1;
+            nodes.forEach(n => { numericId[n.id] = nextNum++; });
+
+            nodes.forEach(n => {
+                const tpl = NODE_TEMPLATES[n.type] || NODE_TEMPLATES.start;
+                const r = rank[n.id];
+                const rowIndex = (perRank[r] || []).indexOf(n.id);
+                const x = 40 + r * 260;
+                const y = 60 + rowIndex * 180;
+
+                const nodeData = { label: n.label || tpl.label, ...tpl.defaults(), ...(n.data || {}) };
+                // Bei Condition: outputs anhand branches berechnen
+                let outputs = tpl.outputs;
+                if (n.type === 'condition') outputs = ((nodeData.branches || []).length) + 1;
+                if (n.type === 'approval') outputs = nodeData.allow_forward ? 3 : 2;
+
+                const id = numericId[n.id];
+                data[id] = {
+                    id, name: n.type, class: n.type, typenode: false,
+                    data: nodeData,
+                    html: nodeHtml(n.type, nodeData),
+                    inputs: tpl.inputs ? { input_1: { connections: [] } } : {},
+                    outputs: {},
+                    pos_x: x, pos_y: y,
+                };
+                for (let i = 1; i <= outputs; i++) {
+                    data[id].outputs['output_' + i] = { connections: [] };
+                }
+            });
+
+            // Kanten setzen
+            edges.forEach(e => {
+                const fromId = numericId[e.from], toId = numericId[e.to];
+                if (! fromId || ! toId) return;
+                const oKey = 'output_' + (e.from_output || 1);
+                const iKey = 'input_' + (e.to_input || 1);
+                if (! data[fromId] || ! data[toId]) return;
+                if (! data[fromId].outputs[oKey]) data[fromId].outputs[oKey] = { connections: [] };
+                if (! data[toId].inputs[iKey]) data[toId].inputs[iKey] = { connections: [] };
+                data[fromId].outputs[oKey].connections.push({ node: String(toId), output: iKey });
+                data[toId].inputs[iKey].connections.push({ node: String(fromId), input: oKey });
+            });
+
+            // Editor leeren und neu importieren
+            this.selectedNode = null;
+            this.editor.clear();
+            this.editor.import({ drawflow: { Home: { data } } });
         },
 
         // -- Save ------------------------------------------------------------

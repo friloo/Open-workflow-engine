@@ -21,14 +21,46 @@
                 </div>
             </div>
             <div class="ms-auto flex items-center gap-2">
+                <button type="button" @click="aiOpen = true"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-500">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+                    KI-Entwurf
+                </button>
                 <input type="text" x-model="changeSummary" placeholder="Beschreibung der Aenderung (optional)"
-                    class="w-72 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    class="w-64 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 <a href="{{ route('workflows.versions', $workflow) }}" class="text-sm text-slate-600 hover:text-slate-900">Versionen</a>
                 <button type="button" @click="save()" :disabled="saving"
                     class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
                     <span x-show="!saving">Speichern</span>
                     <span x-show="saving">Speichere…</span>
                 </button>
+            </div>
+        </div>
+
+        {{-- KI-Modal --}}
+        <div x-show="aiOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display:none;" @keydown.escape.window="aiOpen=false">
+            <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl ring-1 ring-slate-200" @click.outside="aiOpen=false">
+                <div class="border-b border-slate-200 px-6 py-4">
+                    <h2 class="text-base font-semibold text-slate-900">✨ Workflow per KI entwerfen</h2>
+                    <p class="mt-1 text-xs text-slate-500">Beschreibe in eigenen Worten, was der Workflow tun soll. Die KI baut Formularfelder, Knoten und Verbindungen als Entwurf — du kannst danach beliebig nachbearbeiten und musst manuell speichern.</p>
+                </div>
+                <div class="p-6 space-y-3">
+                    <textarea x-model="aiDesc" rows="8"
+                        placeholder="z. B.: Bestellantrag. Mitarbeiter fuellt Formular mit Kostenstelle, Beschreibung und Betrag aus. Bei IT-Kostenstelle (1000) geht es zur IT-Leitung, bei Office (2000) an den Office-Manager. Karenzzeit 3 Tage, eskaliert an Admin-Rolle. Nach Genehmigung wird via HTTP-POST ein Ticket im Jira (URL beispiel.atlassian.net/rest/api/3/issue, Bearer-Token) erstellt und der Antragsteller per Mail informiert. Bei Ablehnung Mail an den Antragsteller mit dem Grund."
+                        class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-violet-500 focus:ring-violet-500"></textarea>
+                    <p x-show="aiError" x-text="aiError" class="text-sm text-rose-700" style="display:none;"></p>
+                </div>
+                <div class="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-3 rounded-b-2xl">
+                    <p class="text-xs text-slate-500">Achtung: ersetzt den aktuellen Canvas. Gespeicherte Versionen bleiben unberuehrt.</p>
+                    <div class="flex gap-2">
+                        <button type="button" @click="aiOpen=false" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Abbrechen</button>
+                        <button type="button" @click="generateFromAI('{{ route('admin.ai.suggest_workflow') }}')" :disabled="aiBusy || !aiDesc.trim()"
+                            class="inline-flex items-center justify-center rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-500 disabled:opacity-50">
+                            <span x-show="!aiBusy">Entwurf generieren</span>
+                            <span x-show="aiBusy">Generiere…</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 

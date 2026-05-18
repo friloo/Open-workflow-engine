@@ -11,13 +11,22 @@ class Attachment extends Model
 {
     protected $fillable = [
         'attachable_type', 'attachable_id', 'original_name', 'disk',
-        'path', 'mime_type', 'size', 'label', 'uploaded_by',
+        'path', 'mime_type', 'size', 'content_hash', 'label', 'uploaded_by',
     ];
 
     protected $casts = ['size' => 'integer'];
 
     protected static function booted(): void
     {
+        static::updating(function (Attachment $a) {
+            // Hash und Pfad sind revisionssicher — duerfen nicht veraendert werden.
+            foreach (['content_hash', 'path', 'size', 'attachable_type', 'attachable_id'] as $f) {
+                if ($a->isDirty($f) && $a->getOriginal($f) !== null) {
+                    throw new \RuntimeException("Attachment-Feld {$f} ist unveraenderlich.");
+                }
+            }
+        });
+
         static::deleting(function (Attachment $a) {
             try {
                 Storage::disk($a->disk)->delete($a->path);
@@ -54,5 +63,25 @@ class Attachment extends Model
     public function isPdf(): bool
     {
         return $this->mime_type === 'application/pdf';
+    }
+
+    /**
+     * Liest die Datei und vergleicht ihren SHA-256 mit dem gespeicherten Hash.
+     * Liefert true wenn intakt, false bei Manipulation oder fehlender Datei.
+     */
+    public function verifyContent(): bool
+    {
+        if (! $this->content_hash) return false;
+        $disk = Storage::disk($this->disk);
+        if (! $disk->exists($this->path)) return false;
+        $stream = $disk->readStream($this->path);
+        $ctx = hash_init('sha256');
+        while (! feof($stream)) {
+            $chunk = fread($stream, 8192);
+            if ($chunk === false) { fclose($stream); return false; }
+            hash_update($ctx, $chunk);
+        }
+        fclose($stream);
+        return hash_equals($this->content_hash, hash_final($ctx));
     }
 }

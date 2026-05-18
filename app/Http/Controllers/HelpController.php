@@ -14,13 +14,15 @@ class HelpController extends Controller
         'index' => 'Uebersicht',
         'first-steps' => 'Erste Schritte',
         'workflows' => 'Workflows entwerfen',
+        'ai' => 'KI im Designer',
         'forms' => 'Formulare',
         'lists' => 'Listen (Kostenstellen etc.)',
         'assets' => 'Assets (Fuehrerschein etc.)',
-        'http-node' => 'HTTP-Knoten + KI',
+        'http-node' => 'HTTP-Knoten',
         'webhooks' => 'Webhooks',
         'm365' => 'Microsoft 365',
         'admin' => 'Administration',
+        'revisionssicher' => 'Revisionssicherheit',
         'placeholders' => 'Platzhalter-Referenz',
     ];
 

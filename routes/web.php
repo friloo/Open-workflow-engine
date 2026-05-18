@@ -171,6 +171,7 @@ Route::middleware(['auth'])->prefix('attachments')->name('attachments.')->group(
     Route::post('{type}/{id}', [AttachmentController::class, 'store'])->name('store');
     Route::get('{attachment}/download', [AttachmentController::class, 'download'])->name('download');
     Route::delete('{attachment}', [AttachmentController::class, 'destroy'])->name('destroy');
+    Route::post('/verify-all', [AttachmentController::class, 'verifyAll'])->name('verify_all');
 });
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -204,7 +205,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/custom-fields', [SystemSettingsController::class, 'updateCustomFields'])->name('settings.custom_fields.update');
         Route::post('settings/ai', [AIController::class, 'update'])->name('ai.update');
         Route::post('settings/ai/ping', [AIController::class, 'ping'])->name('ai.ping');
-        Route::post('settings/ai/suggest-http', [AIController::class, 'suggestHttp'])->name('ai.suggest_http');
+    });
+
+    // KI-Vorschlaege brauchen nur workflows.design (oder darueber).
+    Route::middleware('permission:workflows.design')->group(function () {
+        Route::post('ai/suggest-http', [AIController::class, 'suggestHttp'])->name('ai.suggest_http');
+        Route::post('ai/suggest-workflow', [AIController::class, 'suggestWorkflow'])->name('ai.suggest_workflow');
     });
 
     Route::middleware('permission:webhooks.manage')->group(function () {

@@ -32,6 +32,12 @@ class AttachmentStorage
             throw new \RuntimeException("Dateityp nicht erlaubt ({$mime}).");
         }
 
+        // Hash vor Speicherung berechnen (revisionssicher).
+        $hash = hash_file('sha256', $file->getRealPath());
+        if ($hash === false) {
+            throw new \RuntimeException('Hash der Datei konnte nicht berechnet werden.');
+        }
+
         $dir = 'attachments/'.now()->format('Y/m');
         $name = Str::ulid().'.'.Str::lower($file->getClientOriginalExtension() ?: 'bin');
         $path = $file->storeAs($dir, $name, 'local');
@@ -47,9 +53,37 @@ class AttachmentStorage
             'path' => $path,
             'mime_type' => $mime,
             'size' => $file->getSize(),
+            'content_hash' => $hash,
             'label' => $label,
             'uploaded_by' => $userId,
         ]);
+    }
+
+    /**
+     * Pruefe Integritaet aller Attachments. Liefert Liste mit verdaechtigen
+     * Eintraegen (Hash stimmt nicht oder Datei fehlt).
+     *
+     * @return array{checked:int, broken:array<int, array{id:int, name:string, reason:string}>}
+     */
+    public function verifyAll(?int $limit = null): array
+    {
+        $broken = [];
+        $checked = 0;
+        $q = Attachment::query()->orderBy('id');
+        if ($limit) $q->limit($limit);
+        foreach ($q->cursor() as $att) {
+            $checked++;
+            if (! $att->content_hash) {
+                $broken[] = ['id' => $att->id, 'name' => $att->original_name, 'reason' => 'kein Hash hinterlegt'];
+                continue;
+            }
+            if (! $att->verifyContent()) {
+                $disk = \Illuminate\Support\Facades\Storage::disk($att->disk);
+                $reason = $disk->exists($att->path) ? 'Hash stimmt nicht' : 'Datei fehlt';
+                $broken[] = ['id' => $att->id, 'name' => $att->original_name, 'reason' => $reason];
+            }
+        }
+        return ['checked' => $checked, 'broken' => $broken];
     }
 
     public function streamDownload(Attachment $attachment)
