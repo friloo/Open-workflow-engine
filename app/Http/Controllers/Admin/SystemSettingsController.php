@@ -137,6 +137,20 @@ class SystemSettingsController extends Controller
             "M365-Sync abgeschlossen: {$result['created']} neu, {$result['updated']} aktualisiert, ".count($result['errors'])." Fehler.");
     }
 
+    public function testM365(Request $request, MicrosoftGraphSync $sync): RedirectResponse
+    {
+        $result = $sync->testConnection();
+        $this->audit->log(
+            $result['ok'] ? 'settings.m365.test_ok' : 'settings.m365.test_failed',
+            null, null, ['user_count' => $result['user_count']],
+            $result['message'], $request->user()->id,
+        );
+        if (! $result['ok']) {
+            return back()->withErrors(['m365' => $result['message']]);
+        }
+        return back()->with('status', 'Microsoft 365: '.$result['message']);
+    }
+
     private function defaults(): array
     {
         return [

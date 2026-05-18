@@ -46,6 +46,7 @@
                                 </td>
                                 <td class="py-3 pr-4 text-slate-700">{{ $f->submissions_count }}</td>
                                 <td class="py-3 text-right space-x-3">
+                                    <a href="{{ route('forms.submissions.index', $f) }}" class="text-sm text-slate-600 hover:text-slate-900">Eingaenge</a>
                                     @if(auth()->user()->hasPermission('forms.manage'))
                                         <a href="{{ route('forms.edit', $f) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
                                         <form method="POST" action="{{ route('forms.destroy', $f) }}" class="inline" onsubmit="return confirm('Formular wirklich loeschen?')">

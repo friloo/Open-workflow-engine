@@ -130,6 +130,42 @@ class MicrosoftGraphSync
         return $resp->json('id');
     }
 
+    /**
+     * Verbindungs-/Berechtigungstest: holt ein App-Token und ruft Graph
+     * minimal auf, um die Konfiguration zu validieren.
+     *
+     * @return array{ok:bool, message:string, user_count:?int}
+     */
+    public function testConnection(): array
+    {
+        $config = config('services.microsoft-azure');
+        if (empty($config['client_id']) || empty($config['client_secret']) || empty($config['tenant'])) {
+            return ['ok' => false, 'message' => 'Konfiguration unvollstaendig (Client-ID, Secret und Tenant sind Pflicht).', 'user_count' => null];
+        }
+
+        try {
+            $token = $this->fetchAppToken($config);
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Token-Abruf fehlgeschlagen: '.$e->getMessage(), 'user_count' => null];
+        }
+
+        $resp = Http::withToken($token)->acceptJson()
+            ->get(self::GRAPH_BASE.'/users?$top=1&$count=true&$select=id', [], ['ConsistencyLevel' => 'eventual']);
+        if (! $resp->successful()) {
+            $body = $resp->json();
+            $code = $body['error']['code'] ?? 'HTTP '.$resp->status();
+            $msg = $body['error']['message'] ?? $resp->body();
+            return ['ok' => false, 'message' => "Graph-Aufruf fehlgeschlagen ({$code}): {$msg}", 'user_count' => null];
+        }
+
+        $count = $resp->json('@odata.count');
+        return [
+            'ok' => true,
+            'message' => 'Verbindung erfolgreich.'.($count !== null ? " Tenant enthaelt {$count} Benutzer." : ''),
+            'user_count' => $count,
+        ];
+    }
+
     private function fetchAppToken(array $config): string
     {
         $tenant = $config['tenant'];

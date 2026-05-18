@@ -79,6 +79,17 @@
         </div>
 
         <div class="space-y-6">
+            <x-card title="Workflow-Verlauf" description="Aktueller Schritt hervorgehoben.">
+                <div id="workflow-viewer" x-data="workflowViewer()" x-init="boot()"
+                     class="relative h-72 w-full rounded-lg border border-slate-200 bg-slate-50 overflow-hidden"></div>
+                <div class="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+                    <span class="inline-flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"></span>erledigt</span>
+                    <span class="inline-flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-full bg-indigo-500"></span>aktuell</span>
+                    <span class="inline-flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-full bg-slate-300"></span>offen</span>
+                </div>
+                <a href="{{ route('workflow-instances.show', $instance) }}" class="mt-3 inline-flex text-sm text-indigo-600 hover:text-indigo-500">Vollstaendigen Verlauf ansehen &rarr;</a>
+            </x-card>
+
             <x-card title="Details">
                 <dl class="space-y-3 text-sm">
                     <div>
@@ -107,4 +118,9 @@
             </x-card>
         </div>
     </div>
+
+    <script type="application/json" id="viewer-payload">
+        {!! json_encode($viewerPayload, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    @vite('resources/js/viewer/index.js')
 </x-app-layout>

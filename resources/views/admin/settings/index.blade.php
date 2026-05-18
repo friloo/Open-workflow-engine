@@ -132,16 +132,24 @@
             </x-card>
         </div>
 
-        <x-card title="Benutzer-Sync" description="Importiert/aktualisiert alle Benutzer aus dem M365-Tenant inkl. Vorgesetzten-Beziehung.">
+        <x-card title="Verbindung testen" description="Prueft Credentials und Graph-Berechtigungen.">
+            <form method="POST" action="{{ route('admin.settings.m365.test') }}" class="space-y-2">
+                @csrf
+                <x-primary-button>Test-Verbindung</x-primary-button>
+                <x-input-error :messages="$errors->get('m365')" />
+            </form>
+            <p class="mt-3 text-xs text-slate-500">Holt ein App-Token via Tenant und fragt Graph nach einem Benutzer.</p>
+
+            <hr class="my-4 border-slate-200">
             <p class="text-xs text-slate-500 mb-3">
-                Erfordert in Azure AD: <code>User.Read.All</code> als Application-Permission mit Admin Consent.
+                <strong>Benutzer-Sync</strong> erfordert in Azure AD:
+                <code>User.Read.All</code> als Application-Permission mit Admin Consent.
             </p>
             <form method="POST" action="{{ route('admin.settings.m365.sync') }}" onsubmit="return confirm('Synchronisation jetzt starten?')">
                 @csrf
-                <x-primary-button>Sync jetzt ausfuehren</x-primary-button>
-                <x-input-error :messages="$errors->get('m365')" />
+                <x-secondary-button>Sync jetzt ausfuehren</x-secondary-button>
             </form>
-            <p class="mt-3 text-xs text-slate-500">Alternativ ueber Cron: <code>php artisan m365:sync-users</code></p>
+            <p class="mt-3 text-xs text-slate-500">Cron: <code>php artisan m365:sync-users</code></p>
         </x-card>
     </div>
 </x-app-layout>

@@ -8,10 +8,12 @@ use App\Http\Controllers\Admin\UserImportController;
 use App\Http\Controllers\Auth\MicrosoftLoginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Workflow\FormController;
+use App\Http\Controllers\Workflow\FormSubmissionController;
 use App\Http\Controllers\Workflow\PublicFormController;
 use App\Http\Controllers\Workflow\TaskController;
 use App\Http\Controllers\Workflow\WorkflowController;
 use App\Http\Controllers\Workflow\WorkflowDesignerController;
+use App\Http\Controllers\Workflow\WorkflowInstanceController;
 use App\Http\Controllers\Workflow\WorkflowScheduleController;
 use App\Http\Controllers\Workflow\WorkflowStartController;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +81,16 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
         Route::put('{workflow}/schedules/{schedule}', [WorkflowScheduleController::class, 'update'])->name('schedules.update');
         Route::delete('{workflow}/schedules/{schedule}', [WorkflowScheduleController::class, 'destroy'])->name('schedules.destroy');
     });
+
+    // Pro-Workflow Instanzen-Liste
+    Route::get('{workflow}/instances', [WorkflowInstanceController::class, 'indexForWorkflow'])->name('instances');
+});
+
+// Globaler Vorgangs-Browser
+Route::middleware(['auth'])->group(function () {
+    Route::get('/vorgaenge', [WorkflowInstanceController::class, 'indexAll'])->name('workflow-instances.index');
+    Route::get('/vorgaenge/{instance}', [WorkflowInstanceController::class, 'show'])->name('workflow-instances.show');
+    Route::post('/vorgaenge/{instance}/abbrechen', [WorkflowInstanceController::class, 'cancel'])->name('workflow-instances.cancel');
 });
 
 // Stand-Alone-Formulare
@@ -92,6 +104,12 @@ Route::middleware(['auth'])->prefix('forms')->name('forms.')->group(function () 
         Route::get('{form}/edit', [FormController::class, 'edit'])->name('edit');
         Route::put('{form}', [FormController::class, 'update'])->name('update');
         Route::delete('{form}', [FormController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::middleware('permission:forms.view,forms.manage')->group(function () {
+        Route::get('{form}/submissions', [FormSubmissionController::class, 'index'])->name('submissions.index');
+        Route::get('{form}/submissions/export', [FormSubmissionController::class, 'export'])->name('submissions.export');
+        Route::get('{form}/submissions/{submission}', [FormSubmissionController::class, 'show'])->name('submissions.show');
     });
 });
 
@@ -128,6 +146,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/mail/test', [SystemSettingsController::class, 'sendTestMail'])->name('settings.mail.test');
         Route::post('settings/m365', [SystemSettingsController::class, 'updateM365'])->name('settings.m365.update');
         Route::post('settings/m365/sync', [SystemSettingsController::class, 'syncM365'])->name('settings.m365.sync');
+        Route::post('settings/m365/test', [SystemSettingsController::class, 'testM365'])->name('settings.m365.test');
     });
 });
 

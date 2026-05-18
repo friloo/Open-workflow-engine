@@ -267,6 +267,47 @@ class WorkflowEngine
         return $newStep;
     }
 
+    /**
+     * Bricht eine laufende Instanz ab. Alle offenen Schritte werden mit
+     * decision="cancelled" geschlossen. Audit-Eintrag wird geschrieben.
+     */
+    public function cancelInstance(WorkflowInstance $instance, ?string $reason, int $byUserId): void
+    {
+        if (in_array($instance->status, [
+            WorkflowInstance::STATUS_COMPLETED,
+            WorkflowInstance::STATUS_CANCELLED,
+            WorkflowInstance::STATUS_FAILED,
+        ], true)) {
+            throw new \RuntimeException('Instanz ist bereits abgeschlossen.');
+        }
+
+        DB::transaction(function () use ($instance, $reason, $byUserId) {
+            $instance->stepExecutions()
+                ->whereNull('completed_at')
+                ->update([
+                    'completed_at' => now(),
+                    'completed_by' => $byUserId,
+                    'decision' => 'cancelled',
+                    'comment' => 'Workflow abgebrochen'.($reason ? ': '.$reason : ''),
+                ]);
+
+            $instance->update([
+                'status' => WorkflowInstance::STATUS_CANCELLED,
+                'completed_at' => now(),
+                'current_step_key' => null,
+            ]);
+
+            $this->audit->log(
+                'workflow.instance.cancelled',
+                $instance,
+                null,
+                ['reason' => $reason],
+                "Workflow-Instanz #{$instance->id} abgebrochen",
+                $byUserId,
+            );
+        });
+    }
+
     // -- internals -----------------------------------------------------------
 
     private function findStartNode(WorkflowVersion $version): ?array

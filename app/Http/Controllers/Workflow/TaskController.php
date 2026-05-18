@@ -44,9 +44,17 @@ class TaskController extends Controller
     {
         $this->authorizeStep($step, $request->user());
 
-        $step->load(['instance.workflow', 'instance.starter', 'instance.version', 'assignedUser', 'assignedRole']);
+        $step->load([
+            'instance.workflow', 'instance.starter', 'instance.version',
+            'instance.stepExecutions',
+            'assignedUser', 'assignedRole',
+        ]);
 
         $node = $step->instance->version->definition['drawflow']['Home']['data'][$step->step_key] ?? null;
+
+        $completedKeys = $step->instance->stepExecutions
+            ->whereNotNull('completed_at')
+            ->pluck('step_key')->unique()->values()->all();
 
         return view('tasks.show', [
             'step' => $step,
@@ -56,6 +64,12 @@ class TaskController extends Controller
                 'users' => User::where('is_active', true)
                     ->where('id', '!=', $request->user()->id)
                     ->orderBy('name')->limit(500)->get(['id', 'name', 'email']),
+            ],
+            'viewerPayload' => [
+                'definition' => $step->instance->version->definition,
+                'completed_step_keys' => $completedKeys,
+                'current_step_key' => $step->step_key,
+                'status' => $step->instance->status,
             ],
         ]);
     }
