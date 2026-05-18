@@ -270,6 +270,26 @@
                                             <input type="checkbox" x-model="selectedNode.data.allow_forward" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                                             Empfaenger darf an dritte Person weiterleiten
                                         </label>
+
+                                        <div class="rounded-md bg-slate-50 p-2 space-y-2">
+                                            <label class="block text-xs font-medium text-slate-600">Quorum (nur bei Rolle als Empfaenger)</label>
+                                            <select x-model="selectedNode.data.quorum_mode"
+                                                class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="single">Einer reicht (Standard)</option>
+                                                <option value="all">Alle muessen zustimmen (Vier-Augen / Sechs-Augen)</option>
+                                                <option value="n_of_m">N von M (Mehrheits-Quorum)</option>
+                                            </select>
+                                            <template x-if="selectedNode.data.quorum_mode === 'n_of_m'">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600">Mindest-Zustimmungen</label>
+                                                    <input type="number" min="1" x-model.number="selectedNode.data.quorum_min" class="mt-1 block w-32 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                </div>
+                                            </template>
+                                            <p class="text-xs text-slate-500" x-show="selectedNode.data.quorum_mode !== 'single' && selectedNode.data.recipient_type !== 'role'">
+                                                Quorum hat nur Wirkung, wenn der Empfaenger eine <strong>Rolle</strong> ist (mehrere Personen).
+                                            </p>
+                                        </div>
+
                                         <div class="rounded-md bg-slate-50 p-2 space-y-1">
                                             <label class="flex items-center gap-2 text-xs text-slate-700">
                                                 <input type="checkbox" x-model="selectedNode.data.require_comment_on_approval" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">

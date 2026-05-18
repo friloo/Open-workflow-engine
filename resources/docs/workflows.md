@@ -71,6 +71,33 @@ Empfaenger, deren Aufgabe laenger als drei Tage (Default) offen ist.
 Konfigurierbar ueber Settings-Keys `tasks.reminder_after_days` und
 `tasks.reminder_interval_days`.
 
+## Parallel-Quorum (Vier-Augen / N-aus-M)
+
+Pro Genehmigungs-Knoten ist ein **Quorum-Modus** waehlbar (nur wirksam,
+wenn der Empfaenger eine **Rolle** ist):
+
+- **Einer reicht (Standard)** — eine Person aus der Rolle uebernimmt.
+- **Alle muessen zustimmen** — jede Person in der Rolle bekommt eine
+  eigene Aufgabe. Eine Ablehnung bricht direkt ab; erst wenn **alle**
+  zugestimmt haben, geht der Workflow weiter (Vier-/Sechs-Augen).
+- **N von M** — `quorum_min` konfigurierbar. Sobald `quorum_min`
+  Zustimmungen vorliegen -> approved. Wenn nicht mehr genug offene
+  Stimmen uebrig sind, um das Quorum zu erreichen -> rejected.
+
+Die uebrigen offenen Stimmen werden bei einer Endentscheidung
+automatisch geschlossen (`decision = cancelled_quorum`) — damit sieht
+der nicht-mehr-zustaendige Empfaenger die Aufgabe nicht mehr.
+
+Sequenzielle Vier-Augen (Schritt-1 Buchhaltung -> Schritt-2 GF) ist
+weiterhin moeglich ueber zwei aufeinanderfolgende Approval-Knoten.
+
+## Trockenlauf / Simulation
+
+Vor der Aktivierung: **Trockenlauf** (Button auf der Workflow-Edit-
+Seite). Simuliert mit Testdaten ohne echte Mails / HTTP-Calls /
+Persistierung und zeigt eine Timeline jedes besuchten Knotens.
+Details: **Workflow-Simulation**.
+
 ## Pflichtkommentar bei Genehmigung / Ablehnung
 
 Pro Genehmigungs-Knoten kannst du eine Begruendung erzwingen:

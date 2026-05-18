@@ -39,3 +39,7 @@ Route::middleware('token.auth')->prefix('v1')->group(function () {
         ], 201);
     });
 });
+
+// Incoming-Webhook: oeffentlicher Endpoint, Auth via Token in URL (+ optional HMAC).
+Route::post('/incoming/{token}', [\App\Http\Controllers\IncomingWebhookReceiverController::class, 'receive'])
+    ->name('incoming.receive');

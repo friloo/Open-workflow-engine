@@ -32,6 +32,10 @@
                         </form>
                     @endif
                     @if($workflow->current_version_id)
+                        <a href="{{ route('workflows.simulate.show', $workflow) }}"
+                           class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                            Trockenlauf
+                        </a>
                         <a href="{{ route('workflows.templates.export', $workflow) }}"
                            class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                             Als Vorlage exportieren

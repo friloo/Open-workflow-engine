@@ -45,6 +45,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // Webhooks
             ['slug' => 'webhooks.manage', 'name' => 'Webhooks verwalten', 'group' => 'Integrationen'],
+            ['slug' => 'incoming_webhooks.manage', 'name' => 'Eingehende Webhooks verwalten', 'group' => 'Integrationen'],
 
             // Dokumente / OCR-Suche
             ['slug' => 'documents.search', 'name' => 'Dokumente durchsuchen', 'group' => 'Dokumente'],

@@ -94,6 +94,8 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
         Route::get('/', [WorkflowController::class, 'index'])->name('index');
         Route::get('stats', [\App\Http\Controllers\Workflow\StatsController::class, 'index'])->name('stats.index');
         Route::get('{workflow}/stats', [\App\Http\Controllers\Workflow\StatsController::class, 'show'])->name('stats.show');
+        Route::get('{workflow}/simulate', [\App\Http\Controllers\Workflow\SimulationController::class, 'show'])->name('simulate.show');
+        Route::post('{workflow}/simulate', [\App\Http\Controllers\Workflow\SimulationController::class, 'run'])->name('simulate.run');
     });
 
     Route::middleware('permission:workflows.design')->group(function () {
@@ -298,6 +300,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('secrets', [\App\Http\Controllers\Admin\SecretController::class, 'store'])->name('secrets.store');
         Route::put('secrets/{secret}', [\App\Http\Controllers\Admin\SecretController::class, 'update'])->name('secrets.update');
         Route::delete('secrets/{secret}', [\App\Http\Controllers\Admin\SecretController::class, 'destroy'])->name('secrets.destroy');
+    });
+
+    Route::middleware('permission:incoming_webhooks.manage')->group(function () {
+        Route::get('incoming-webhooks', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'index'])->name('incoming-webhooks.index');
+        Route::get('incoming-webhooks/create', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'create'])->name('incoming-webhooks.create');
+        Route::post('incoming-webhooks', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'store'])->name('incoming-webhooks.store');
+        Route::get('incoming-webhooks/{incomingWebhook}/edit', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'edit'])->name('incoming-webhooks.edit');
+        Route::put('incoming-webhooks/{incomingWebhook}', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'update'])->name('incoming-webhooks.update');
+        Route::delete('incoming-webhooks/{incomingWebhook}', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'destroy'])->name('incoming-webhooks.destroy');
+        Route::post('incoming-webhooks/{incomingWebhook}/rotate', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'rotateToken'])->name('incoming-webhooks.rotate');
     });
 
     Route::middleware('permission:webhooks.manage')->group(function () {

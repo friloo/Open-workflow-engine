@@ -62,6 +62,7 @@ Siehe Abschnitt **Erste Schritte**.
 - Workflows entwerfen — Knotentypen, Bedingungen, doc.\*-Routing, KI-Entwurf
 - **Workflow-Vorlagen** — Import/Export, 3 eingebaute Cookbooks
   (Rechnungseingang, Urlaubsantrag, Bestellfreigabe)
+- **Workflow-Simulation** — Trockenlauf mit Testdaten vor Aktivierung
 - Workflow-Statistik — Durchlaufzeiten, Engpaesse, Throughput
 - Vertretungsregelung — Urlaubs-Vertretung pro Benutzer
 - Genehmigung per Mail — signierter Link, kein Login noetig
@@ -84,7 +85,8 @@ Siehe Abschnitt **Erste Schritte**.
 - HTTP-Knoten — externe API-Calls mit Secrets, Body-Templates, Response-Mapping
 - PDF-Knoten — HTML-Template am Workflow-Ende, revisionssicher abgelegt
 - E-Mail-Eingang — IMAP-Postfaecher, Anhang -> Dokument, optional Workflow-Trigger
-- Webhooks — outgoing HTTP-Events
+- Webhooks (outgoing) — HTTP-Events bei Workflow-Aktionen
+- **Eingehende Webhooks** — externe Systeme starten Workflows per POST
 - Microsoft 365 — SSO und Benutzer-Sync
 - API-Tokens — persoenliche Tokens fuer die JSON-API
 - Secrets-Vault — API-Tokens verschluesselt

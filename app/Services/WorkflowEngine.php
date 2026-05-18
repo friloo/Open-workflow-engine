@@ -183,18 +183,27 @@ class WorkflowEngine
             return;
         }
 
+        // Quorum: wenn mehrere Geschwister fuer denselben Step existieren,
+        // erst bei erfuelltem Quorum weitergehen. Logging ist immer.
+        $this->audit->log('workflow.step.completed', $step, null, [
+            'decision' => $decision,
+            'comment' => $comment,
+            'instance_id' => $instance->id,
+        ], "Schritt {$node['data']['label']} ({$decision})", $userId);
+
+        $quorum = $this->resolveQuorumDecision($step, $instance, $decision);
+        if ($quorum === null) {
+            // Noch unentschieden -> warten auf weitere Stimmen
+            return;
+        }
+        $decision = $quorum;
+
         $outputKey = match ($decision) {
             'approved' => 'output_1',
             'rejected' => 'output_2',
             'forwarded' => 'output_3',
             default => 'output_1',
         };
-
-        $this->audit->log('workflow.step.completed', $step, null, [
-            'decision' => $decision,
-            'comment' => $comment,
-            'instance_id' => $instance->id,
-        ], "Schritt {$node['data']['label']} ({$decision})", $userId);
 
         $this->dispatchWebhook(Webhook::EVENT_STEP_COMPLETED, $instance, ['step' => $step, 'decision' => $decision]);
 
@@ -609,6 +618,19 @@ class WorkflowEngine
     private function createApprovalTask(WorkflowInstance $instance, array $node): void
     {
         $data = $node['data'] ?? [];
+        $quorumMode = (string) ($data['quorum_mode'] ?? 'single');
+
+        // Quorum nur bei Rollen-/Listen-Empfaengern sinnvoll (mehrere User
+        // gleichzeitig). Bei Einzeluser ignorieren wir den Modus.
+        if ($quorumMode !== 'single') {
+            $users = $this->resolveQuorumUsers($data, $instance);
+            if ($users->isNotEmpty()) {
+                $this->createQuorumApproval($instance, $node, $users, $quorumMode, (int) ($data['quorum_min'] ?? $users->count()));
+                return;
+            }
+            // Fallback: kein Quorum moeglich -> wie single
+        }
+
         $target = $this->resolveAssignee($data, $instance);
         $originalUserId = $target['user_id'] ?? null;
         $effectiveUserId = $originalUserId;
@@ -644,6 +666,129 @@ class WorkflowEngine
         }
 
         $this->notifyAssignee($step);
+    }
+
+    /**
+     * Entscheidet, ob ein Quorum-Step (mehrere parallele Sub-Steps mit gleichem
+     * step_key) jetzt schon einen Endwert hat oder noch wartet.
+     *
+     *  - 'all' Modus:   alle muessen approve -> approved.
+     *                   Eine rejection bricht direkt ab (rejected).
+     *  - 'n_of_m' Modus: ab quorum_min Approvals -> approved.
+     *                   Wenn nicht mehr genug offene Stimmen fuer das Quorum
+     *                   uebrig sind -> rejected.
+     *  - sonst (single): immer direkt durch.
+     *
+     * @return ?string  Decision oder null wenn unentschieden.
+     */
+    private function resolveQuorumDecision(WorkflowStepExecution $step, WorkflowInstance $instance, string $myDecision): ?string
+    {
+        $mode = (string) data_get($step->data_snapshot, 'quorum_mode', 'single');
+        if ($mode === 'single') return $myDecision;
+
+        $siblings = WorkflowStepExecution::where('workflow_instance_id', $instance->id)
+            ->where('step_key', $step->step_key)
+            ->get();
+        $total = (int) data_get($step->data_snapshot, 'quorum_total', $siblings->count());
+        $min = (int) data_get($step->data_snapshot, 'quorum_min', $total);
+
+        $approved = $siblings->where('decision', 'approved')->count();
+        $rejected = $siblings->where('decision', 'rejected')->count();
+        $open = $siblings->whereNull('completed_at')->count();
+
+        if ($mode === 'all') {
+            if ($rejected > 0) {
+                $this->cancelOpenSiblings($siblings);
+                return 'rejected';
+            }
+            if ($open === 0 && $approved === $total) return 'approved';
+            return null;
+        }
+
+        // n_of_m
+        if ($approved >= $min) {
+            $this->cancelOpenSiblings($siblings);
+            return 'approved';
+        }
+        // Nicht mehr genug offene Stimmen, um das Quorum zu erreichen?
+        if (($approved + $open) < $min) {
+            $this->cancelOpenSiblings($siblings);
+            return 'rejected';
+        }
+        return null;
+    }
+
+    private function cancelOpenSiblings(\Illuminate\Support\Collection $siblings): void
+    {
+        foreach ($siblings as $s) {
+            if ($s->completed_at) continue;
+            $s->forceFill([
+                'completed_at' => now(),
+                'decision' => 'cancelled_quorum',
+            ])->save();
+        }
+    }
+
+    /**
+     * Quorum: liefert die Liste der User, die in diesem Step abstimmen
+     * sollen. Rolle -> alle Mitglieder. Lookup -> nicht unterstuetzt
+     * (per definitionem nur einer). Sonst leer.
+     *
+     * @return \Illuminate\Support\Collection<int, User>
+     */
+    private function resolveQuorumUsers(array $data, WorkflowInstance $instance): \Illuminate\Support\Collection
+    {
+        $type = $data['recipient_type'] ?? null;
+        if ($type === 'role' && ! empty($data['recipient_role_id'])) {
+            $role = \App\Models\Role::with('users')->find($data['recipient_role_id']);
+            return $role ? $role->users->filter(fn ($u) => $u->is_active)->values() : collect();
+        }
+        return collect();
+    }
+
+    private function createQuorumApproval(WorkflowInstance $instance, array $node, \Illuminate\Support\Collection $users, string $mode, int $min): void
+    {
+        $data = $node['data'] ?? [];
+        $due = $this->graceDeadline($data);
+        $createdSteps = collect();
+
+        foreach ($users as $user) {
+            $delegate = $user->activeDelegate();
+            $effective = $delegate?->id ?? $user->id;
+
+            $step = WorkflowStepExecution::create([
+                'workflow_instance_id' => $instance->id,
+                'step_key' => (string) $node['id'],
+                'step_type' => 'approval',
+                'assigned_to_user_id' => $effective,
+                'assigned_at' => now(),
+                'due_at' => $due,
+                'data_snapshot' => [
+                    'quorum_mode' => $mode,
+                    'quorum_min' => $min,
+                    'quorum_total' => $users->count(),
+                ],
+            ]);
+            if ($delegate) {
+                $this->audit->log('workflow.task.delegated', $step, null, [
+                    'from_user' => $user->email, 'to_user' => $delegate->email,
+                    'reason' => $user->delegate_reason,
+                ], "Quorum-Aufgabe vertreten: {$user->email} -> {$delegate->email}");
+            }
+            $createdSteps->push($step);
+        }
+
+        $this->audit->log('workflow.quorum.created', $instance, null, [
+            'step_key' => (string) $node['id'],
+            'mode' => $mode,
+            'min' => $min,
+            'total' => $users->count(),
+            'users' => $users->pluck('email')->all(),
+        ], "Quorum-Aufgabe angelegt ({$mode}, {$min}/".$users->count().')');
+
+        foreach ($createdSteps as $step) {
+            $this->notifyAssignee($step);
+        }
     }
 
     private function notifyAssignee(WorkflowStepExecution $step): void
