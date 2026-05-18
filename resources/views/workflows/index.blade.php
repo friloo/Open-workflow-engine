@@ -48,6 +48,7 @@
             </select>
             <x-secondary-button type="submit">Filtern</x-secondary-button>
         </form>
+        <a href="{{ route('workflows.stats.index') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Statistik</a>
         @if(auth()->user()->hasPermission('workflows.design'))
             <a href="{{ route('workflows.create') }}"><x-primary-button type="button">Neuer Workflow</x-primary-button></a>
         @endif

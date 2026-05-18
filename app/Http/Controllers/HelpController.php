@@ -14,6 +14,8 @@ class HelpController extends Controller
         'index' => 'Uebersicht',
         'first-steps' => 'Erste Schritte',
         'workflows' => 'Workflows entwerfen',
+        'stats' => 'Workflow-Statistik',
+        'delegation' => 'Vertretungsregelung',
         'ai' => 'KI im Designer',
         'forms' => 'Formulare',
         'lists' => 'Listen (Kostenstellen etc.)',

@@ -21,6 +21,10 @@ class User extends Authenticatable
         'email',
         'password',
         'supervisor_id',
+        'delegate_user_id',
+        'delegate_from',
+        'delegate_to',
+        'delegate_reason',
         'm365_object_id',
         'm365_supervisor_object_id',
         'prefer_m365_supervisor',
@@ -46,6 +50,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
+            'delegate_from' => 'date',
+            'delegate_to' => 'date',
             'password' => 'hashed',
             'is_active' => 'boolean',
             'email_notifications_enabled' => 'boolean',
@@ -71,6 +77,35 @@ class User extends Authenticatable
         }
 
         return $this->supervisor;
+    }
+
+    public function delegate(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'delegate_user_id');
+    }
+
+    /**
+     * Liefert die aktive Vertretung — oder null, wenn aktuell keine
+     * gilt. Wenn der Vertreter selbst ebenfalls vertreten ist,
+     * folgen wir der Kette (max. 3 Hops, um Zyklen zu kappen).
+     */
+    public function activeDelegate(?\DateTimeInterface $on = null): ?User
+    {
+        $on = $on ? \Carbon\Carbon::instance($on)->startOfDay() : now()->startOfDay();
+        $current = $this;
+        for ($i = 0; $i < 3; $i++) {
+            if (! $current->delegate_user_id) return $current === $this ? null : $current;
+            if (! $current->delegate_from || ! $current->delegate_to) return $current === $this ? null : $current;
+            if ($on->lt($current->delegate_from) || $on->gt($current->delegate_to)) {
+                return $current === $this ? null : $current;
+            }
+            $next = self::find($current->delegate_user_id);
+            if (! $next || ! $next->is_active || $next->id === $this->id) {
+                return $current === $this ? null : $current;
+            }
+            $current = $next;
+        }
+        return $current === $this ? null : $current;
     }
 
     public function apiTokens(): HasMany

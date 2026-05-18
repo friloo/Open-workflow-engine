@@ -608,16 +608,38 @@ class WorkflowEngine
     {
         $data = $node['data'] ?? [];
         $target = $this->resolveAssignee($data, $instance);
+        $originalUserId = $target['user_id'] ?? null;
+        $effectiveUserId = $originalUserId;
+
+        // Vertretungsregelung: ist der Adressat heute vertreten, geht
+        // die Aufgabe direkt an die Vertretung.
+        $delegate = null;
+        if ($originalUserId) {
+            $assignee = User::find($originalUserId);
+            $delegate = $assignee?->activeDelegate();
+            if ($delegate) {
+                $effectiveUserId = $delegate->id;
+            }
+        }
 
         $step = WorkflowStepExecution::create([
             'workflow_instance_id' => $instance->id,
             'step_key' => (string) $node['id'],
             'step_type' => 'approval',
-            'assigned_to_user_id' => $target['user_id'] ?? null,
+            'assigned_to_user_id' => $effectiveUserId,
             'assigned_to_role_id' => $target['role_id'] ?? null,
             'assigned_at' => now(),
             'due_at' => $this->graceDeadline($data),
         ]);
+
+        if ($delegate && $originalUserId) {
+            $original = User::find($originalUserId);
+            $this->audit->log('workflow.task.delegated', $step, null, [
+                'from_user' => $original?->email,
+                'to_user' => $delegate->email,
+                'reason' => $original?->delegate_reason,
+            ], "Aufgabe vertreten: {$original?->email} -> {$delegate->email}");
+        }
 
         $this->notifyAssignee($step);
     }
