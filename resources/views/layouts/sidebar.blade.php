@@ -19,9 +19,10 @@
         ],
         [
             'group' => 'Automatisierung',
-            'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish','workflows.run']),
+            'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish','workflows.run','forms.view','forms.manage']),
             'items' => [
                 ['name' => 'Workflows', 'route' => 'workflows.index', 'icon' => 'workflow', 'active' => request()->routeIs('workflows.*'), 'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish','workflows.run'])],
+                ['name' => 'Formulare', 'route' => 'forms.index', 'icon' => 'form', 'active' => request()->routeIs('forms.*'), 'when' => $user?->hasAnyPermission(['forms.view','forms.manage'])],
             ],
         ],
         [

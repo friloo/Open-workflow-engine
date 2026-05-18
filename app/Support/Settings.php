@@ -13,6 +13,7 @@ class Settings
      */
     private const ENCRYPTED_KEYS = [
         'mail.password',
+        'auth.m365.client_secret',
     ];
 
     private static ?array $cache = null;

@@ -67,6 +67,11 @@ class Workflow extends Model
         return $this->hasMany(WorkflowInstance::class);
     }
 
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(WorkflowSchedule::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

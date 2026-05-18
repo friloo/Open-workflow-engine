@@ -74,6 +74,9 @@
                                 @if(auth()->user()->hasPermission('workflows.design'))
                                     <a href="{{ route('workflows.edit', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Metadaten</a>
                                     <a href="{{ route('workflows.versions', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Versionen</a>
+                                    @if($w->trigger_type==='recurring')
+                                        <a href="{{ route('workflows.schedules.index', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Wiedervorlagen</a>
+                                    @endif
                                 @endif
                             </td>
                         </tr>

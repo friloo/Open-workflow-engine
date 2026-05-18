@@ -40,4 +40,17 @@
             <x-primary-button class="w-full justify-center">Anmelden</x-primary-button>
         </div>
     </form>
+
+    @if(config('services.microsoft-azure.enabled'))
+        <div class="my-6 flex items-center gap-3 text-xs text-slate-400">
+            <span class="h-px flex-1 bg-slate-200"></span>
+            <span>oder</span>
+            <span class="h-px flex-1 bg-slate-200"></span>
+        </div>
+        <a href="{{ route('auth.m365.redirect') }}"
+            class="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+            <svg viewBox="0 0 21 21" width="18" height="18" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>
+            Mit Microsoft anmelden
+        </a>
+    @endif
 </x-guest-layout>

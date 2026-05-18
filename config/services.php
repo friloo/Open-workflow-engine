@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'microsoft-azure' => [
+        'client_id' => env('M365_CLIENT_ID'),
+        'client_secret' => env('M365_CLIENT_SECRET'),
+        'redirect' => env('M365_REDIRECT_URI'),
+        'tenant' => env('M365_TENANT_ID', 'common'),
+        'proxy' => env('M365_PROXY'),
+    ],
+
 ];

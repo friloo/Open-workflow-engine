@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuditLogger;
+use App\Services\MicrosoftGraphSync;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,8 +17,11 @@ class SystemSettingsController extends Controller
 
     public function index(): View
     {
+        $roles = \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']);
         return view('admin.settings.index', [
             'mail' => Settings::group('mail') + $this->defaults(),
+            'm365' => Settings::group('auth.m365') + $this->m365Defaults(),
+            'roles' => $roles,
         ]);
     }
 
@@ -84,6 +88,55 @@ class SystemSettingsController extends Controller
         return back()->with('status', 'Test-Mail an '.$request->input('to').' gesendet.');
     }
 
+    public function updateM365(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'enabled' => ['nullable', 'boolean'],
+            'auto_provision' => ['nullable', 'boolean'],
+            'client_id' => ['nullable', 'string', 'max:255'],
+            'client_secret' => ['nullable', 'string', 'max:255'],
+            'tenant_id' => ['nullable', 'string', 'max:255'],
+            'redirect_uri' => ['nullable', 'url', 'max:255'],
+            'default_role' => ['nullable', 'string', 'exists:roles,slug'],
+        ]);
+
+        $previous = Settings::group('auth.m365');
+
+        $keys = ['client_id', 'tenant_id', 'redirect_uri', 'default_role'];
+        foreach ($keys as $k) {
+            Settings::set("auth.m365.{$k}", $data[$k] ?? null, $request->user()->id);
+        }
+        Settings::set('auth.m365.enabled', $request->boolean('enabled'), $request->user()->id);
+        Settings::set('auth.m365.auto_provision', $request->boolean('auto_provision'), $request->user()->id);
+
+        if (! empty($data['client_secret'])) {
+            Settings::set('auth.m365.client_secret', $data['client_secret'], $request->user()->id);
+        }
+
+        $this->audit->log(
+            'settings.m365.updated',
+            null,
+            array_diff_key($previous, ['client_secret' => null]),
+            array_diff_key($data + ['enabled' => $request->boolean('enabled')], ['client_secret' => null]),
+            'M365-Konfiguration aktualisiert',
+            $request->user()->id,
+        );
+
+        return redirect()->route('admin.settings.index')->with('status', 'Microsoft-365-Konfiguration gespeichert.');
+    }
+
+    public function syncM365(Request $request, MicrosoftGraphSync $sync): RedirectResponse
+    {
+        $default = Settings::get('auth.m365.default_role') ?: 'employee';
+        try {
+            $result = $sync->syncUsers($default, $request->user()->id);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['m365' => 'Sync fehlgeschlagen: '.$e->getMessage()]);
+        }
+        return back()->with('status',
+            "M365-Sync abgeschlossen: {$result['created']} neu, {$result['updated']} aktualisiert, ".count($result['errors'])." Fehler.");
+    }
+
     private function defaults(): array
     {
         return [
@@ -96,6 +149,19 @@ class SystemSettingsController extends Controller
             'from_address' => 'no-reply@example.com',
             'from_name' => config('app.name'),
             'timeout' => 10,
+        ];
+    }
+
+    private function m365Defaults(): array
+    {
+        return [
+            'enabled' => false,
+            'auto_provision' => true,
+            'client_id' => '',
+            'client_secret' => '',
+            'tenant_id' => 'common',
+            'redirect_uri' => url('/auth/m365/callback'),
+            'default_role' => 'employee',
         ];
     }
 }

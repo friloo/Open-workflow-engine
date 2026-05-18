@@ -13,3 +13,9 @@ Schedule::command('workflow:check-due')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->runInBackground();
+
+// Wiederkehrende Workflows: stuendlich faellige Schedules starten.
+Schedule::command('workflow:run-schedules')
+    ->hourly()
+    ->withoutOverlapping()
+    ->runInBackground();

@@ -3,9 +3,9 @@
 Self-hosted workflow- und formularbasiertes Automatisierungstool fuer
 Shared-Hosting (PHP 8.2+ / MySQL oder MariaDB).
 
-> **Status:** Phase 3 — Workflow-Runtime mit Mail-Versand, Karenzzeit-
-> Eskalation, oeffentlichen und internen Formularen, Task-Inbox sowie
-> einer SMTP-Konfiguration im Admin-Backend. Phase 1 + 2 sind enthalten.
+> **Status:** Phase 4 + 5 — Microsoft 365 Single-Sign-On + Benutzer-Sync,
+> wiederkehrende Workflows (Wiedervorlagen, z. B. Fuehrerschein-Pruefung)
+> und ein Stand-Alone-Form-Builder. Phasen 1-3 sind enthalten.
 
 ## Geplanter Funktionsumfang
 
@@ -19,6 +19,40 @@ Shared-Hosting (PHP 8.2+ / MySQL oder MariaDB).
 - E-Mail-Benachrichtigungen pro Workflow-Schritt
 - Rollenbasiertes Rechtesystem (keine Einzelberechtigungen)
 - Revisionssichere, hashverkettete Audit-Historie
+
+## Phase 4 — Microsoft 365 SSO + Benutzer-Sync
+
+- **Konfiguration im Admin-Backend** unter *Systemeinstellungen*:
+  Client-ID, Client-Secret (verschluesselt), Tenant-ID, Redirect-URI,
+  Auto-Provisioning-Schalter und Standardrolle fuer neu angelegte
+  Benutzer.
+- **Login-Button** „Mit Microsoft anmelden" erscheint auf der
+  Anmeldeseite, sobald M365 aktiviert und konfiguriert ist.
+- **OAuth-Callback** legt unbekannte Benutzer optional automatisch an
+  (Auto-Provisioning) und verknuepft sie ueber `m365_object_id`.
+  Bestehende Benutzer werden anhand der E-Mail erkannt und verknuepft.
+- **Benutzer-Sync** ueber den Microsoft-Graph-Endpoint mit Client-
+  Credentials-Flow (App-only). Importiert/aktualisiert Name, E-Mail,
+  Abteilung, Funktion, Telefon und Vorgesetzten (`manager`). Manueller
+  Trigger im Admin-Backend oder per Cron: `php artisan m365:sync-users`.
+  Voraussetzung: Application-Permission `User.Read.All` mit Admin
+  Consent.
+
+## Phase 5 — Wiederkehrende Workflows + Form-Builder
+
+- **Wiederkehrende Workflows:** Workflows mit Trigger `recurring`
+  koennen Wiedervorlagen haben (Bezugs-Person, Intervall in
+  Tagen/Wochen/Monaten/Jahren). Beispiel: "Fuehrerschein-Pruefung
+  alle 6 Monate" je Mitarbeiter.
+- **Scheduler-Command:** `php artisan workflow:run-schedules` laeuft
+  stuendlich via Laravel-Scheduler, startet faellige Workflows mit dem
+  jeweiligen Subject als Initiator, setzt `last_run_at` und
+  berechnet `next_run_at` automatisch.
+- **Stand-Alone-Form-Builder** unter *Automatisierung → Formulare*:
+  Formulare mit eigenem Schema, optionalem `workflow_id`-Link und
+  oeffentlichem Pfad `/formular/{slug}`. Live-Vorschau, Drag-and-Drop-
+  freie Reihenfolge-Bearbeitung. Eingaenge starten den verknuepften
+  Workflow oder werden nur in `form_submissions` gespeichert.
 
 ## Phase 3 — Runtime, oeffentliche Formulare, Mail-Versand
 
@@ -173,10 +207,14 @@ nachvollziehen und manipulierte Datensaetze identifizieren.
 
 ## Naechste Schritte
 
-- Phase 4: Microsoft 365 SSO + Benutzer-Sync inkl. Vorgesetzten-Feld
-  und automatischem Import.
-- Phase 5: Wiederkehrende Workflows (z. B. Fuehrerschein-Wiedervorlage
-  alle X Monate) und Stand-Alone Formular-Builder ohne Workflow.
+Damit ist der initial geplante Funktionsumfang erreicht. Sinnvolle
+Erweiterungen:
+
+- Drag-and-Drop fuer Formularfelder (statt manueller Reihenfolge).
+- Pruefung/Test fuer M365-Credentials direkt im Backend (analog zur Test-Mail).
+- Asset-Verwaltung (z. B. Fuehrerschein als eigene Entitaet mit
+  Ablaufdatum, statt rein zeitintervallbasierter Schedules).
+- Quartz/Calendar-aehnliche Schedules (Wochentage, Uhrzeiten).
 
 ## Lizenz
 

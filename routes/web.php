@@ -5,11 +5,14 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SystemSettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
+use App\Http\Controllers\Auth\MicrosoftLoginController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Workflow\FormController;
 use App\Http\Controllers\Workflow\PublicFormController;
 use App\Http\Controllers\Workflow\TaskController;
 use App\Http\Controllers\Workflow\WorkflowController;
 use App\Http\Controllers\Workflow\WorkflowDesignerController;
+use App\Http\Controllers\Workflow\WorkflowScheduleController;
 use App\Http\Controllers\Workflow\WorkflowStartController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +24,17 @@ Route::get('/', function () {
 Route::get('/f/{slug}', [PublicFormController::class, 'show'])->name('public.form.show');
 Route::post('/f/{slug}', [PublicFormController::class, 'submit'])->name('public.form.submit');
 Route::get('/f/{slug}/danke', [PublicFormController::class, 'thanks'])->name('public.form.thanks');
+
+// Public standalone forms (no auth)
+Route::get('/formular/{slug}', [FormController::class, 'showPublic'])->name('forms.public.show');
+Route::post('/formular/{slug}', [FormController::class, 'submitPublic'])->name('forms.public.submit');
+Route::get('/formular/{slug}/danke', [FormController::class, 'thanksPublic'])->name('forms.public.thanks');
+
+// Microsoft 365 SSO
+Route::middleware('guest')->group(function () {
+    Route::get('/auth/m365/redirect', [MicrosoftLoginController::class, 'redirect'])->name('auth.m365.redirect');
+    Route::get('/auth/m365/callback', [MicrosoftLoginController::class, 'callback'])->name('auth.m365.callback');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
@@ -57,6 +71,28 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
         Route::get('{workflow}/start', [WorkflowStartController::class, 'show'])->name('start');
         Route::post('{workflow}/start', [WorkflowStartController::class, 'submit'])->name('start.submit');
     });
+
+    // Wiederkehrende Workflows
+    Route::middleware('permission:workflows.design')->group(function () {
+        Route::get('{workflow}/schedules', [WorkflowScheduleController::class, 'index'])->name('schedules.index');
+        Route::post('{workflow}/schedules', [WorkflowScheduleController::class, 'store'])->name('schedules.store');
+        Route::put('{workflow}/schedules/{schedule}', [WorkflowScheduleController::class, 'update'])->name('schedules.update');
+        Route::delete('{workflow}/schedules/{schedule}', [WorkflowScheduleController::class, 'destroy'])->name('schedules.destroy');
+    });
+});
+
+// Stand-Alone-Formulare
+Route::middleware(['auth'])->prefix('forms')->name('forms.')->group(function () {
+    Route::middleware('permission:forms.view,forms.manage')->group(function () {
+        Route::get('/', [FormController::class, 'index'])->name('index');
+    });
+    Route::middleware('permission:forms.manage')->group(function () {
+        Route::get('create', [FormController::class, 'create'])->name('create');
+        Route::post('/', [FormController::class, 'store'])->name('store');
+        Route::get('{form}/edit', [FormController::class, 'edit'])->name('edit');
+        Route::put('{form}', [FormController::class, 'update'])->name('update');
+        Route::delete('{form}', [FormController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)
@@ -90,6 +126,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('settings', [SystemSettingsController::class, 'index'])->name('settings.index');
         Route::post('settings/mail', [SystemSettingsController::class, 'updateMail'])->name('settings.mail.update');
         Route::post('settings/mail/test', [SystemSettingsController::class, 'sendTestMail'])->name('settings.mail.test');
+        Route::post('settings/m365', [SystemSettingsController::class, 'updateM365'])->name('settings.m365.update');
+        Route::post('settings/m365/sync', [SystemSettingsController::class, 'syncM365'])->name('settings.m365.sync');
     });
 });
 
