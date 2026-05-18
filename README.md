@@ -23,7 +23,7 @@ Eingehende Rechnung per Mail → Kostenstelle automatisch erkannt → richtige P
 [![Revisionssicher](https://img.shields.io/badge/Revisionssicher-SHA--256-F59E0B?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-475569?style=flat-square)]()
 
-[**Was kann es?**](#-was-owe-kann) · [**Installation**](#-installation-nur-eine-datei-hochladen) · [**Live-Beispiel**](#-live-beispiel-rechnungseingang) · [**Vergleich**](#%EF%B8%8F-owe-vs-saas-vs-selbst-zusammenstecken) · [**Architektur**](#%EF%B8%8F-architektur) · [**Roadmap**](#%EF%B8%8F-roadmap)
+[**Was kann es?**](#-was-owe-kann) · [**Use-Cases**](#-was-kannst-du-damit-konkret-bauen) · [**Installation**](#-installation-nur-eine-datei-hochladen) · [**Live-Beispiel**](#-live-beispiel-rechnungseingang) · [**Vergleich**](#%EF%B8%8F-owe-vs-saas-vs-selbst-zusammenstecken) · [**Architektur**](#%EF%B8%8F-architektur) · [**Roadmap**](#%EF%B8%8F-roadmap)
 
 </div>
 
@@ -81,6 +81,136 @@ Du bedienst es ueber den Browser, nicht ueber ein Terminal.
 
 ---
 
+## 🎨 Was kannst du damit konkret bauen?
+
+OWE ist **generisch** — Dokumenttypen, Felder, Workflows und Empfaenger-Regeln
+sind alles deine Konfiguration. Du bist nicht auf „Rechnungen" festgelegt.
+Hier eine Galerie konkreter Anwendungsfaelle, die heute schon Out-of-the-Box
+bauen lassen:
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### 💶 Finanzen & Buchhaltung
+- 📥 **Rechnungseingang** mit Auto-Routing zur Kostenstelle *(Vorlage da)*
+- ✅ **Bestellfreigabe** mit Stufen je Betrag *(Vorlage da)*
+- 📋 **Auftragsbestaetigungs-Freigabe**
+- 💸 **Spesen-/Reisekosten-Abrechnung**
+- 🏦 **Lieferantenanlage** mit IBAN-Pruefung
+- 📑 **Vertrags-Freigaben** (Lieferant, Dienstleister, Miete)
+- 🔍 **Mahnwesen** (Status-Workflow mit Eskalation)
+
+</td>
+<td width="33%" valign="top">
+
+### 👥 HR & Personal
+- 🏖️ **Urlaubsantrag** *(Vorlage da)*
+- 🤒 **Krankmeldung-Eingang per Mail** (IMAP → Personalakte)
+- 🪪 **Fuehrerschein-Sichtkontrolle** (wiederkehrend, Asset-Workflow)
+- 🦺 **Sicherheitsunterweisungen** (G-25, Erste-Hilfe-Schein, ...)
+- 📝 **Onboarding-Checkliste** mit mehreren Genehmigungen
+- 🎓 **Weiterbildungsantraege**
+- 🏢 **Homeoffice-Antrag**
+- 📃 **Zeugnis-/Bescheinigungs-Anforderung**
+
+</td>
+<td width="33%" valign="top">
+
+### 🛡️ Recht & Compliance
+- 📜 **DSGVO-Auskunftsersuchen** (Art. 15)
+- 🗑️ **DSGVO-Loeschantrag** mit Begruendung
+- 📅 **Vertragsverlaengerung** rechtzeitig pruefen (wiederkehrend)
+- 🔐 **NDA-Freigabe**
+- 📒 **Sitzungsprotokoll-Freigabe** (z. B. Vorstand)
+- 🔍 **Aufbewahrungs-Ablauf** mit Pruefungs-Aktion *(eingebaut)*
+- 🕵️ **Vier-/Sechs-Augen-Genehmigungen** *(Quorum eingebaut)*
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🛒 Vertrieb & Marketing
+- 💼 **Angebotsfreigabe** (Stufen nach Volumen)
+- 🤝 **Kundenanlage / Onboarding**
+- 📰 **Pressemitteilung-Freigabe**
+- 📣 **Social-Media-Post-Freigabe**
+- 📧 **Newsletter-Freigabe**
+- 🎨 **Werbematerial-Freigabe** mit PDF-Beleg
+- 📊 **Wettbewerbs-Analyse-Eingang** per Mail
+
+</td>
+<td valign="top">
+
+### 🛠️ IT & Operations
+- 🔧 **IT-Bestellantrag** (Hardware, Software)
+- 🔑 **Zugangs-/Berechtigungs-Antrag**
+- 🪪 **Software-Lizenz-Anfrage**
+- 🚨 **Stoerungsmeldung** mit Eskalation
+- 🛠️ **Wartungsfreigabe** (z. B. Anlagen)
+- 📦 **Werkzeug-/Geraete-Ausleihe**
+- 🏗️ **Bauvorhaben-/Anschaffungs-Antrag**
+- 📋 **Stammdaten-Aenderungen** mit Vier-Augen
+
+</td>
+<td valign="top">
+
+### 🏛️ Vereine & Bildung
+- 🆕 **Mitgliedsantrag** (online ueber oeffentliches Formular)
+- 🚪 **Mitgliedsaustritt**
+- 💶 **Beitragsaenderung**
+- 🧾 **Spendenbescheinigung-Anforderung**
+- 🗳️ **Vorstands-Genehmigung** (Anschaffung, Spenden)
+- 📚 **Materialbestellung** (Schule, Verein)
+- 🎓 **Praktikumsbescheinigung**
+- 🚌 **Klassenfahrt-Genehmigung** (oeffentliches Formular)
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 🏥 Praxis & Kanzlei
+- 📄 **Befund-Eingang** per Mail (IMAP → Patientenakte)
+- 💊 **Rezept-Anforderung**
+- 📋 **Ueberweisungs-Vorlage**
+- ✍️ **Mandats-/Vollmachts-Erteilung**
+- 📅 **Termin-Anfrage** (oeffentliches Formular)
+- 🔒 **DSGVO-Auftragsverarbeiter-Vertraege**
+
+</td>
+<td valign="top">
+
+### 🏗️ Generische Genehmigungen
+- 🪙 **„Brauchen wir was?"** — beliebige Antraege
+- 📝 **Antrag mit Begruendung** + Pflichtkommentar bei Ablehnung
+- 🌳 **Mehrstufige Eskalations-Ketten** (Team-Lead → Bereich → GF)
+- ⏱️ **Erinnerungs-Mails** bei laenger offenen Tasks
+- 📨 **Mail-Approval** ohne Login fuer Vorgesetzte unterwegs
+
+</td>
+<td valign="top">
+
+### 🤖 Integrationen mit Drittsystemen
+- 🎫 **Ticket-Erstellung** in Jira, GitLab, Zammad ueber HTTP-Knoten
+- 💬 **Slack/Teams/Mattermost-Benachrichtigung** ueber Webhook
+- 🛒 **Bestellung aus Shop** (Shopify, WooCommerce) per Incoming Webhook
+- 📥 **Daten-Bezug** vom ERP (HTTP + Response-Mapping)
+- 🔄 **Bidirektionaler Sync** mit n8n/Make ueber API-Tokens
+- 📊 **Status-Push** an externes Dashboard
+
+</td>
+</tr>
+</table>
+
+> 💡 **Alle aufgelisteten Faelle nutzen dieselben Bausteine**:
+> Dokumenttyp + Schema + Lookup-Liste + Workflow-Designer. Du baust den
+> Workflow grafisch, definierst deine Felder, pflegst deine Listen — fertig.
+> Keine Programmierung noetig.
+
+---
+
 ## ✨ Was OWE kann
 
 <table>
@@ -91,8 +221,8 @@ Du bedienst es ueber den Browser, nicht ueber ein Terminal.
 - 📥 **Bulk-Upload** · Drag-and-Drop · Inline-Vorschau (PDF/Bild)
 - 🔢 **Versionierung** pro Dokument (Chain-Konzept, alle Versionen revisionssicher)
 - 🔍 **OCR-Volltextsuche** (pdftotext + tesseract automatisch)
-- 🧠 **Felder-Schemas pro Dokumenttyp**: Rechnungsnummer, Datum, Brutto, Kostenstelle, IBAN, USt-ID — automatisch extrahiert
-- 🎯 Erkennung: **Heuristik** · Eigener Regex · **Lookup-Liste (anlernen ueber deine Listen!)** · KI optional
+- 🧠 **Frei definierbare Felder pro Dokumenttyp** — beliebige Schluessel (`rechnungsnummer`, `vertragsbeginn`, `mitgliedsnummer`, `kfz_kennzeichen`, ...) mit Typ (string · date · currency · iban · email · number)
+- 🎯 Erkennung: **Heuristik** (eingebaut: Rechnungsnr, Datum, EUR-Betrag, IBAN, USt-IdNr, E-Mail) · **eigener Regex** · **Lookup-Liste (anlernen ueber deine Listen!)** · KI optional
 - 📨 **Postkorb** fuer eingehende Mails / unzugeordnete Dokumente
 - 🔎 Filter auf erkannte Felder + **CSV-Export** fuer Buchhaltung
 - 🔗 **Sharing-Links** mit Passwort, Ablauf-Cap, Auto-Review-Mails
@@ -154,7 +284,7 @@ Du bedienst es ueber den Browser, nicht ueber ein Terminal.
 
 ## 🎬 Live-Beispiel: Rechnungseingang
 
-So sieht ein realer Flow aus — **Setup ca. 30 Minuten, dann fully automated**:
+Stellvertretend fuer alle Use-Cases oben — **Setup ca. 30 Minuten, dann fully automated**. Der Aufbau funktioniert mit beliebigen anderen Dokumenttypen genauso (Vertrag, Krankmeldung, Mitgliedsantrag, ...). Hier nur ein konkreter Flow zur Veranschaulichung:
 
 ```
                   ┌──────────────────────────┐
