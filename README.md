@@ -3,9 +3,9 @@
 Self-hosted workflow- und formularbasiertes Automatisierungstool fuer
 Shared-Hosting (PHP 8.2+ / MySQL oder MariaDB).
 
-> **Status:** Phase 2 — Workflow-Designer mit bedingten Verzweigungen,
-> inline Formular-Schema-Editor und immutabler Versionierung. Phase 1
-> (Auth, Benutzer-/Rollenverwaltung, CSV-Import, Audit-Log) ist enthalten.
+> **Status:** Phase 3 — Workflow-Runtime mit Mail-Versand, Karenzzeit-
+> Eskalation, oeffentlichen und internen Formularen, Task-Inbox sowie
+> einer SMTP-Konfiguration im Admin-Backend. Phase 1 + 2 sind enthalten.
 
 ## Geplanter Funktionsumfang
 
@@ -19,6 +19,47 @@ Shared-Hosting (PHP 8.2+ / MySQL oder MariaDB).
 - E-Mail-Benachrichtigungen pro Workflow-Schritt
 - Rollenbasiertes Rechtesystem (keine Einzelberechtigungen)
 - Revisionssichere, hashverkettete Audit-Historie
+
+## Phase 3 — Runtime, oeffentliche Formulare, Mail-Versand
+
+- **Workflow-Engine** (`App\Services\WorkflowEngine`) startet Instanzen,
+  laeuft Start/Bedingung/Notify-Knoten ab und pausiert bei Approval-
+  Schritten bis zur Entscheidung. Tiefenlimit gegen Endlos-Loops.
+- **Bedingungs-Auswertung** unterstuetzt `eq`, `neq`, `contains`, `gt`,
+  `gte`, `lt`, `lte`, `checked`, `unchecked`, `empty`, `not_empty`. Trifft
+  keine Bedingung zu, wird der Else-Ausgang genutzt.
+- **Empfaenger-Auflosung** dynamisch: Vorgesetzter des Antragstellers,
+  Vorgesetzter des vorigen Bearbeiters, Mitglieder einer Rolle oder
+  konkrete Person. Beruecksichtigt `prefer_m365_supervisor`.
+- **Karenzzeit-Eskalation:** Console-Command `php artisan workflow:check-due`
+  laeuft alle 5 Minuten via Laravel-Scheduler und eskaliert offene
+  Schritte mit ueberschrittener `due_at` an Rolle oder Vorgesetzten.
+- **Task-Inbox** (`/tasks`) zeigt offene Aufgaben mit Frist-Hervorhebung
+  (rot fuer ueberfaellig) und Sidebar-Badge mit Zaehler.
+- **Genehmigungs-Aktionen:** Genehmigen, Ablehnen, optional Weiterleiten
+  an dritte Person inkl. Kommentar.
+- **Oeffentliche Formulare** unter `/f/{public_slug}` — kein Login noetig.
+  Honeypot gegen Spam, Validierung anhand des Form-Schemas.
+- **Interner Workflow-Start** unter `Workflows -> Starten` fuer
+  authentifizierte Antragsteller (Mitarbeiter-Rolle).
+- **Mail-Versand:**
+  - `WorkflowTaskAssignedMail` bei jeder neuen Aufgabe.
+  - `WorkflowNotificationMail` fuer Notify-Knoten mit Platzhaltern
+    (`@{{ feld_key }}`, `@{{ initiator }}`).
+  - Respektiert `email_notifications_enabled` pro Benutzer.
+- **SMTP-Konfiguration im Admin-Backend** unter
+  *Verwaltung → Systemeinstellungen.* Aenderungen ueberschreiben die
+  `.env`-Werte zur Laufzeit; Passwoerter werden verschluesselt (`Crypt::encryptString`)
+  gespeichert. Inklusive Test-Mail-Button.
+
+### Cron-Setup auf Shared-Hosting
+
+Ein einziger Cron-Eintrag fuehrt alle Laravel-Scheduler-Tasks aus
+(inkl. der Karenzzeit-Pruefung):
+
+```cron
+* * * * * cd /pfad/zur/app && php artisan schedule:run >> /dev/null 2>&1
+```
 
 ## Phase 2 — Workflow-Designer
 
@@ -132,9 +173,10 @@ nachvollziehen und manipulierte Datensaetze identifizieren.
 
 ## Naechste Schritte
 
-- Phase 3: Workflow-Runtime — Instanzen starten, Karenzzeit-Eskalation
-  (Scheduler/Cron), Mail-Versand, oeffentliche Formulare ohne Login.
-- Phase 4: Microsoft 365 SSO und Benutzer-Sync inkl. Vorgesetzten-Feld.
+- Phase 4: Microsoft 365 SSO + Benutzer-Sync inkl. Vorgesetzten-Feld
+  und automatischem Import.
+- Phase 5: Wiederkehrende Workflows (z. B. Fuehrerschein-Wiedervorlage
+  alle X Monate) und Stand-Alone Formular-Builder ohne Workflow.
 
 ## Lizenz
 

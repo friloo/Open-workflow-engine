@@ -1,0 +1,110 @@
+<x-app-layout>
+    <x-slot name="header">{{ $instance->workflow->name }}</x-slot>
+    <x-slot name="subheader">{{ data_get($node, 'data.label', 'Aufgabe') }} — eingegangen {{ $step->assigned_at?->diffForHumans() }}</x-slot>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <x-card title="Antragsdaten">
+                @php($schema = $instance->version?->form_schema ?? [])
+                @if(empty($schema) && empty($instance->data))
+                    <p class="text-sm text-slate-500">Keine Antragsdaten.</p>
+                @else
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                        @foreach($schema as $field)
+                            @php($v = $instance->data[$field['key']] ?? null)
+                            <div>
+                                <dt class="text-xs font-medium text-slate-500">{{ $field['label'] ?? $field['key'] }}</dt>
+                                <dd class="text-slate-900">
+                                    @if(is_bool($v) || ($field['type'] ?? '')==='checkbox')
+                                        {{ $v ? 'Ja' : 'Nein' }}
+                                    @elseif(is_array($v))
+                                        {{ implode(', ', $v) }}
+                                    @else
+                                        {{ $v ?? '—' }}
+                                    @endif
+                                </dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                @endif
+            </x-card>
+
+            <x-card title="Entscheidung">
+                <form method="POST" action="{{ route('tasks.decide', $step) }}" class="space-y-4" x-data="{ decision: '' }">
+                    @csrf
+                    <div class="flex flex-wrap gap-3">
+                        <label class="flex-1 min-w-[160px] cursor-pointer rounded-lg border border-slate-200 p-3 hover:border-emerald-400 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+                            <input type="radio" name="decision" value="approved" x-model="decision" class="sr-only">
+                            <div class="text-sm font-semibold text-emerald-700">✓ Genehmigen</div>
+                            <div class="text-xs text-slate-500">Workflow laeuft am Ausgang „Genehmigt" weiter.</div>
+                        </label>
+                        <label class="flex-1 min-w-[160px] cursor-pointer rounded-lg border border-slate-200 p-3 hover:border-rose-400 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
+                            <input type="radio" name="decision" value="rejected" x-model="decision" class="sr-only">
+                            <div class="text-sm font-semibold text-rose-700">✗ Ablehnen</div>
+                            <div class="text-xs text-slate-500">Workflow folgt dem „Abgelehnt"-Pfad.</div>
+                        </label>
+                        @if(data_get($node, 'data.allow_forward'))
+                            <label class="flex-1 min-w-[160px] cursor-pointer rounded-lg border border-slate-200 p-3 hover:border-amber-400 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50">
+                                <input type="radio" name="decision" value="forwarded" x-model="decision" class="sr-only">
+                                <div class="text-sm font-semibold text-amber-700">↪ Weiterleiten</div>
+                                <div class="text-xs text-slate-500">Aufgabe an andere Person uebergeben.</div>
+                            </label>
+                        @endif
+                    </div>
+
+                    <div x-show="decision==='forwarded'" x-transition style="display:none;">
+                        <label for="forward_user_id" class="block text-sm font-medium text-slate-700 mb-1">Weiterleiten an</label>
+                        <select id="forward_user_id" name="forward_user_id"
+                            class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">— bitte waehlen —</option>
+                            @foreach($directory['users'] as $u)
+                                <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
+                            @endforeach
+                        </select>
+                        <x-input-error :messages="$errors->get('forward_user_id')" />
+                    </div>
+
+                    <div>
+                        <label for="comment" class="block text-sm font-medium text-slate-700 mb-1">Kommentar (optional)</label>
+                        <textarea id="comment" name="comment" rows="3"
+                            class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-3">
+                        <a href="{{ route('tasks.index') }}"><x-secondary-button type="button">Spaeter</x-secondary-button></a>
+                        <x-primary-button x-bind:disabled="!decision">Senden</x-primary-button>
+                    </div>
+                </form>
+            </x-card>
+        </div>
+
+        <div class="space-y-6">
+            <x-card title="Details">
+                <dl class="space-y-3 text-sm">
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500">Antragsteller</dt>
+                        <dd class="text-slate-900">{{ $instance->starter?->name ?? 'oeffentlich' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-slate-500">Eingegangen</dt>
+                        <dd class="text-slate-900">{{ $step->assigned_at?->format('d.m.Y H:i') }}</dd>
+                    </div>
+                    @if($step->due_at)
+                        <div>
+                            <dt class="text-xs font-medium text-slate-500">Frist</dt>
+                            <dd class="{{ $step->due_at->isPast() ? 'text-rose-600 font-medium' : 'text-slate-900' }}">
+                                {{ $step->due_at->format('d.m.Y H:i') }}
+                            </dd>
+                        </div>
+                    @endif
+                    @if($step->assignedRole)
+                        <div>
+                            <dt class="text-xs font-medium text-slate-500">Zugewiesen an Rolle</dt>
+                            <dd class="text-slate-900">{{ $step->assignedRole->name }}</dd>
+                        </div>
+                    @endif
+                </dl>
+            </x-card>
+        </div>
+    </div>
+</x-app-layout>

@@ -1,26 +1,37 @@
 @php
     $user = auth()->user();
+    $openTasks = $user
+        ? \App\Models\WorkflowStepExecution::whereNull('completed_at')
+            ->where(function ($q) use ($user) {
+                $q->where('assigned_to_user_id', $user->id);
+                if ($user->roles->isNotEmpty()) {
+                    $q->orWhereIn('assigned_to_role_id', $user->roles->pluck('id'));
+                }
+            })->count()
+        : 0;
     $nav = [
         [
             'group' => 'Allgemein',
             'items' => [
                 ['name' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'home', 'active' => request()->routeIs('dashboard')],
+                ['name' => 'Meine Aufgaben', 'route' => 'tasks.index', 'icon' => 'inbox', 'active' => request()->routeIs('tasks.*'), 'badge' => $openTasks ?: null],
             ],
         ],
         [
             'group' => 'Automatisierung',
-            'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish']),
+            'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish','workflows.run']),
             'items' => [
-                ['name' => 'Workflows', 'route' => 'workflows.index', 'icon' => 'workflow', 'active' => request()->routeIs('workflows.*'), 'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish'])],
+                ['name' => 'Workflows', 'route' => 'workflows.index', 'icon' => 'workflow', 'active' => request()->routeIs('workflows.*'), 'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.publish','workflows.run'])],
             ],
         ],
         [
             'group' => 'Verwaltung',
-            'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','roles.view','roles.manage','audit.view']),
+            'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','roles.view','roles.manage','audit.view','system.settings']),
             'items' => [
                 ['name' => 'Benutzer', 'route' => 'admin.users.index', 'icon' => 'users', 'active' => request()->routeIs('admin.users.*'), 'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','users.import'])],
                 ['name' => 'Rollen & Rechte', 'route' => 'admin.roles.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.roles.*'), 'when' => $user?->hasAnyPermission(['roles.view','roles.manage'])],
                 ['name' => 'Audit-Log', 'route' => 'admin.audit.index', 'icon' => 'list', 'active' => request()->routeIs('admin.audit.*'), 'when' => $user?->hasPermission('audit.view')],
+                ['name' => 'Systemeinstellungen', 'route' => 'admin.settings.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.settings.*'), 'when' => $user?->hasPermission('system.settings')],
             ],
         ],
     ];
@@ -46,7 +57,10 @@
                                             <a href="{{ route($item['route']) }}"
                                                 class="group flex items-center gap-x-3 rounded-md p-2 text-sm font-medium {{ $item['active'] ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' }}">
                                                 @include('layouts.partials.icon', ['name' => $item['icon'], 'active' => $item['active']])
-                                                {{ $item['name'] }}
+                                                <span class="flex-1">{{ $item['name'] }}</span>
+                                                @if(! empty($item['badge']))
+                                                    <span class="ms-auto inline-flex items-center justify-center rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">{{ $item['badge'] }}</span>
+                                                @endif
                                             </a>
                                         </li>
                                     @endif
@@ -81,7 +95,10 @@
                             <a href="{{ route($item['route']) }}"
                                 class="mt-1 flex items-center gap-x-3 rounded-md p-2 text-sm font-medium {{ $item['active'] ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-50' }}">
                                 @include('layouts.partials.icon', ['name' => $item['icon'], 'active' => $item['active']])
-                                {{ $item['name'] }}
+                                <span class="flex-1">{{ $item['name'] }}</span>
+                                @if(! empty($item['badge']))
+                                    <span class="ms-auto inline-flex items-center justify-center rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">{{ $item['badge'] }}</span>
+                                @endif
                             </a>
                         @endif
                     @endforeach

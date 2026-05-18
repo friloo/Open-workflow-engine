@@ -24,7 +24,7 @@ return new class extends Migration
 
         Schema::create('form_submissions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('form_id')->constrained()->restrictOnDelete();
+            $table->foreignId('form_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('workflow_instance_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('submitted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->json('data');

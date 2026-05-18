@@ -1,6 +1,14 @@
 <x-app-layout>
     <x-slot name="header">Workflow-Metadaten: {{ $workflow->name }}</x-slot>
 
+    @if($workflow->is_public && $workflow->public_slug && $workflow->status==='active')
+        <div class="mb-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+            <strong>Oeffentliches Formular:</strong>
+            <a href="{{ route('public.form.show', $workflow->public_slug) }}" class="ms-1 underline" target="_blank">{{ url('/f/'.$workflow->public_slug) }}</a>
+            <p class="text-xs mt-1 text-sky-700">Diese URL kann ohne Login aufgerufen werden.</p>
+        </div>
+    @endif
+
     <x-card>
         <form method="POST" action="{{ route('workflows.update', $workflow) }}">
             @method('PUT')

@@ -2,16 +2,25 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SystemSettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserImportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Workflow\PublicFormController;
+use App\Http\Controllers\Workflow\TaskController;
 use App\Http\Controllers\Workflow\WorkflowController;
 use App\Http\Controllers\Workflow\WorkflowDesignerController;
+use App\Http\Controllers\Workflow\WorkflowStartController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
+
+// Public form submissions (no auth)
+Route::get('/f/{slug}', [PublicFormController::class, 'show'])->name('public.form.show');
+Route::post('/f/{slug}', [PublicFormController::class, 'submit'])->name('public.form.submit');
+Route::get('/f/{slug}/danke', [PublicFormController::class, 'thanks'])->name('public.form.thanks');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
@@ -43,6 +52,18 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
         Route::post('{workflow}/activate', [WorkflowController::class, 'activate'])->name('activate');
         Route::post('{workflow}/archive', [WorkflowController::class, 'archive'])->name('archive');
     });
+
+    Route::middleware('permission:workflows.run')->group(function () {
+        Route::get('{workflow}/start', [WorkflowStartController::class, 'show'])->name('start');
+        Route::post('{workflow}/start', [WorkflowStartController::class, 'submit'])->name('start.submit');
+    });
+});
+
+// Tasks-Inbox (jeder authentifizierte aktive Benutzer)
+Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () {
+    Route::get('/', [TaskController::class, 'index'])->name('index');
+    Route::get('{step}', [TaskController::class, 'show'])->name('show');
+    Route::post('{step}/decide', [TaskController::class, 'decide'])->name('decide');
 });
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -63,6 +84,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('audit/verify', [AuditLogController::class, 'verify'])
             ->name('audit.verify')
             ->middleware('permission:audit.verify');
+    });
+
+    Route::middleware('permission:system.settings')->group(function () {
+        Route::get('settings', [SystemSettingsController::class, 'index'])->name('settings.index');
+        Route::post('settings/mail', [SystemSettingsController::class, 'updateMail'])->name('settings.mail.update');
+        Route::post('settings/mail/test', [SystemSettingsController::class, 'sendTestMail'])->name('settings.mail.test');
     });
 });
 

@@ -67,6 +67,9 @@
                                 @endif
                             </td>
                             <td class="py-3 text-right space-x-3 whitespace-nowrap">
+                                @if($w->status==='active' && auth()->user()->hasPermission('workflows.run'))
+                                    <a href="{{ route('workflows.start', $w) }}" class="text-sm font-semibold text-emerald-700 hover:text-emerald-600">Starten</a>
+                                @endif
                                 <a href="{{ route('workflows.design', $w) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Designer</a>
                                 @if(auth()->user()->hasPermission('workflows.design'))
                                     <a href="{{ route('workflows.edit', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Metadaten</a>
