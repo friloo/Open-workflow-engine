@@ -66,6 +66,18 @@ class InstallChecker
             ];
         }
 
+        // vendor/ vorhanden? (Wenn nicht, koennten wir gar nicht booten —
+        // also nur Hinweis. Hilft bei manuellen Uploads, falls jemand
+        // versehentlich nur den Source ohne vendor hochgeladen hat.)
+        $vendorOk = is_file(base_path('vendor/autoload.php'));
+        $out[] = [
+            'name' => 'vendor/ (Composer-Dependencies)',
+            'status' => $vendorOk ? 'ok' : 'fail',
+            'message' => $vendorOk
+                ? 'autoload.php gefunden — Release-Paket war vollstaendig.'
+                : 'vendor/autoload.php fehlt. Bitte das Release-ZIP MIT vendor/-Ordner verwenden (oder lokal "composer install --no-dev" vor dem Upload).',
+        ];
+
         // .env
         $envExists = is_file(base_path('.env'));
         $exampleExists = is_file(base_path('.env.example'));

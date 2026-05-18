@@ -51,6 +51,16 @@ php artisan owe:update             # installieren
 
 Permission `system.update` (Default: Admin).
 
+## Composer / proc_open
+
+`composer install` ist **optional** und wird auf Shared Hosts ohne
+`proc_open` oder ohne composer-Binary uebersprungen — mit Hinweis im
+Fortschritts-Log. Das funktioniert, weil das Update-ZIP `vendor/`
+ohnehin vorgebaut enthaelt.
+
+`php artisan migrate` laeuft in-process per `Artisan::call()`,
+braucht also kein `proc_open`.
+
 ## Audit
 
 - `update.channel.changed` — Channel-Wechsel

@@ -12,8 +12,29 @@ Kein SSH-Zugriff noetig.
 - Empfohlen: pdo_sqlite **oder** pdo_mysql (je nach Datenbank-Wahl),
   gd (Bildverarbeitung)
 - Schreibrechte: `storage/`, `bootstrap/cache/`
+- `vendor/`-Ordner vorhanden — kommt im **Release-ZIP vorgebaut**, also
+  *kein Composer* auf dem Server noetig.
 
 Der Installer pruefts auf Schritt 1 und zeigt rot, was fehlt.
+
+## Brauche ich Composer auf dem Server?
+
+**Nein** — solange du das offizielle Release-ZIP nutzt. Es enthaelt
+`vendor/` komplett. Du brauchst also weder SSH noch eine Composer-
+Installation auf dem Webhoster.
+
+Nur falls du das Repo direkt klonst (z. B. fuer Eigenentwicklung),
+brauchst du lokal einmal `composer install --no-dev` und uebertraegst
+dann `vendor/` mit per FTP. Auf dem Server selbst nie.
+
+Das **Update-System** ist genauso entspannt: der ZIP-Pull enthaelt
+ebenfalls `vendor/`, und falls auf dem Host `proc_open` oder die
+`composer`-CLI fehlen sollte, ueberspringt der UpdateManager den
+`composer install`-Schritt mit Hinweis und faehrt mit dem
+mitgelieferten `vendor/` fort.
+
+`php artisan migrate` braucht **kein** `proc_open` — wird in-process
+ueber `Artisan::call()` ausgefuehrt.
 
 ## Ablauf
 

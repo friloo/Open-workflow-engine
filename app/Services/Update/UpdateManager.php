@@ -117,11 +117,12 @@ class UpdateManager
             $this->progress('install', 'Aktualisiere Dateien…');
             $this->applyStaging($staging);
 
-            $this->progress('composer', 'composer install --no-dev …');
-            $this->runProcess(['composer', 'install', '--no-dev', '--optimize-autoloader', '--no-interaction'], 600);
+            $this->progress('composer', 'composer install --no-dev (optional) …');
+            $this->runComposerIfPossible();
 
-            $this->progress('migrate', 'php artisan migrate --force …');
-            $this->runProcess([PHP_BINARY, 'artisan', 'migrate', '--force'], 600);
+            // Migrate IM PROZESS — so brauchen wir kein proc_open.
+            $this->progress('migrate', 'Datenbank-Migrationen …');
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
 
             $this->progress('finalize', 'Schliesse ab…');
             @file_put_contents(base_path(self::VERSION_FILE), $latest);
@@ -269,6 +270,25 @@ class UpdateManager
         $process->run();
         if (! $process->isSuccessful()) {
             throw new \RuntimeException(implode(' ', $cmd).' failed: '.$process->getErrorOutput());
+        }
+    }
+
+    /**
+     * Versucht `composer install --no-dev` — schluckt aber Fehler, weil
+     * Shared Hosts oft kein proc_open / kein composer im PATH haben. Das
+     * Release-ZIP enthaelt vendor/ ohnehin vorgebaut, daher ist composer
+     * im Normalfall unnoetig.
+     */
+    private function runComposerIfPossible(): void
+    {
+        if (! function_exists('proc_open')) {
+            $this->progress('composer', 'composer install uebersprungen (proc_open deaktiviert). vendor/ aus dem Release-ZIP wird verwendet.');
+            return;
+        }
+        try {
+            $this->runProcess(['composer', 'install', '--no-dev', '--optimize-autoloader', '--no-interaction'], 600);
+        } catch (\Throwable $e) {
+            $this->progress('composer', 'composer install uebersprungen ('.\Illuminate\Support\Str::limit($e->getMessage(), 120).'). vendor/ aus dem Release-ZIP wird verwendet.');
         }
     }
 
