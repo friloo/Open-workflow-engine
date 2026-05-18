@@ -40,7 +40,12 @@
 
     <x-card>
         @if($documents->isEmpty())
-            <p class="text-sm text-slate-500">Keine Dokumente gefunden.</p>
+            <x-empty-state icon="document"
+                title="Keine Dokumente gefunden"
+                description="Lade PDFs und Bilder per Bulk-Upload hoch — sie sind danach per OCR-Volltext durchsuchbar.">
+                <a href="{{ route('documents.bulk') }}"><x-primary-button type="button">Bulk-Upload starten</x-primary-button></a>
+                <a href="{{ route('help.show', 'documents') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>
+            </x-empty-state>
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($documents as $d)

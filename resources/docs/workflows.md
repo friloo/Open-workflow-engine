@@ -21,6 +21,15 @@
 - **Konkrete Person** — fester Benutzer.
 - **Aus Liste nachschlagen** — Schluessel aus einem Formularfeld in einer Lookup-Liste; Engine zieht die Verantwortlich-E-Mail.
 
+## KI-Entwurf
+
+Oben im Designer gibt es den Button **„KI-Entwurf"**. Beschreibe in
+eigenen Worten, was der Workflow tun soll — die KI generiert ein
+komplettes Geruest (Formularfelder, Knoten, Verbindungen). Du pruefst
+und passt an. Erst Klick auf **Speichern** legt eine Version an.
+
+Details siehe Abschnitt *KI im Designer*.
+
 ## Karenzzeit und Eskalation
 
 Pro Genehmigungs-Knoten konfigurierst du eine Karenzzeit (Stunden, Tage, Monate).

@@ -20,20 +20,6 @@
 
         <main class="{{ ($full ?? false) ? '' : 'py-8' }}">
             <div class="{{ ($full ?? false) ? '' : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8' }}">
-                @if (session('status'))
-                    <div class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                        {{ session('status') }}
-                    </div>
-                @endif
-                @if ($errors->any() && ! request()->routeIs('login'))
-                    <div class="mb-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-                        <ul class="list-disc ps-5 space-y-1">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
 
                 @isset($header)
                     <header class="mb-6">
@@ -48,6 +34,7 @@
             </div>
         </main>
     </div>
+    <x-toast />
 </div>
 </body>
 </html>

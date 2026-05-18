@@ -10,7 +10,14 @@
 
     <x-card>
         @if($forms->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Formulare angelegt.</p>
+            <x-empty-state icon="form"
+                title="Noch keine Formulare"
+                description="Lege ein Stand-Alone-Formular an — fuer reine Datensammlung oder als Trigger fuer einen Workflow.">
+                @if(auth()->user()->hasPermission('forms.manage'))
+                    <a href="{{ route('forms.create') }}"><x-primary-button type="button">Neues Formular</x-primary-button></a>
+                    <a href="{{ route('help.show', 'forms') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>
+                @endif
+            </x-empty-state>
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">

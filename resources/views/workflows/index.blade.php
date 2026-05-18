@@ -116,7 +116,16 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="py-6 text-center text-slate-500">Noch keine Workflows.</td></tr>
+                        <tr><td colspan="6">
+                            <x-empty-state icon="workflow"
+                                title="Noch keine Workflows angelegt"
+                                description="Starte mit einer Vorlage (Bestellantrag, Krankmeldung, Fuehrerschein-Pruefung) oder lass die KI dir einen Entwurf bauen.">
+                                @if(auth()->user()->hasPermission('workflows.design'))
+                                    <a href="{{ route('workflows.create') }}"><x-primary-button type="button">Neuer Workflow</x-primary-button></a>
+                                    <a href="{{ route('help.show', 'workflows') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>
+                                @endif
+                            </x-empty-state>
+                        </td></tr>
                     @endforelse
                 </tbody>
             </table>
