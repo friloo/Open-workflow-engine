@@ -13,7 +13,12 @@
         @endif
     </table>
     <p style="margin:20px 0;">
-        <a href="{{ $taskUrl }}" style="display:inline-block;background:#6366f1;color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;">Aufgabe oeffnen</a>
+        <a href="{{ $approveUrl }}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;margin-right:6px;">Genehmigen</a>
+        <a href="{{ $rejectUrl }}" style="display:inline-block;background:#e11d48;color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;">Ablehnen</a>
+    </p>
+    <p style="color:#64748b;font-size:13px;">Der Link fuehrt auf eine Bestaetigungs-Seite — die Entscheidung wird erst nach dem Klick auf „Bestaetigen" gespeichert. Kein Login noetig.</p>
+    <p style="margin:14px 0;">
+        <a href="{{ $taskUrl }}" style="color:#6366f1;text-decoration:underline;font-size:13px;">Aufgabe in OWE oeffnen (mit Login, fuer Weiterleitung)</a>
     </p>
     <p style="color:#64748b;font-size:12px;">Wenn du nicht reagierst, wird die Aufgabe nach Ablauf der Frist automatisch eskaliert.</p>
 </x-mail::message-layout>

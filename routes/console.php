@@ -8,6 +8,12 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Health-Sentinel: bei jedem Scheduler-Lauf den Zeitstempel ablegen, damit
+// die Health-Ansicht erkennt, ob der Cron noch laeuft.
+Schedule::call(function () {
+    @file_put_contents(storage_path('framework/schedule-last-run'), (string) time());
+})->everyMinute()->name('owe.schedule-sentinel');
+
 // Karenzzeit-Eskalation: pruefe alle 5 Minuten ueberfaellige Workflow-Schritte.
 Schedule::command('workflow:check-due')
     ->everyFiveMinutes()

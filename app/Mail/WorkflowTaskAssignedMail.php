@@ -9,6 +9,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class WorkflowTaskAssignedMail extends Mailable
 {
@@ -29,6 +30,8 @@ class WorkflowTaskAssignedMail extends Mailable
 
     public function content(): Content
     {
+        $expires = $this->step->due_at?->copy()->addDays(2) ?? now()->addDays(14);
+
         return new Content(
             view: 'emails.workflow-task-assigned',
             with: [
@@ -37,6 +40,16 @@ class WorkflowTaskAssignedMail extends Mailable
                 'instance' => $this->step->instance,
                 'workflow' => $this->step->instance->workflow,
                 'taskUrl' => route('tasks.show', $this->step),
+                'approveUrl' => URL::temporarySignedRoute('mail-approval.show', $expires, [
+                    'step' => $this->step->id,
+                    'user' => $this->recipient->id,
+                    'decision' => 'approved',
+                ]),
+                'rejectUrl' => URL::temporarySignedRoute('mail-approval.show', $expires, [
+                    'step' => $this->step->id,
+                    'user' => $this->recipient->id,
+                    'decision' => 'rejected',
+                ]),
             ],
         );
     }

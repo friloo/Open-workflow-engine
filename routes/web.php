@@ -28,6 +28,10 @@ Route::get('/', function () {
 });
 
 // Public Share-Links
+// Genehmigung per Mail (signierter Link, kein Login noetig).
+Route::get('/mail-approval/{step}/{user}', [\App\Http\Controllers\MailApprovalController::class, 'show'])->name('mail-approval.show');
+Route::post('/mail-approval/{step}/{user}', [\App\Http\Controllers\MailApprovalController::class, 'submit'])->name('mail-approval.submit');
+
 Route::get('/share/{token}', [\App\Http\Controllers\ShareController::class, 'show'])->name('share.show');
 Route::post('/share/{token}/password', [\App\Http\Controllers\ShareController::class, 'unlock'])->name('share.unlock');
 Route::get('/share/{token}/preview', [\App\Http\Controllers\ShareController::class, 'preview'])->name('share.preview');
@@ -287,6 +291,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('webhooks/{webhook}', [WebhookController::class, 'update'])->name('webhooks.update');
         Route::delete('webhooks/{webhook}', [WebhookController::class, 'destroy'])->name('webhooks.destroy');
         Route::post('webhooks/{webhook}/test', [WebhookController::class, 'test'])->name('webhooks.test');
+    });
+
+    Route::middleware('permission:system.health')->group(function () {
+        Route::get('health', [\App\Http\Controllers\Admin\HealthController::class, 'index'])->name('health.index');
+        Route::get('health.json', [\App\Http\Controllers\Admin\HealthController::class, 'json'])->name('health.json');
     });
 
     Route::middleware('permission:system.update')->group(function () {

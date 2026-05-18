@@ -26,6 +26,8 @@ class HelpController extends Controller
         'retention' => 'Aufbewahrungsregeln',
         '2fa' => 'Zwei-Faktor-Anmeldung',
         'api-tokens' => 'API-Tokens',
+        'mail-approval' => 'Genehmigung per Mail',
+        'health' => 'System-Health',
         'update' => 'System-Update',
         'secrets' => 'Secrets-Vault',
         'webhooks' => 'Webhooks',

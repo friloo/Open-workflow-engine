@@ -62,6 +62,7 @@ class RolesAndPermissionsSeeder extends Seeder
             // System
             ['slug' => 'system.settings', 'name' => 'Systemeinstellungen', 'group' => 'System'],
             ['slug' => 'system.update', 'name' => 'System aktualisieren', 'group' => 'System'],
+            ['slug' => 'system.health', 'name' => 'System-Health einsehen', 'group' => 'System'],
         ];
 
         foreach ($permissions as $p) {
