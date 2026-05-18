@@ -12,9 +12,13 @@ class Attachment extends Model
     protected $fillable = [
         'attachable_type', 'attachable_id', 'original_name', 'disk',
         'path', 'mime_type', 'size', 'content_hash', 'label', 'uploaded_by',
+        'document_type', 'ocr_status', 'ocr_text', 'ocr_extracted_at', 'ocr_tool',
     ];
 
-    protected $casts = ['size' => 'integer'];
+    protected $casts = [
+        'size' => 'integer',
+        'ocr_extracted_at' => 'datetime',
+    ];
 
     protected static function booted(): void
     {

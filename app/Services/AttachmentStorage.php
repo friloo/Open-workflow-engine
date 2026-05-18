@@ -22,7 +22,9 @@ class AttachmentStorage
     ];
     public const MAX_BYTES = 15 * 1024 * 1024; // 15 MB
 
-    public function store(UploadedFile $file, Model $attachable, ?string $label, ?int $userId): Attachment
+    public function __construct(private readonly OcrExtractor $ocr) {}
+
+    public function store(UploadedFile $file, Model $attachable, ?string $label, ?int $userId, ?string $documentType = null): Attachment
     {
         if ($file->getSize() > self::MAX_BYTES) {
             throw new \RuntimeException('Datei zu gross (max. 15 MB).');
@@ -45,7 +47,7 @@ class AttachmentStorage
             throw new \RuntimeException('Datei konnte nicht gespeichert werden.');
         }
 
-        return Attachment::create([
+        $att = Attachment::create([
             'attachable_type' => $attachable->getMorphClass(),
             'attachable_id' => $attachable->getKey(),
             'original_name' => Str::limit($file->getClientOriginalName(), 250, ''),
@@ -56,7 +58,18 @@ class AttachmentStorage
             'content_hash' => $hash,
             'label' => $label,
             'uploaded_by' => $userId,
+            'document_type' => $documentType,
+            'ocr_status' => 'pending',
         ]);
+
+        // OCR-Extraktion synchron versuchen (best-effort, kein Abbruch)
+        try {
+            $this->ocr->extract($att);
+        } catch (\Throwable) {
+            // Status bleibt pending — kann ueber 'ocr:run-pending' nachgeholt werden
+        }
+
+        return $att;
     }
 
     /**

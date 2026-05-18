@@ -212,6 +212,58 @@
             </form>
         </x-card>
 
+        <x-card title="Dokumenttypen" description="Klassen fuer hochgeladene Dateien (z. B. Rechnung, Vertrag, Fuehrerschein).">
+            <form method="POST" action="{{ route('admin.settings.document_types.update') }}"
+                  x-data='@json(["types" => $documentTypes ?: []])'>
+                @csrf
+                <div class="space-y-2"
+                     x-sort:config="{ animation: 150, handle: '.drag-handle' }"
+                     x-sort="types.splice($event.newIndex, 0, types.splice($event.oldIndex, 1)[0])">
+                    <template x-for="(t, idx) in types" :key="idx">
+                        <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2" x-sort:item="idx">
+                            <span class="drag-handle cursor-grab select-none text-xs text-slate-400 px-1">⋮⋮</span>
+                            <input type="text" :name="`types[${idx}]`" x-model="types[idx]" placeholder="z. B. Rechnung" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <button type="button" @click="types.splice(idx,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                        </div>
+                    </template>
+                    <button type="button" @click="types.push('')" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Typ</button>
+                </div>
+                <div class="mt-3 flex justify-end">
+                    <x-primary-button>Speichern</x-primary-button>
+                </div>
+            </form>
+        </x-card>
+
+        <x-card title="Berechtigungen je Rolle" description="Lege fest, welche Dokumenttypen eine Rolle in der Dokumenten-Suche sieht. Admin sieht immer alles.">
+            @if(empty($documentTypes))
+                <p class="text-sm text-slate-500">Lege zuerst Dokumenttypen oben an.</p>
+            @else
+                <form method="POST" action="{{ route('admin.settings.role_document_types.update') }}">
+                    @csrf
+                    <div class="space-y-3">
+                        @foreach($roles as $role)
+                            @php($allowed = $roleDocumentTypes[$role->slug] ?? [])
+                            <div class="rounded-lg border border-slate-200 p-3">
+                                <div class="text-sm font-medium text-slate-900">{{ $role->name }} <code class="ms-1 text-xs text-slate-500">{{ $role->slug }}</code></div>
+                                <div class="mt-2 flex flex-wrap gap-1.5">
+                                    @foreach($documentTypes as $dt)
+                                        <label class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-2 py-0.5 text-xs has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
+                                            <input type="checkbox" name="roles[{{ $role->slug }}][]" value="{{ $dt }}" @checked(in_array($dt, $allowed))
+                                                class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                            {{ $dt }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="mt-3 flex justify-end">
+                        <x-primary-button>Berechtigungen speichern</x-primary-button>
+                    </div>
+                </form>
+            @endif
+        </x-card>
+
         <x-card title="Benutzerdefinierte Felder" description="Werden in der Benutzerverwaltung gerendert und sind in Workflows nutzbar.">
             <form method="POST" action="{{ route('admin.settings.custom_fields.update') }}"
                   x-data='@json(["fields" => $customFields ?: []])'>

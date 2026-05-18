@@ -159,6 +159,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/hilfe/{topic}', [\App\Http\Controllers\HelpController::class, 'show'])->name('help.show');
 });
 
+// Dokumenten-Suche (OCR-Volltext)
+Route::middleware(['auth', 'permission:documents.search'])->prefix('dokumente')->name('documents.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
+    Route::get('{attachment}', [\App\Http\Controllers\DocumentController::class, 'show'])->name('show');
+    Route::post('{attachment}/reindex', [\App\Http\Controllers\DocumentController::class, 'reindex'])->name('reindex');
+});
+
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)
 Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('index');
@@ -203,7 +210,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/m365/test', [SystemSettingsController::class, 'testM365'])->name('settings.m365.test');
         Route::post('settings/branding', [SystemSettingsController::class, 'updateBranding'])->name('settings.branding.update');
         Route::post('settings/custom-fields', [SystemSettingsController::class, 'updateCustomFields'])->name('settings.custom_fields.update');
+        Route::post('settings/document-types', [SystemSettingsController::class, 'updateDocumentTypes'])->name('settings.document_types.update');
+        Route::post('settings/role-document-types', [SystemSettingsController::class, 'updateRoleDocumentTypes'])->name('settings.role_document_types.update');
         Route::post('settings/ai', [AIController::class, 'update'])->name('ai.update');
+    });
+
+    Route::middleware('permission:workflows.design,system.settings')->group(function () {
         Route::post('settings/ai/ping', [AIController::class, 'ping'])->name('ai.ping');
     });
 

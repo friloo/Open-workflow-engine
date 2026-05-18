@@ -2,6 +2,41 @@
     <x-slot name="header">Workflows</x-slot>
     <x-slot name="subheader">Entwerfe und verwalte deine Automatisierungen.</x-slot>
 
+    @if(auth()->user()->hasPermission('workflows.design'))
+        <div x-data="{ status: null, busy: false, result: null }" class="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 text-sm">
+            <svg class="h-5 w-5 text-violet-700" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+            <div>
+                <strong class="text-violet-900">KI-Assistenz</strong>
+                <div class="text-xs text-violet-800">
+                    @if($aiConfigured)
+                        Aktiv ({{ $aiProvider }}) — kann im Designer einen Workflow-Entwurf generieren.
+                    @else
+                        Nicht konfiguriert. Hinterlege Anbieter und Modell unter Systemeinstellungen.
+                    @endif
+                </div>
+            </div>
+            <div class="ms-auto flex items-center gap-2">
+                <button type="button" :disabled="busy || !{{ $aiConfigured ? 'true' : 'false' }}"
+                    @click="busy=true; result=null;
+                        fetch('{{ route('admin.ai.ping') }}', {
+                            method:'POST',
+                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
+                        }).then(async r => {
+                            const j = await r.json().catch(() => ({ok: r.ok, message: 'HTTP '+r.status}));
+                            result = { ok: r.ok, text: j.message || (r.ok ? 'OK' : 'Fehler') };
+                        }).catch(e => result = { ok: false, text: e.message }).finally(() => busy = false)"
+                    class="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-violet-500 disabled:opacity-50">
+                    <span x-show="!busy">Verbindung testen</span>
+                    <span x-show="busy">Teste…</span>
+                </button>
+                <a href="{{ route('admin.settings.index') }}" class="text-xs text-violet-700 hover:text-violet-900">KI-Einstellungen &rarr;</a>
+            </div>
+            <div x-show="result" x-transition class="basis-full text-xs"
+                :class="result?.ok ? 'text-emerald-700' : 'text-rose-700'"
+                style="display:none;" x-text="result?.text"></div>
+        </div>
+    @endif
+
     <div class="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <form method="GET" class="flex gap-2 max-w-md w-full">
             <x-text-input name="q" value="{{ $search }}" placeholder="Workflow suchen..." />

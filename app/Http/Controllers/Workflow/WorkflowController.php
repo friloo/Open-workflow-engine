@@ -27,7 +27,14 @@ class WorkflowController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('workflows.index', compact('workflows', 'search', 'status'));
+        $ai = app(\App\Services\AIClient::class);
+        return view('workflows.index', [
+            'workflows' => $workflows,
+            'search' => $search,
+            'status' => $status,
+            'aiConfigured' => $ai->isConfigured(),
+            'aiProvider' => $ai->provider(),
+        ]);
     }
 
     public function create(): View

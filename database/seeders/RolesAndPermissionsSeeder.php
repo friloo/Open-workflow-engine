@@ -47,6 +47,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Webhooks
             ['slug' => 'webhooks.manage', 'name' => 'Webhooks verwalten', 'group' => 'Integrationen'],
 
+            // Dokumente / OCR-Suche
+            ['slug' => 'documents.search', 'name' => 'Dokumente durchsuchen', 'group' => 'Dokumente'],
+
             // System
             ['slug' => 'system.settings', 'name' => 'Systemeinstellungen', 'group' => 'System'],
         ];
@@ -72,6 +75,7 @@ class RolesAndPermissionsSeeder extends Seeder
                     'workflows.view', 'workflows.design', 'workflows.publish', 'workflows.run',
                     'forms.view', 'forms.manage', 'users.view', 'roles.view',
                     'lists.view', 'lists.manage', 'assets.view', 'assets.manage',
+                    'documents.search',
                 ],
             ],
             [

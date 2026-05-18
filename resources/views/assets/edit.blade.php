@@ -104,12 +104,23 @@
                 @endif
 
                 @if(auth()->user()->hasPermission('assets.manage'))
+                    @php($docTypes = \App\Support\DocumentTypes::visibleForUser(auth()->user()))
                     <form method="POST" enctype="multipart/form-data" action="{{ route('attachments.store', ['type'=>'asset', 'id'=>$asset->id]) }}" class="mt-4 border-t border-slate-200 pt-4 space-y-2">
                         @csrf
                         <label class="block text-xs font-medium text-slate-600">Datei hochladen (PDF, JPG, PNG, DOCX, max. 15 MB)</label>
                         <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx,.txt,.csv" required
                             class="block w-full text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100">
                         <input type="text" name="label" placeholder="Beschriftung (optional)" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @if(! empty($docTypes))
+                            <select name="document_type" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">— Dokumenttyp waehlen (optional) —</option>
+                                @foreach($docTypes as $dt)
+                                    <option value="{{ $dt }}">{{ $dt }}</option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="text" name="document_type" placeholder="Dokumenttyp (z. B. Vertrag, Fuehrerschein)" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @endif
                         <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Hochladen</button>
                         <x-input-error :messages="$errors->get('file')" />
                     </form>

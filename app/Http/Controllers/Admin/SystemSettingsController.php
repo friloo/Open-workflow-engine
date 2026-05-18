@@ -24,7 +24,39 @@ class SystemSettingsController extends Controller
             'roles' => $roles,
             'branding' => Settings::group('branding') + $this->brandingDefaults(),
             'customFields' => Settings::get('users.custom_fields', []),
+            'documentTypes' => \App\Support\DocumentTypes::all(),
+            'roleDocumentTypes' => \App\Support\DocumentTypes::roleMapping(),
         ]);
+    }
+
+    public function updateDocumentTypes(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'types' => ['array'],
+            'types.*' => ['required', 'string', 'max:64'],
+        ]);
+        $clean = array_values(array_unique(array_filter(array_map('trim', $data['types'] ?? []))));
+        Settings::set('attachments.document_types', $clean, $request->user()->id);
+        $this->audit->log('settings.document_types.updated', null, null, ['count' => count($clean)],
+            'Dokumenttypen aktualisiert', $request->user()->id);
+        return back()->with('status', 'Dokumenttypen gespeichert.');
+    }
+
+    public function updateRoleDocumentTypes(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'roles' => ['array'],
+            'roles.*' => ['array'],
+            'roles.*.*' => ['string', 'max:64'],
+        ]);
+        $clean = [];
+        foreach ($data['roles'] ?? [] as $roleSlug => $types) {
+            $clean[$roleSlug] = array_values(array_unique(array_filter(array_map('trim', (array) $types))));
+        }
+        Settings::set('attachments.role_document_types', $clean, $request->user()->id);
+        $this->audit->log('settings.role_document_types.updated', null, null, ['roles' => array_keys($clean)],
+            'Dokumenttyp-Berechtigungen pro Rolle aktualisiert', $request->user()->id);
+        return back()->with('status', 'Berechtigungen gespeichert.');
     }
 
     public function updateBranding(Request $request): RedirectResponse

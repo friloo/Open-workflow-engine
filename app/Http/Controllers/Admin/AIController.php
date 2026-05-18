@@ -35,9 +35,12 @@ class AIController extends Controller
         return back()->with('status', 'KI-Konfiguration gespeichert.');
     }
 
-    public function ping(AIClient $client, Request $request): RedirectResponse
+    public function ping(AIClient $client, Request $request)
     {
         $r = $client->ping();
+        if ($request->wantsJson() || $request->expectsJson()) {
+            return response()->json(['ok' => $r['ok'], 'message' => $r['message']], $r['ok'] ? 200 : 502);
+        }
         if (! $r['ok']) return back()->withErrors(['ai' => $r['message']]);
         return back()->with('status', $r['message']);
     }

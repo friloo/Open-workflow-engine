@@ -25,6 +25,7 @@ class AttachmentController extends Controller
         $request->validate([
             'file' => ['required', 'file', 'max:15360'],
             'label' => ['nullable', 'string', 'max:128'],
+            'document_type' => ['nullable', 'string', 'max:64'],
         ]);
 
         $attachable = $this->resolveAttachable($type, $id, $request);
@@ -36,6 +37,7 @@ class AttachmentController extends Controller
                 $attachable,
                 $request->input('label'),
                 $request->user()->id,
+                $request->input('document_type'),
             );
         } catch (\Throwable $e) {
             return back()->withErrors(['file' => $e->getMessage()]);
