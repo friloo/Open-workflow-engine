@@ -26,6 +26,7 @@ class HelpController extends Controller
         'retention' => 'Aufbewahrungsregeln',
         '2fa' => 'Zwei-Faktor-Anmeldung',
         'api-tokens' => 'API-Tokens',
+        'update' => 'System-Update',
         'secrets' => 'Secrets-Vault',
         'webhooks' => 'Webhooks',
         'm365' => 'Microsoft 365',

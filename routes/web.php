@@ -289,6 +289,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('webhooks/{webhook}/test', [WebhookController::class, 'test'])->name('webhooks.test');
     });
 
+    Route::middleware('permission:system.update')->group(function () {
+        Route::get('update', [\App\Http\Controllers\Admin\UpdateController::class, 'index'])->name('update.index');
+        Route::get('update/status', [\App\Http\Controllers\Admin\UpdateController::class, 'status'])->name('update.status');
+        Route::post('update/channel', [\App\Http\Controllers\Admin\UpdateController::class, 'updateChannel'])->name('update.channel');
+        Route::post('update/run', [\App\Http\Controllers\Admin\UpdateController::class, 'run'])->name('update.run');
+    });
+
     Route::middleware('permission:mailboxes.manage')->group(function () {
         Route::get('mailboxes', [\App\Http\Controllers\Admin\MailboxController::class, 'index'])->name('mailboxes.index');
         Route::get('mailboxes/create', [\App\Http\Controllers\Admin\MailboxController::class, 'create'])->name('mailboxes.create');
