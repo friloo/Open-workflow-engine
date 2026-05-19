@@ -316,6 +316,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::delete('secrets/{secret}', [\App\Http\Controllers\Admin\SecretController::class, 'destroy'])->name('secrets.destroy');
     });
 
+    Route::middleware('permission:folder_inboxes.manage')->group(function () {
+        Route::get('folder-inboxes', [\App\Http\Controllers\Admin\FolderInboxController::class, 'index'])->name('folder-inboxes.index');
+        Route::get('folder-inboxes/create', [\App\Http\Controllers\Admin\FolderInboxController::class, 'create'])->name('folder-inboxes.create');
+        Route::post('folder-inboxes', [\App\Http\Controllers\Admin\FolderInboxController::class, 'store'])->name('folder-inboxes.store');
+        Route::get('folder-inboxes/{folderInbox}/edit', [\App\Http\Controllers\Admin\FolderInboxController::class, 'edit'])->name('folder-inboxes.edit');
+        Route::put('folder-inboxes/{folderInbox}', [\App\Http\Controllers\Admin\FolderInboxController::class, 'update'])->name('folder-inboxes.update');
+        Route::delete('folder-inboxes/{folderInbox}', [\App\Http\Controllers\Admin\FolderInboxController::class, 'destroy'])->name('folder-inboxes.destroy');
+        Route::post('folder-inboxes/{folderInbox}/scan', [\App\Http\Controllers\Admin\FolderInboxController::class, 'scan'])->name('folder-inboxes.scan');
+    });
+
     Route::middleware('permission:incoming_webhooks.manage')->group(function () {
         Route::get('incoming-webhooks', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'index'])->name('incoming-webhooks.index');
         Route::get('incoming-webhooks/create', [\App\Http\Controllers\Admin\IncomingWebhookController::class, 'create'])->name('incoming-webhooks.create');

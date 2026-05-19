@@ -59,6 +59,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
             // E-Mail-Eingang (IMAP)
             ['slug' => 'mailboxes.manage', 'name' => 'E-Mail-Postfaecher verwalten', 'group' => 'Integrationen'],
+            ['slug' => 'folder_inboxes.manage', 'name' => 'Folder-Inboxen verwalten', 'group' => 'Integrationen'],
 
             // System
             ['slug' => 'system.settings', 'name' => 'Systemeinstellungen', 'group' => 'System'],

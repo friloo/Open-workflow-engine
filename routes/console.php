@@ -63,6 +63,12 @@ Schedule::command('mail:fetch')
     ->withoutOverlapping(10)
     ->runInBackground();
 
+// Folder-Inboxen (Scanner-Ordner, lokale Importe): alle 5 Minuten scannen.
+Schedule::command('folder:scan')
+    ->everyFiveMinutes()
+    ->withoutOverlapping(10)
+    ->runInBackground();
+
 // Reminder fuer offene Aufgaben: taeglich 09:00.
 Schedule::command('tasks:remind')
     ->dailyAt('09:00')
