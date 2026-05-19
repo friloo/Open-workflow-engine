@@ -7,6 +7,7 @@ const NODE_TEMPLATES = {
         label: 'Start',
         shortLabel: 'S',
         color: '#10b981',
+        category: 'Start & Ende',
         help: 'Einstiegspunkt des Workflows. Wird vom Trigger automatisch ausgeloest.',
         inputs: 0,
         outputs: 1,
@@ -17,6 +18,7 @@ const NODE_TEMPLATES = {
         label: 'Genehmigung',
         shortLabel: 'G',
         color: '#6366f1',
+        category: 'Entscheidung',
         help: 'Aufgabe an eine Person oder Rolle. Genehmigt / Abgelehnt / (Weiterleitung).',
         inputs: 1,
         outputs: 2,
@@ -39,6 +41,7 @@ const NODE_TEMPLATES = {
         label: 'Bedingung',
         shortLabel: '?',
         color: '#f59e0b',
+        category: 'Entscheidung',
         help: 'Verzweigt nach Werten aus dem Formular. Plus immer einem Else-Ausgang.',
         inputs: 1,
         outputs: 2, // 1 branch + else; grows dynamically
@@ -57,6 +60,7 @@ const NODE_TEMPLATES = {
         label: 'Benachrichtigung',
         shortLabel: '@',
         color: '#0ea5e9',
+        category: 'Kommunikation',
         help: 'Sendet eine E-Mail. Workflow laeuft danach weiter.',
         inputs: 1,
         outputs: 1,
@@ -74,6 +78,7 @@ const NODE_TEMPLATES = {
         label: 'HTTP-Request',
         shortLabel: 'H',
         color: '#a855f7',
+        category: 'Integration',
         help: 'Ruft eine externe API auf (z. B. Ticketsystem). Ausgaenge: OK / Fehler.',
         inputs: 1,
         outputs: 2,
@@ -100,6 +105,7 @@ const NODE_TEMPLATES = {
         label: 'PDF erzeugen',
         shortLabel: 'P',
         color: '#dc2626',
+        category: 'Daten',
         help: 'Erzeugt aus einem HTML-Template ein PDF und haengt es revisionssicher an die Instanz an.',
         inputs: 1,
         outputs: 1,
@@ -116,6 +122,7 @@ const NODE_TEMPLATES = {
         label: 'Warten',
         shortLabel: '⏳',
         color: '#0d9488',
+        category: 'Logik & Timing',
         help: 'Pausiert den Workflow fuer einen Zeitraum (Minuten/Stunden/Tage/Wochen/Monate). Der Scheduler weckt automatisch auf.',
         inputs: 1,
         outputs: 1,
@@ -126,6 +133,7 @@ const NODE_TEMPLATES = {
         label: 'Feld setzen',
         shortLabel: '=',
         color: '#0891b2',
+        category: 'Daten',
         help: 'Berechnet/setzt ein oder mehrere Felder in den Instanz-Daten. Werte koennen Platzhalter enthalten.',
         inputs: 1,
         outputs: 1,
@@ -139,6 +147,7 @@ const NODE_TEMPLATES = {
         label: 'Ende',
         shortLabel: 'E',
         color: '#64748b',
+        category: 'Start & Ende',
         help: 'Beendet den Workflow.',
         inputs: 1,
         outputs: 0,
@@ -153,7 +162,15 @@ const PALETTE = Object.entries(NODE_TEMPLATES).map(([type, t]) => ({
     shortLabel: t.shortLabel,
     color: t.color,
     help: t.help,
+    category: t.category || 'Sonstiges',
 }));
+
+// Kategorien-Reihenfolge im Sidebar — von "ich brauche das immer" bis "Spezialfaelle".
+const CATEGORY_ORDER = ['Start & Ende', 'Entscheidung', 'Kommunikation', 'Daten', 'Logik & Timing', 'Integration', 'Sonstiges'];
+
+const PALETTE_GROUPED = CATEGORY_ORDER
+    .map(cat => ({ category: cat, items: PALETTE.filter(p => p.category === cat) }))
+    .filter(g => g.items.length > 0);
 
 const TRIGGER_LABELS = {
     form: 'Formular',
@@ -191,6 +208,7 @@ window.designerApp = function designerApp() {
         directory: { roles: [], users: [] },
         formSchema: [],
         nodePalette: PALETTE,
+        nodePaletteGrouped: PALETTE_GROUPED,
         tab: 'canvas',
         selectedNode: null,
         saving: false,
