@@ -1,0 +1,29 @@
+# ──────────────────────────────────────────────────────────────────
+# OWE Fallback-.htaccess fuers FTP-Root.
+# Wenn der Webhoster KEIN Umlegen des Document-Roots auf "public/"
+# erlaubt, leitet diese Datei jeden Request intern an public/ um —
+# Laravel uebernimmt von dort.
+#
+# Wenn du den Document-Root direkt auf public/ zeigen kannst (das
+# ist die saubere Loesung), darf diese Datei geloescht werden.
+# ──────────────────────────────────────────────────────────────────
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Trailing-Slash bei /public erlauben
+    RewriteRule ^public/(.*)$ public/$1 [L]
+
+    # Alles andere intern nach public/ umlenken
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Defensive: Source-Dateien NIE direkt ausliefern, falls mod_rewrite mal aus ist.
+<FilesMatch "^(\.env|composer\.(json|lock)|package\.json|artisan|server\.php|webpack\.mix\.js|vite\.config\.js)$">
+    Require all denied
+</FilesMatch>
+
+# Auch versteckte und Quellcode-Ordner blockieren.
+RedirectMatch 403 ^/\.(env|git|installed|maintenance|update-progress|version)$
+RedirectMatch 403 ^/(app|bootstrap|config|database|resources|routes|storage|tests|vendor)/.*$

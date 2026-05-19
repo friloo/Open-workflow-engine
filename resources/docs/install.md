@@ -6,7 +6,9 @@ Kein SSH-Zugriff noetig.
 
 ## Voraussetzungen
 
-- PHP >= 8.2
+- PHP **>= 8.2** (auch 8.3 und neuer unterstuetzt). 8.4 ist nicht
+  Pflicht — composer.json fixiert die Plattform-Target auf 8.2, damit
+  keine Symfony-v8-Pakete reingezogen werden, die 8.4 voraussetzen.
 - Pflicht-Extensions: pdo, mbstring, openssl, json, zip, fileinfo,
   curl, tokenizer, xml, ctype, dom
 - Empfohlen: pdo_sqlite **oder** pdo_mysql (je nach Datenbank-Wahl),
@@ -16,6 +18,30 @@ Kein SSH-Zugriff noetig.
   *kein Composer* auf dem Server noetig.
 
 Der Installer pruefts auf Schritt 1 und zeigt rot, was fehlt.
+
+## Webroot / Document-Root
+
+Laravel will, dass der **Document-Root** auf den Unterordner `public/`
+zeigt — sonst sind `/install`, `/login` etc. fuer den Webserver
+unbekannte Pfade.
+
+**Zwei Wege**:
+
+1. **Sauber (empfohlen)**: Im Hosting-Backend (Plesk, cPanel, ...)
+   den Document-Root deiner Domain auf den `public/`-Unterordner
+   stellen. Bei vielen Hostern unter „Domain bearbeiten → Webroot".
+
+2. **Fallback** (Hoster ohne Doc-Root-Konfiguration): OWE liefert
+   eine `.htaccess` im FTP-Root mit, die alle Requests intern an
+   `public/` umleitet. Wird vom Bootstrap-Installer automatisch
+   gesetzt; ist auch im Release-ZIP enthalten. Funktioniert auf
+   Apache mit aktivem `mod_rewrite`.
+
+> ⚠️ **Sicherheit**: Beim Fallback liegt `vendor/`, `.env` etc. im
+> oeffentlich erreichbaren Pfad. Die mitgelieferte `.htaccess`
+> blockiert den direkten Zugriff per `FilesMatch` und `RedirectMatch`.
+> Wenn `mod_rewrite` ausgeschaltet ist, GREIFT die Blockade nicht
+> mehr — dann unbedingt Document-Root umstellen.
 
 ## Brauche ich Composer auf dem Server?
 
