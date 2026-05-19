@@ -12,7 +12,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full font-sans antialiased bg-slate-50 text-slate-800">
-<div class="min-h-full" x-data="{ sidebarOpen: false }">
+<div class="min-h-full"
+     x-data="{ sidebarOpen: false, globalSearchOpen: false }"
+     @keydown.window.ctrl.k.prevent="globalSearchOpen = true"
+     @keydown.window.meta.k.prevent="globalSearchOpen = true">
+    @auth
+        @include('layouts.partials.global-search')
+    @endauth
     @include('layouts.sidebar')
 
     <div class="lg:pl-64">

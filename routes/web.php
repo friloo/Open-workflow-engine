@@ -76,6 +76,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/tokens', [\App\Http\Controllers\ApiTokenController::class, 'store'])->name('tokens.store');
     Route::delete('/profile/tokens/{token}', [\App\Http\Controllers\ApiTokenController::class, 'destroy'])->name('tokens.destroy');
 
+    // Global Search (Cmd+K)
+    Route::get('/search', [\App\Http\Controllers\GlobalSearchController::class, 'search'])->name('search.global');
+
     // In-App-Notifications
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/dropdown', [\App\Http\Controllers\NotificationController::class, 'dropdown'])->name('notifications.dropdown');
