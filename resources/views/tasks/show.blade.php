@@ -2,6 +2,12 @@
     <x-slot name="header">{{ $instance->workflow->name }}</x-slot>
     <x-slot name="subheader">{{ data_get($node, 'data.label', 'Aufgabe') }} — eingegangen {{ $step->assigned_at?->diffForHumans() }}</x-slot>
 
+    <x-breadcrumbs :items="[
+        ['title' => 'Meine Aufgaben', 'url' => route('tasks.index')],
+        ['title' => $instance->workflow->name],
+        ['title' => data_get($node, 'data.label', 'Aufgabe')],
+    ]" />
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
             @php($attachments = $instance->attachments)

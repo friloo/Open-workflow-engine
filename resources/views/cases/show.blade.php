@@ -6,6 +6,11 @@
         @if($case->closed_at) · <span class="text-slate-500">geschlossen {{ $case->closed_at->format('d.m.Y') }}</span>@endif
     </x-slot>
 
+    <x-breadcrumbs :items="[
+        ['title' => 'Akten', 'url' => route('cases.index')],
+        ['title' => $case->name],
+    ]" />
+
     <div class="mb-4 flex items-center justify-end gap-3">
         <a href="{{ route('cases.edit', $case) }}" class="text-sm text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
         <form method="POST" action="{{ route('cases.close', $case) }}" class="inline">

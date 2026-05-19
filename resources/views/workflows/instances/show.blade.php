@@ -1,10 +1,10 @@
 <x-app-layout :full="true">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div class="mb-4 flex items-center gap-3">
-            <a href="{{ route('workflow-instances.index') }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Vorgaenge</a>
-            <span class="text-slate-300">/</span>
-            <a href="{{ route('workflows.index') }}" class="text-sm text-slate-500 hover:text-slate-700">{{ $instance->workflow->name }}</a>
-        </div>
+        <x-breadcrumbs :items="[
+            ['title' => 'Vorgaenge', 'url' => route('workflow-instances.index')],
+            ['title' => $instance->workflow->name, 'url' => route('workflows.index')],
+            ['title' => '#'.$instance->id],
+        ]" class="mb-4" />
 
         <header class="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div>

@@ -6,7 +6,14 @@
         · {{ $attachment->sizeFormatted() }} · {{ $attachment->created_at->format('d.m.Y H:i') }}
     </x-slot>
 
-    <div><a href="{{ route('documents.index') }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Dokumente</a></div>
+    <x-breadcrumbs :items="[
+        ['title' => 'Dokumente', 'url' => route('documents.index')],
+        ['title' => $attachment->document_type ?: 'Unklassifiziert',
+         'url' => $attachment->document_type
+             ? route('documents.index', ['type' => $attachment->document_type])
+             : route('documents.index', ['type' => '__unclassified__'])],
+        ['title' => $attachment->original_name],
+    ]" />
 
     {{-- Action-Toolbar: was kann ich JETZT mit dem Dokument machen --}}
     <div class="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm"
