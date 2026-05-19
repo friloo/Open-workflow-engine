@@ -30,7 +30,10 @@
                     </header>
                 @endisset
 
-                {{ $slot }}
+                {{-- space-y-6 sorgt fuer Abstand zwischen direkten Top-Level-Kindern wie aufeinanderfolgenden <x-card>-Bloecken --}}
+                <div class="space-y-6">
+                    {{ $slot }}
+                </div>
             </div>
         </main>
     </div>
