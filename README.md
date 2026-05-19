@@ -431,6 +431,13 @@ dem auch normalerweise dein `index.html` oder `index.php` liegt:
 > noch keine OWE-Installation existieren — der Installer prueft das und
 > bricht sicher ab, wenn er was findet).
 
+> 📌 **Webroot / Document-Root:** Laravel will den Document-Root auf den
+> Unterordner `public/`. Zwei Wege:
+> 1. **Sauber**: im Hosting-Backend Document-Root auf `public/` umstellen
+> 2. **Fallback**: OWE liefert eine `.htaccess` im FTP-Root mit, die alles
+>    intern auf `public/` umleitet (klappt auf Apache mit mod_rewrite).
+>    Wird vom Bootstrap-Installer automatisch hingelegt.
+
 #### 3️⃣ Im Browser oeffnen
 
 ```

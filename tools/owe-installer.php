@@ -232,6 +232,13 @@ function owe_step_extract(string $baseDir, string $selfFile, string $channel): v
     // .version Marker schreiben
     @file_put_contents($baseDir.DIRECTORY_SEPARATOR.'.version', $state['sha']);
 
+    // Fallback-.htaccess in den Webroot, falls noch keiner existiert.
+    // (Fuer Hoster die den Document-Root nicht direkt auf public/ legen.)
+    $rootHtaccess = $baseDir.DIRECTORY_SEPARATOR.'.htaccess';
+    if (! is_file($rootHtaccess)) {
+        @file_put_contents($rootHtaccess, owe_fallback_htaccess());
+    }
+
     // ZIP wegraeumen
     @unlink($zipPath);
 
@@ -406,6 +413,31 @@ function owe_http_get_to_file(string $url, string $path): ?string
     $ctx = stream_context_create(['http' => ['user_agent' => OWE_USER_AGENT, 'timeout' => 600]]);
     $bytes = @copy($url, $path, $ctx);
     return $bytes ? null : 'copy() fehlgeschlagen';
+}
+
+function owe_fallback_htaccess(): string
+{
+    return <<<HTACCESS
+# OWE Fallback-.htaccess fuers FTP-Root.
+# Wenn dein Hoster KEIN Umlegen des Document-Roots auf public/ erlaubt,
+# leitet diese Datei jeden Request intern an public/ um.
+# Wenn du den Document-Root direkt auf public/ zeigen kannst, darf
+# diese Datei geloescht werden.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^public/(.*)\$ public/\$1 [L]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)\$ public/\$1 [L]
+</IfModule>
+
+<FilesMatch "^(\.env|composer\.(json|lock)|package\.json|artisan|server\.php)\$">
+    Require all denied
+</FilesMatch>
+
+RedirectMatch 403 ^/\.(env|git|installed|maintenance|update-progress|version)\$
+RedirectMatch 403 ^/(app|bootstrap|config|database|resources|routes|storage|tests|vendor)/.*\$
+HTACCESS;
 }
 
 function owe_state_save(string $dir, array $data): void
