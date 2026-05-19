@@ -6,7 +6,7 @@
         <div class="lg:col-span-2">
             <x-card>
                 @if($secrets->isEmpty())
-                    <x-empty-state title="Noch keine Secrets" description="Lege oben einen verschluesselten Wert an (API-Keys, Tokens) — in HTTP-Knoten via {{ '{{ secret.NAME }}' }} verwendbar." />
+                    <x-empty-state title="Noch keine Secrets" description="Lege oben einen verschluesselten Wert an (API-Keys, Tokens) — in HTTP-Knoten als @{{ secret.NAME }} verwendbar." />
                 @else
                     <table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
@@ -17,8 +17,9 @@
                         </tr></thead>
                         <tbody class="divide-y divide-slate-100">
                             @foreach($secrets as $s)
+                                @php($placeholder = '{{ secret.'.$s->key.' }}')
                                 <tr>
-                                    <td class="py-3 pr-4"><code class="rounded bg-slate-100 px-2 py-0.5 text-xs">@{{ secret.{{ $s->key }} }}</code></td>
+                                    <td class="py-3 pr-4"><code class="rounded bg-slate-100 px-2 py-0.5 text-xs">{{ $placeholder }}</code></td>
                                     <td class="py-3 pr-4 text-slate-700 text-xs">{{ $s->description }}</td>
                                     <td class="py-3 pr-4 text-xs text-slate-500">{{ $s->created_at->diffForHumans() }}@if($s->creator) · {{ $s->creator->name }}@endif</td>
                                     <td class="py-3 text-right">

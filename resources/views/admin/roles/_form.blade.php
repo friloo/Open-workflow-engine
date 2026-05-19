@@ -89,11 +89,9 @@
         @php($listAccess = old('list_access', $roleListAccess ?? []))
         <div class="space-y-1.5">
             @foreach($lists as $list)
-                @php
-                    $current = $listAccess[$list->id] ?? null;
-                    $hasAccess = ! empty($current['access']);
-                    $canEdit = ! empty($current['can_edit']);
-                @endphp
+                @php($current = $listAccess[$list->id] ?? null)
+                @php($hasAccess = ! empty($current['access']))
+                @php($canEdit = ! empty($current['can_edit']))
                 <div class="grid grid-cols-12 items-center gap-2 rounded-lg border border-slate-200 p-2.5"
                      x-data="{ access: {{ $hasAccess ? 'true' : 'false' }} }">
                     <div class="col-span-12 sm:col-span-6 min-w-0">

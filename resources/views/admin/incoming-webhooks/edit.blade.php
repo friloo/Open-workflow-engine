@@ -75,7 +75,7 @@
                 <button type="button" @click="mappings.push({path:'',field:''})"
                         class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Mapping</button>
             </div>
-            <p class="mt-3 text-xs text-slate-500">Der vollstaendige Payload steht ausserdem als <code>{{ '{{' }} webhook_payload {{ '}}' }}</code> zur Verfuegung.</p>
+            <p class="mt-3 text-xs text-slate-500">Der vollstaendige Payload steht ausserdem als <code>@{{ webhook_payload }}</code> zur Verfuegung.</p>
         </x-card>
 
         <div class="flex justify-between">
