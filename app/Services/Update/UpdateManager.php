@@ -23,7 +23,7 @@ use Symfony\Component\Process\Process;
  */
 class UpdateManager
 {
-    public const USER_AGENT = 'owe-Updater/1.0';
+    public const USER_AGENT = 'owe-Bootstrap/1.0';
     public const PROGRESS_FILE = '.update-progress';
     public const VERSION_FILE = '.version';
     public const MAINTENANCE_FILE = '.maintenance';

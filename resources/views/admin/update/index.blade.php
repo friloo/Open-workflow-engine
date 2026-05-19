@@ -18,11 +18,12 @@
         </form>
     </x-card>
 
-    <x-card title="Status" x-data="{ poll: null,
-        load() {
+    <x-card title="Status" x-data="{ poll: null, checking: false,
+        load(force = false) {
+            if (force) this.checking = true;
             fetch('{{ route('admin.update.status') }}').then(r => r.json()).then(j => {
                 this.check = j.check; this.progress = j.progress; this.maintenance = j.maintenance;
-            });
+            }).finally(() => { this.checking = false; });
         },
         check: @js($check),
         progress: @js($progress),
@@ -41,6 +42,14 @@
                 <div class="text-xs text-slate-500">Verfuegbare Version</div>
                 <div class="font-mono text-xs break-all" x-text="check.latest || '—'"></div>
             </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="button" @click="load(true)" :disabled="checking"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed">
+                <span x-show="!checking">Jetzt pruefen</span>
+                <span x-show="checking">Pruefe &hellip;</span>
+            </button>
         </div>
 
         <template x-if="check.error">
