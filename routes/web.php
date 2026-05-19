@@ -300,6 +300,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/role-document-types', [SystemSettingsController::class, 'updateRoleDocumentTypes'])->name('settings.role_document_types.update');
         Route::post('settings/retention', [SystemSettingsController::class, 'updateRetention'])->name('settings.retention.update');
 
+        // API-Dokumentation (Swagger-UI, intern)
+        Route::get('api-docs', [\App\Http\Controllers\Admin\ApiDocsController::class, 'index'])->name('api_docs.index');
+        Route::get('api-docs/openapi.yaml', [\App\Http\Controllers\Admin\ApiDocsController::class, 'spec'])->name('api_docs.spec');
+
         Route::get('document-schemas', [\App\Http\Controllers\Admin\DocumentSchemaController::class, 'index'])->name('document_schemas.index');
         Route::get('document-schemas/{type}/edit', [\App\Http\Controllers\Admin\DocumentSchemaController::class, 'edit'])->name('document_schemas.edit');
         Route::put('document-schemas/{type}', [\App\Http\Controllers\Admin\DocumentSchemaController::class, 'update'])->name('document_schemas.update');

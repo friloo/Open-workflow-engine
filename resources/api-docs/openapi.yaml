@@ -1,0 +1,259 @@
+openapi: 3.0.3
+info:
+  title: Open Workflow Engine API
+  version: "1.0"
+  description: |
+    REST-API und Webhook-Schnittstellen der Open Workflow Engine.
+
+    Diese Dokumentation ist intern (nur fuer Admins sichtbar). Aenderungen an
+    Routen oder Payloads sollten hier nachgepflegt werden — die Spec wird
+    HAND-curiert, nicht automatisch generiert.
+
+    Konventionen:
+    - Alle Datums-Werte sind ISO-8601 (UTC mit Offset).
+    - Geld-Betraege sind Strings im Format "1234.56".
+    - Boolean-Flags sind echte JSON-Booleans (true/false).
+
+servers:
+  - url: "{baseUrl}"
+    variables:
+      baseUrl:
+        default: https://owe.example.org
+        description: Basis-URL deiner OWE-Instanz.
+
+tags:
+  - name: Inbound · Auth
+    description: API-Token-basierte Endpunkte (Authorization-Header).
+  - name: Inbound · Workflows
+    description: Workflow-Steuerung von extern.
+  - name: Inbound · Webhooks
+    description: Workflows von extern via HTTP-POST ausloesen.
+  - name: Outbound · Payloads
+    description: |
+      Schemas der Daten die OWE NACH extern sendet (Outgoing Webhooks +
+      Workflow-Knoten "HTTP-Request"). Hier sind nur die OWE-seitig
+      definierten Strukturen dokumentiert; die Ziel-URLs sind frei
+      konfigurierbar.
+
+paths:
+  /api/v1/me:
+    get:
+      tags: [Inbound · Auth]
+      summary: Identitaet des aktuellen API-Tokens
+      description: Liefert User-Profil + Token-Eigenschaften.
+      security:
+        - apiToken: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/workflows/{workflow}/start:
+    post:
+      tags: [Inbound · Workflows]
+      summary: Workflow-Instanz starten
+      description: |
+        Startet einen Workflow programmatisch mit Form-Daten. Erfordert
+        das Token-Recht **workflows.run**. Der Workflow muss im Status
+        `active` sein.
+      security:
+        - apiToken: [workflows.run]
+      parameters:
+        - in: path
+          name: workflow
+          required: true
+          schema:
+            type: integer
+          description: Workflow-ID (NICHT der Slug).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  description: Form-Daten. Schluessel = Form-Feld-Keys.
+                  additionalProperties: true
+              example:
+                data:
+                  betrag: "1234.50"
+                  kostenstelle: "K-100"
+                  bemerkung: "Eilantrag"
+      responses:
+        "201":
+          description: Instanz angelegt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceStartedResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Token hat workflows.run nicht.
+        "422":
+          description: Workflow inaktiv oder Validierung fehlgeschlagen.
+
+  /api/incoming/{token}:
+    post:
+      tags: [Inbound · Webhooks]
+      summary: Workflow per Incoming-Webhook ausloesen
+      description: |
+        Oeffentlicher Endpunkt mit Token-Auth in der URL. Optional
+        HMAC-Pruefung via `X-OWE-Signature: sha256=<hex>` (HMAC-SHA256 des
+        Bodys mit dem konfigurierten Webhook-Secret).
+
+        Der Body wird gemaess dem konfigurierten Field-Mapping (im
+        Admin-UI gepflegt) auf das Workflow-Formular gemapped.
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+          description: Token aus /admin/incoming-webhooks.
+        - in: header
+          name: X-OWE-Signature
+          required: false
+          schema:
+            type: string
+            example: sha256=8b3f...
+          description: Optional. Nur wenn Secret konfiguriert ist.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: Beliebige JSON-Payload — gemapped per Konfig.
+      responses:
+        "201":
+          description: Workflow gestartet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceStartedResponse"
+        "401":
+          description: Signatur ungueltig.
+        "404":
+          description: Token unbekannt oder inaktiv.
+        "422":
+          description: Workflow nicht aktiv.
+
+components:
+  securitySchemes:
+    apiToken:
+      type: http
+      scheme: bearer
+      bearerFormat: owe_xxxxxxxxxxxxxxxx
+      description: |
+        Token aus /tokens (User-Menue -> API-Tokens). Bei jedem Token
+        kannst du eine Liste von Abilities setzen — z. B. ["workflows.run"].
+        Pruefung erfolgt pro Endpunkt.
+
+  responses:
+    Unauthorized:
+      description: Kein gueltiges API-Token im Authorization-Header.
+
+  schemas:
+    MeResponse:
+      type: object
+      properties:
+        id:    { type: integer, example: 42 }
+        name:  { type: string, example: "Anna Beispiel" }
+        email: { type: string, format: email }
+        roles:
+          type: array
+          items: { type: string, example: "admin" }
+        token:
+          type: object
+          properties:
+            name: { type: string, example: "CI-Script" }
+            abilities:
+              type: array
+              items: { type: string, example: "workflows.run" }
+
+    InstanceStartedResponse:
+      type: object
+      properties:
+        instance_id:      { type: integer, example: 1234 }
+        status:           { type: string, enum: [running, completed, cancelled, failed], example: running }
+        current_step_key: { type: string, example: "node-1", nullable: true }
+
+    OutgoingWebhookPayload:
+      type: object
+      description: |
+        **Outbound** — Format der Daten die OWE an konfigurierte
+        Outgoing-Webhooks (/admin/webhooks) sendet. HMAC-Signatur kommt
+        im Header `X-OWE-Signature: sha256=<hex>`.
+
+        Events (siehe `event`-Feld): `instance.started`,
+        `instance.completed`, `instance.failed`, `step.approved`,
+        `step.rejected`, `step.forwarded`.
+      properties:
+        event:     { type: string, example: "instance.completed" }
+        timestamp: { type: string, format: date-time }
+        instance:
+          type: object
+          properties:
+            id:            { type: integer }
+            status:        { type: string }
+            workflow_id:   { type: integer }
+            workflow_name: { type: string }
+            started_by:    { type: string, format: email, nullable: true }
+            data:
+              type: object
+              description: Vollstaendige Form-Daten der Instanz.
+              additionalProperties: true
+        extra:
+          type: object
+          description: Event-spezifische Zusatzdaten (z. B. step-Infos).
+          additionalProperties: true
+      required: [event, timestamp, instance]
+      example:
+        event: instance.completed
+        timestamp: "2026-05-19T14:32:11+02:00"
+        instance:
+          id: 1234
+          status: completed
+          workflow_id: 7
+          workflow_name: "Rechnungseingang"
+          started_by: "anna@example.org"
+          data:
+            betrag: "1234.50"
+            kostenstelle: "K-100"
+
+    HttpNodeRequest:
+      type: object
+      description: |
+        **Outbound** — wie der Workflow-Knoten "HTTP-Request" externe APIs
+        aufruft. Method + URL kommen aus der Knoten-Konfig, Headers werden
+        zusammengefuehrt, der Body ist ein gerendertes Template
+        (Platzhalter wie `{{ initiator_email }}` werden aufgeloest).
+      properties:
+        method: { type: string, enum: [GET, POST, PUT, PATCH, DELETE] }
+        url:    { type: string, format: uri }
+        headers:
+          type: object
+          additionalProperties: { type: string }
+        body:
+          oneOf:
+            - { type: object, additionalProperties: true }
+            - { type: string }
+          description: JSON-Objekt oder Roh-String, je nach body_type.
+        timeout_seconds: { type: integer, example: 30 }
+
+    WebhookTestPayload:
+      type: object
+      description: Payload des Test-Aufrufs aus /admin/webhooks.
+      properties:
+        event:     { type: string, enum: [test] }
+        timestamp: { type: string, format: date-time }
+        message:   { type: string, example: "Test-Aufruf aus OWE" }
