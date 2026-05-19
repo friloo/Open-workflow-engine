@@ -356,7 +356,8 @@ class DocumentController extends Controller
 
     public function show(Attachment $attachment, Request $request): View
     {
-        if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
+        // Type-Mapping ODER Kontext (Workflow-Assignee / Asset-Owner).
+        if (! $attachment->visibleTo($request->user())) abort(403);
         $versions = $attachment->versions()->with('uploader')->get();
 
         // ZUGFeRD-Daten ermitteln: erst aus indexed_fields._zugferd (z. B.
@@ -489,7 +490,7 @@ class DocumentController extends Controller
      */
     public function preview(Attachment $attachment, Request $request): StreamedResponse
     {
-        if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
+        if (! $attachment->visibleTo($request->user())) abort(403);
         $disk = Storage::disk($attachment->disk);
         if (! $disk->exists($attachment->path)) abort(404);
 

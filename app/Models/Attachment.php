@@ -103,6 +103,42 @@ class Attachment extends Model
     }
 
     /**
+     * Darf $user dieses Dokument im Detail / Preview ansehen?
+     *
+     * Erlaubt wenn:
+     * 1. Sein Rollen-Doku-Type-Mapping greift (DocumentTypes::canViewType), ODER
+     * 2. das Dokument an einer WorkflowInstance haengt und er Assignee
+     *    eines Steps darin ist oder war (auch wenn der Step abgeschlossen ist
+     *    — dadurch behaelt er Kontext nach seiner Entscheidung), ODER
+     * 3. das Dokument an einem Asset haengt das ihm gehoert oder fuer das er
+     *    assets.view hat.
+     *
+     * Damit kann z. B. ein Buchhalter Rechnungen genehmigen, ohne dass die
+     * Rolle 'Buchhaltung' generell Zugriff auf den Doku-Type 'Rechnung' hat
+     * — der Zugriff entsteht durch die zugewiesene Aufgabe.
+     */
+    public function visibleTo(?\App\Models\User $user): bool
+    {
+        if (! $user) return false;
+        if (\App\Support\DocumentTypes::canViewType($user, $this->document_type)) return true;
+
+        $att = $this->attachable;
+        if ($att instanceof \App\Models\WorkflowInstance) {
+            if ($att->started_by === $user->id) return true;
+            return \App\Models\WorkflowStepExecution::where('workflow_instance_id', $att->id)
+                ->where(function ($q) use ($user) {
+                    $q->where('assigned_to_user_id', $user->id)
+                      ->orWhereIn('assigned_to_role_id', $user->roles->pluck('id'));
+                })->exists();
+        }
+        if ($att instanceof \App\Models\Asset) {
+            if ($att->user_id === $user->id) return true;
+            return $user->hasPermission('assets.view');
+        }
+        return false;
+    }
+
+    /**
      * Liest die Datei und vergleicht ihren SHA-256 mit dem gespeicherten Hash.
      * Liefert true wenn intakt, false bei Manipulation oder fehlender Datei.
      */

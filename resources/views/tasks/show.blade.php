@@ -26,7 +26,11 @@
                                         <div class="text-xs text-slate-500">{{ $a->label }}{{ $a->label ? ' · ' : '' }}{{ $a->sizeFormatted() }}</div>
                                     </div>
                                 </div>
-                                <a href="{{ route('attachments.download', $a) }}" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-500 shrink-0">oeffnen &uarr;</a>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <a href="{{ route('documents.show', $a) }}" class="text-xs text-slate-500 hover:text-slate-700">Details</a>
+                                    <span class="text-slate-300">·</span>
+                                    <a href="{{ route('attachments.download', $a) }}" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-500">oeffnen &uarr;</a>
+                                </div>
                             </li>
                         @endforeach
                     </ul>
