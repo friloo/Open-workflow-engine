@@ -293,8 +293,19 @@
         </x-card>
 
         <x-card title="Aufbewahrungsregeln pro Dokumenttyp" description="Pro Dokumenttyp eine Mindestlaufzeit und eine Aktion nach Ablauf. Wird taeglich um 03:15 ausgewertet.">
+            @php
+                $retentionRules = [];
+                foreach (($retention ?? []) as $docType => $rule) {
+                    $retentionRules[] = [
+                        'document_type' => $docType,
+                        'min_years' => $rule['min_years'] ?? 10,
+                        'max_years' => $rule['max_years'] ?? null,
+                        'on_expiry' => $rule['on_expiry'] ?? 'mark_for_review',
+                    ];
+                }
+            @endphp
             <form method="POST" action="{{ route('admin.settings.retention.update') }}"
-                  x-data='@json(["rules" => array_map(fn($k,$v) => ["document_type"=>$k, "min_years"=>$v["min_years"]??10, "max_years"=>$v["max_years"]??null, "on_expiry"=>$v["on_expiry"]??"mark_for_review"], array_keys($retention ?? []), array_values($retention ?? []))])'>
+                  x-data='@json(["rules" => $retentionRules])'>
                 @csrf
                 <div class="space-y-2">
                     <template x-for="(r, idx) in rules" :key="idx">
