@@ -13,76 +13,92 @@ class HelpController extends Controller
     /**
      * Themen-Inhaltsverzeichnis. Gruppiert fuer die Sidebar.
      * Reihenfolge der Sections + der Themen ist gleichzeitig die Navigation.
+     *
+     * Jedes Thema kann eine Permission-Liste angeben (ANY-of). Wenn leer,
+     * sehen alle eingeloggten User es. Permissions werden gegen den
+     * aktuellen User abgeglichen — sieht ein User die Permission nicht,
+     * verschwindet das Thema aus der Sidebar UND der direkte Aufruf
+     * der URL gibt 403.
+     *
+     * Struktur:
+     *   'topic-slug' => ['label' => '…', 'any' => ['perm.a', 'perm.b']]
+     *   'topic-slug' => 'Label nur'  (= jeder darf sehen)
      */
     private array $sections = [
         'Einstieg' => [
             'index' => 'Uebersicht',
-            'install' => 'Erstinstallation (Web-Installer)',
-            'first-steps' => 'Erste Schritte als Admin',
+            'install' => ['label' => 'Erstinstallation (Web-Installer)', 'any' => ['system.settings']],
+            'first-steps' => ['label' => 'Erste Schritte als Admin', 'any' => ['system.settings']],
             'dashboard' => 'Dashboard / Startseite',
         ],
         'Cookbook & Beispiele' => [
-            'cookbook-rechnungseingang' => 'Cookbook: Rechnungseingang',
+            'cookbook-rechnungseingang' => ['label' => 'Cookbook: Rechnungseingang', 'any' => ['workflows.design', 'workflows.run']],
         ],
         'Workflows entwerfen' => [
-            'workflows' => 'Workflows entwerfen',
-            'templates' => 'Workflow-Vorlagen (Import/Export)',
-            'http-node' => 'HTTP-Knoten',
-            'pdf-node' => 'PDF-Knoten',
-            'simulation' => 'Workflow-Simulation',
-            'ai' => 'KI im Designer',
-            'stats' => 'Workflow-Statistik',
+            'workflows' => ['label' => 'Workflows entwerfen', 'any' => ['workflows.design', 'workflows.run', 'workflows.view']],
+            'templates' => ['label' => 'Workflow-Vorlagen (Import/Export)', 'any' => ['workflows.design']],
+            'http-node' => ['label' => 'HTTP-Knoten', 'any' => ['workflows.design']],
+            'pdf-node' => ['label' => 'PDF-Knoten', 'any' => ['workflows.design']],
+            'simulation' => ['label' => 'Workflow-Simulation', 'any' => ['workflows.design']],
+            'ai' => ['label' => 'KI im Designer', 'any' => ['workflows.design']],
+            'stats' => ['label' => 'Workflow-Statistik', 'any' => ['workflows.design', 'workflows.view']],
             'delegation' => 'Vertretungsregelung',
-            'placeholders' => 'Platzhalter-Referenz',
+            'placeholders' => ['label' => 'Platzhalter-Referenz', 'any' => ['workflows.design']],
         ],
         'Daten & Formulare' => [
-            'forms' => 'Formulare',
-            'lists' => 'Listen (Kostenstellen etc.)',
-            'assets' => 'Assets (Fuehrerschein etc.)',
+            'forms' => ['label' => 'Formulare', 'any' => ['forms.view', 'forms.manage']],
+            'lists' => ['label' => 'Listen (Kostenstellen etc.)', 'any' => ['lists.view', 'lists.manage']],
+            'assets' => ['label' => 'Assets (Fuehrerschein etc.)', 'any' => ['assets.view', 'assets.manage']],
         ],
         'Dokumente' => [
-            'documents' => 'Dokumente (Versionen, OCR, Bulk)',
-            'document-schemas' => 'Felder-Schemas pro Dokumenttyp',
-            'zugferd' => 'ZUGFeRD / XRechnung',
-            'inbox-routing' => 'Postkorb + Lookup-Routing',
-            'sharing' => 'Sharing-Links',
-            'retention' => 'Aufbewahrungsregeln',
+            'documents' => ['label' => 'Dokumente (Versionen, OCR, Bulk)', 'any' => ['documents.search']],
+            'document-schemas' => ['label' => 'Felder-Schemas pro Dokumenttyp', 'any' => ['system.settings']],
+            'zugferd' => ['label' => 'ZUGFeRD / XRechnung', 'any' => ['documents.search']],
+            'inbox-routing' => ['label' => 'Postkorb + Lookup-Routing', 'any' => ['documents.search']],
+            'sharing' => ['label' => 'Sharing-Links', 'any' => ['documents.search']],
+            'retention' => ['label' => 'Aufbewahrungsregeln', 'any' => ['system.settings']],
         ],
         'Eingang & Integrationen' => [
-            'mailbox' => 'E-Mail-Eingang (IMAP)',
-            'folder-inbox' => 'Folder-Inboxen (lokaler Ordner)',
+            'mailbox' => ['label' => 'E-Mail-Eingang (IMAP)', 'any' => ['mailboxes.manage']],
+            'folder-inbox' => ['label' => 'Folder-Inboxen (lokaler Ordner)', 'any' => ['folder_inboxes.manage']],
             'mail-approval' => 'Genehmigung per Mail',
-            'webhooks' => 'Webhooks (outgoing)',
-            'incoming-webhooks' => 'Eingehende Webhooks',
-            'secrets' => 'Secrets-Vault',
-            'm365' => 'Microsoft 365',
+            'webhooks' => ['label' => 'Webhooks (outgoing)', 'any' => ['webhooks.manage']],
+            'incoming-webhooks' => ['label' => 'Eingehende Webhooks', 'any' => ['incoming_webhooks.manage']],
+            'secrets' => ['label' => 'Secrets-Vault', 'any' => ['secrets.manage']],
+            'm365' => ['label' => 'Microsoft 365', 'any' => ['system.settings']],
             'api-tokens' => 'API-Tokens',
         ],
         'Sicherheit & Betrieb' => [
             '2fa' => 'Zwei-Faktor-Anmeldung',
             'revisionssicher' => 'Revisionssicherheit',
-            'admin' => 'Administration',
-            'health' => 'System-Health',
-            'update' => 'System-Update',
-            'backup' => 'Backup & Restore',
+            'admin' => ['label' => 'Administration', 'any' => ['system.settings']],
+            'health' => ['label' => 'System-Health', 'any' => ['system.health']],
+            'update' => ['label' => 'System-Update', 'any' => ['system.update']],
+            'backup' => ['label' => 'Backup & Restore', 'any' => ['system.backup']],
         ],
     ];
 
-    public function index(): View
+    public function index(\Illuminate\Http\Request $request): View
     {
-        return $this->show('index');
+        return $this->show('index', $request);
     }
 
-    public function show(string $topic): View
+    public function show(string $topic, \Illuminate\Http\Request $request): View
     {
         $topic = preg_replace('/[^a-z0-9_-]/', '', $topic) ?: 'index';
         $allTopics = $this->flatToc();
         if (! isset($allTopics[$topic])) abort(404);
 
+        $user = $request->user();
+        if (! $this->userCanSeeTopic($user, $topic)) abort(403);
+
+        $entry = $allTopics[$topic];
+        $title = is_array($entry) ? $entry['label'] : $entry;
+
         $file = base_path(self::DOCS_PATH.'/'.$topic.'.md');
         $md = file_exists($file)
             ? file_get_contents($file)
-            : "# {$allTopics[$topic]}\n\nNoch keine Inhalte.";
+            : "# {$title}\n\nNoch keine Inhalte.";
 
         $md = $this->preprocessMarkdown($md);
 
@@ -96,11 +112,43 @@ class HelpController extends Controller
 
         return view('help.show', [
             'topic' => $topic,
-            'title' => $allTopics[$topic],
+            'title' => $title,
             'html' => $html,
-            'sections' => $this->sections,
+            'sections' => $this->visibleSections($user),
             'toc' => $this->extractToc($html),
         ]);
+    }
+
+    /**
+     * Filtert das Section-Mapping auf das, was der User sehen darf.
+     * Sections, deren saemtliche Themen rausgefiltert wurden, werden
+     * komplett weggelassen — keine leeren Header.
+     */
+    private function visibleSections(?\App\Models\User $user): array
+    {
+        $out = [];
+        foreach ($this->sections as $section => $topics) {
+            $visible = [];
+            foreach ($topics as $slug => $entry) {
+                if ($this->userCanSeeTopic($user, $slug)) {
+                    $visible[$slug] = is_array($entry) ? $entry['label'] : $entry;
+                }
+            }
+            if (! empty($visible)) {
+                $out[$section] = $visible;
+            }
+        }
+        return $out;
+    }
+
+    private function userCanSeeTopic(?\App\Models\User $user, string $topic): bool
+    {
+        $entry = $this->flatToc()[$topic] ?? null;
+        if (! $entry) return false;
+        // Ohne Permission-Anforderung darf jeder Eingeloggte rein.
+        if (! is_array($entry) || empty($entry['any'])) return true;
+        if (! $user) return false;
+        return $user->hasAnyPermission((array) $entry['any']);
     }
 
     /**
@@ -108,14 +156,14 @@ class HelpController extends Controller
      *
      * - Loest interne Links '[Text](app:route.name)' bzw.
      *   '[Text](app:route.name?param=42)' in echte URLs auf.
-     * - Wandelt GitHub-Style-Callouts '> [!NOTE]', '> [!TIP]',
-     *   '> [!WARNING]', '> [!DANGER]' in HTML-Bloecke um (CommonMark
-     *   uebernimmt den Rest als Roh-HTML).
+     *
+     * Callouts ('> [!NOTE]' etc.) werden NICHT hier verarbeitet,
+     * sondern erst im postprocessHtml() — weil 'html_input: escape'
+     * sonst rohes HTML zu sichtbarem Text macht.
      */
     private function preprocessMarkdown(string $md): string
     {
-        // app:route.name -> /actual/url
-        $md = preg_replace_callback(
+        return preg_replace_callback(
             '/\]\(app:([a-zA-Z0-9_\.\-]+)(\?[^)]*)?\)/',
             function ($m) {
                 $name = $m[1];
@@ -123,42 +171,50 @@ class HelpController extends Controller
                 try {
                     return '](' . route($name, $query) . ')';
                 } catch (\Throwable) {
-                    return $m[0]; // unbekannte Route → roh lassen
+                    return $m[0];
                 }
             },
             $md,
         );
-
-        // > [!NOTE] / [!TIP] / [!WARNING] / [!DANGER] / [!IMPORTANT]
-        $md = preg_replace_callback(
-            '/^>\s*\[!(NOTE|TIP|WARNING|DANGER|IMPORTANT)\]\s*\n((?:>.*(?:\n|$))+)/m',
-            function ($m) {
-                $kind = strtolower($m[1]);
-                $body = preg_replace('/^>\s?/m', '', $m[2]);
-                $bodyHtml = (new GithubFlavoredMarkdownConverter())->convert($body)->getContent();
-                return "<div class=\"callout callout-{$kind}\">"
-                    . "<div class=\"callout-title\">".ucfirst($kind)."</div>"
-                    . "<div class=\"callout-body\">{$bodyHtml}</div>"
-                    . "</div>\n\n";
-            },
-            $md,
-        );
-
-        return $md;
     }
 
     /**
-     * Nach dem CommonMark-Run noch ein paar Tailwind-Klassen
-     * auf die Standard-Tags packen, damit Tabellen/Code/Quotes auch
-     * ohne explizites Markup gut aussehen.
+     * Nach dem CommonMark-Run:
+     *
+     * - GitHub-Style-Callouts: CommonMark macht aus '> [!TIP]\n> body'
+     *   ein '<blockquote><p>[!TIP]\nbody</p></blockquote>'. Den fangen
+     *   wir hier ab und ersetzen ihn durch einen .callout-Block.
+     * - Tabellen kriegen die owe-table-Klasse.
+     * - h2/h3 bekommen slug-IDs fuer Deep-Links und das TOC.
      */
     private function postprocessHtml(string $html): string
     {
-        // Tabellen lesbar machen.
+        // Callouts
+        $html = preg_replace_callback(
+            '/<blockquote>\s*<p>\s*\[!(NOTE|TIP|WARNING|DANGER|IMPORTANT)\]\s*(?:<br\s*\/?>|\n)?\s*(.*?)<\/p>\s*<\/blockquote>/is',
+            function ($m) {
+                $kind = strtolower($m[1]);
+                $body = trim($m[2]);
+                $titles = [
+                    'note' => 'Hinweis',
+                    'tip' => 'Tipp',
+                    'warning' => 'Achtung',
+                    'danger' => 'Wichtig',
+                    'important' => 'Bitte beachten',
+                ];
+                $title = $titles[$kind] ?? ucfirst($kind);
+                return "<div class=\"callout callout-{$kind}\">"
+                    . "<div class=\"callout-title\">{$title}</div>"
+                    . "<div class=\"callout-body\"><p>{$body}</p></div>"
+                    . "</div>";
+            },
+            $html,
+        );
+
+        // Tabellen-Klasse
         $html = preg_replace('/<table>/', '<table class="owe-table">', $html);
 
-        // h2/h3 bekommen anchor-IDs (slug aus dem Heading-Text). Damit
-        // funktioniert das TOC und Deep-Links a la /help/install#voraussetzungen.
+        // h2/h3 Anchor-IDs
         $usedIds = [];
         $html = preg_replace_callback(
             '/<(h[23])>(.+?)<\/\1>/i',
@@ -195,9 +251,18 @@ class HelpController extends Controller
         return $items;
     }
 
+    /**
+     * Flat list of all topics: slug => label-or-entry-array.
+     */
     private function flatToc(): array
     {
-        return array_merge(...array_values($this->sections));
+        $out = [];
+        foreach ($this->sections as $items) {
+            foreach ($items as $slug => $entry) {
+                $out[$slug] = $entry;
+            }
+        }
+        return $out;
     }
 
     private function parseQuery(string $q): array
