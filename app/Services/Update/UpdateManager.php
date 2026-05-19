@@ -61,10 +61,20 @@ class UpdateManager
         $current = $this->currentVersion();
         try {
             $resp = Http::withUserAgent(self::USER_AGENT)->timeout(20)->get($channel->baseUrl.'/version');
-            $latest = $this->extractSha((string) $resp->body());
+            $body = (string) $resp->body();
+
+            // Proxy meldet expliziten Fehler im JSON-Body -> direkt durchreichen,
+            // damit der User nicht raten muss warum es keine SHA gibt.
+            $proxyError = $this->extractProxyError($body);
+            if ($proxyError !== null) {
+                return ['current' => $current, 'latest' => null, 'has_update' => false, 'channel' => $channel->slug, 'label' => $channel->label,
+                    'error' => 'Update-Proxy meldet: '.$proxyError.' (URL: '.$channel->baseUrl.'/version, HTTP '.$resp->status().')'];
+            }
+
+            $latest = $this->extractSha($body);
             if ($latest === null) {
                 return ['current' => $current, 'latest' => null, 'has_update' => false, 'channel' => $channel->slug, 'label' => $channel->label,
-                    'error' => 'Antwort vom Proxy enthaelt keine 40-stellige SHA: '.\Illuminate\Support\Str::limit(trim((string) $resp->body()), 120)];
+                    'error' => 'Antwort vom Proxy enthaelt keine 40-stellige SHA (URL: '.$channel->baseUrl.'/version, HTTP '.$resp->status().'): '.\Illuminate\Support\Str::limit(trim($body), 120)];
             }
             return [
                 'current' => $current,
@@ -147,6 +157,67 @@ class UpdateManager
             throw $e;
         } finally {
             // Maintenance MUSS in finally aus — sonst bleibt die App 503.
+            $this->setMaintenance(false);
+        }
+    }
+
+    /**
+     * Wendet ein manuell hochgeladenes Update-ZIP an — selbe Pipeline
+     * wie run(), aber ohne Proxy-Roundtrip. Nuetzlich wenn der Proxy
+     * gerade nicht antwortet oder man eine bestimmte Version
+     * ausserhalb der Channels einspielen will.
+     *
+     * Der $versionLabel wird in .version gespeichert. Wenn null oder
+     * keine 40-stellige SHA, wird ein Pseudo-Label "manual-YYYYMMDDHHMMSS"
+     * benutzt — die App weiss dann zumindest, dass ein manuelles Update
+     * lief.
+     */
+    public function applyUploadedZip(string $zipPath, ?string $versionLabel = null, ?int $userId = null): array
+    {
+        if (! is_file($zipPath)) {
+            throw new \RuntimeException('Upload-ZIP nicht gefunden: '.$zipPath);
+        }
+
+        $previous = $this->currentVersion();
+        $label = ($versionLabel !== null && $this->isValidSha($versionLabel))
+            ? strtolower($versionLabel)
+            : 'manual-'.now()->format('YmdHis');
+
+        $this->setMaintenance(true);
+        try {
+            $this->progress('stage', 'Entpacke Upload nach Staging…');
+            $staging = $this->prepareStaging($zipPath);
+
+            $this->progress('install', 'Aktualisiere Dateien…');
+            $this->applyStaging($staging);
+
+            $this->progress('composer', 'composer install --no-dev (optional) …');
+            $this->runComposerIfPossible();
+
+            $this->progress('migrate', 'Datenbank-Migrationen …');
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+
+            $this->progress('finalize', 'Schliesse ab…');
+            @file_put_contents(base_path(self::VERSION_FILE), $label);
+            $this->cleanupStaging();
+            @unlink(base_path('storage/app/'.self::PROGRESS_FILE));
+
+            $this->audit->log('update.completed', null, ['previous' => $previous], [
+                'source' => 'manual-upload',
+                'version' => $label,
+            ], "Manuelles Update auf {$label}", $userId);
+
+            return ['status' => 'ok', 'version' => $label, 'channel' => 'manual'];
+        } catch (\Throwable $e) {
+            $this->progress('failed', 'Fehler: '.$e->getMessage());
+            Log::error('Manual update failed', ['error' => $e->getMessage()]);
+            $this->audit->log('update.failed', null, null, [
+                'source' => 'manual-upload',
+                'target' => $label,
+                'error' => $e->getMessage(),
+            ], 'Manuelles Update fehlgeschlagen: '.$e->getMessage(), $userId);
+            throw $e;
+        } finally {
             $this->setMaintenance(false);
         }
     }
@@ -323,6 +394,23 @@ class UpdateManager
         }
         if (preg_match('/\b([0-9a-f]{40})\b/i', $trimmed, $m)) {
             return strtolower($m[1]);
+        }
+        return null;
+    }
+
+    /**
+     * Wenn der Proxy explizit einen Fehler im JSON-Body meldet
+     * ({"error": "..."} o. ae.), die Nachricht liefern. Sonst null.
+     */
+    private function extractProxyError(string $body): ?string
+    {
+        $trimmed = trim($body);
+        if ($trimmed === '' || $trimmed[0] !== '{') return null;
+        $decoded = json_decode($trimmed, true);
+        if (! is_array($decoded)) return null;
+        foreach (['error', 'message', 'detail'] as $key) {
+            $v = $decoded[$key] ?? null;
+            if (is_string($v) && $v !== '') return $v;
         }
         return null;
     }

@@ -364,6 +364,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('update/status', [\App\Http\Controllers\Admin\UpdateController::class, 'status'])->name('update.status');
         Route::post('update/channel', [\App\Http\Controllers\Admin\UpdateController::class, 'updateChannel'])->name('update.channel');
         Route::post('update/run', [\App\Http\Controllers\Admin\UpdateController::class, 'run'])->name('update.run');
+        Route::post('update/upload', [\App\Http\Controllers\Admin\UpdateController::class, 'upload'])->name('update.upload');
     });
 
     Route::middleware('permission:mailboxes.manage')->group(function () {

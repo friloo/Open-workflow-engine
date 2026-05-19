@@ -19,25 +19,39 @@ Kein SSH-Zugriff noetig.
 
 Der Installer pruefts auf Schritt 1 und zeigt rot, was fehlt.
 
-## Webroot / Document-Root
+## Empfohlener Ablauf (Webroot zuerst, dann Bootstrap)
 
-Laravel will, dass der **Document-Root** auf den Unterordner `public/`
-zeigt — sonst sind `/install`, `/login` etc. fuer den Webserver
-unbekannte Pfade.
+1. **Im Hosting-Backend** (Plesk, cPanel, All-Inkl, ...) lege ein
+   Verzeichnis `public/` unterhalb deines Domain-Root an und stelle
+   den **Document-Root** der Domain auf genau diesen `public/`-Ordner.
+   Bei vielen Hostern unter „Domain bearbeiten → Webroot".
 
-**Zwei Wege**:
+2. **Bootstrap-Installer hochladen**: Lade `owe-installer.php` per
+   FTP **in genau diesen `public/`-Ordner**. Sonst nichts.
 
-1. **Sauber (empfohlen)**: Im Hosting-Backend (Plesk, cPanel, ...)
-   den Document-Root deiner Domain auf den `public/`-Unterordner
-   stellen. Bei vielen Hostern unter „Domain bearbeiten → Webroot".
+3. **Im Browser aufrufen**: `https://deine-domain.tld/owe-installer.php`.
+   Der Bootstrap erkennt automatisch, dass er aus einem `public/`-Ordner
+   laeuft, entpackt Laravel ein Level **darueber** (im Domain-Root) und
+   legt `public/index.php`, `app/`, `vendor/`, `.env` usw. korrekt an.
+   `vendor/` und `.env` liegen damit ausserhalb des oeffentlichen
+   Verzeichnisses — sauberste Variante, kein nachtraegliches Umstellen
+   noetig.
 
-2. **Fallback** (Hoster ohne Doc-Root-Konfiguration): OWE liefert
-   eine `.htaccess` im FTP-Root mit, die alle Requests intern an
-   `public/` umleitet. Wird vom Bootstrap-Installer automatisch
-   gesetzt; ist auch im Release-ZIP enthalten. Funktioniert auf
-   Apache mit aktivem `mod_rewrite`.
+4. Nach dem Entpacken wirst du auf `/install` weitergeleitet, wo der
+   App-Wizard DB und Admin-Konto einrichtet.
 
-> ⚠️ **Sicherheit**: Beim Fallback liegt `vendor/`, `.env` etc. im
+## Fallback: Hoster ohne Webroot-Konfiguration
+
+Wenn dein Hoster keine Doc-Root-Umstellung erlaubt, geht's auch ohne:
+
+1. Lade `owe-installer.php` direkt ins **FTP-Root** (= Domain-Root).
+2. Rufe `https://deine-domain.tld/owe-installer.php` auf.
+3. Der Bootstrap merkt, dass er NICHT in einem `public/`-Ordner liegt,
+   entpackt Laravel ins aktuelle Verzeichnis und legt zusaetzlich eine
+   Fallback-`.htaccess` ins Root, die alle Requests intern nach
+   `public/` umleitet.
+
+> ⚠️ **Sicherheit beim Fallback**: `vendor/`, `.env` etc. liegen im
 > oeffentlich erreichbaren Pfad. Die mitgelieferte `.htaccess`
 > blockiert den direkten Zugriff per `FilesMatch` und `RedirectMatch`.
 > Wenn `mod_rewrite` ausgeschaltet ist, GREIFT die Blockade nicht

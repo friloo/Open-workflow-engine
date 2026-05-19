@@ -59,4 +59,24 @@ class UpdateController extends Controller
             return back()->withErrors(['update' => $e->getMessage()]);
         }
     }
+
+    public function upload(Request $request, UpdateManager $manager): RedirectResponse
+    {
+        $data = $request->validate([
+            'zip' => ['required', 'file', 'mimes:zip', 'max:204800'],
+            'version' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $stored = $data['zip']->storeAs('updates', 'manual-'.now()->format('YmdHis').'.zip');
+        $absolute = storage_path('app/'.$stored);
+
+        try {
+            $result = $manager->applyUploadedZip($absolute, $data['version'] ?? null, $request->user()?->id);
+            return back()->with('status', 'Manuelles Update angewendet: '.$result['version']);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['update' => $e->getMessage()]);
+        } finally {
+            @unlink($absolute);
+        }
+    }
 }
