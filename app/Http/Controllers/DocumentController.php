@@ -330,9 +330,25 @@ class DocumentController extends Controller
     {
         if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
         $versions = $attachment->versions()->with('uploader')->get();
+
+        // ZUGFeRD-Daten ermitteln: erst aus indexed_fields._zugferd (z. B.
+        // wenn separate XRechnung-XML aus einer Mail dazu kam), sonst aus
+        // dem PDF selbst parsen.
+        $zugferdData = null;
+        if (! empty($attachment->indexed_fields['_zugferd'] ?? null)) {
+            $zugferdData = $attachment->indexed_fields['_zugferd'];
+        } elseif ($attachment->mime_type === 'application/pdf') {
+            try {
+                $zugferdData = app(\App\Services\ZugferdParser::class)->parse($attachment);
+            } catch (\Throwable) {
+                $zugferdData = null;
+            }
+        }
+
         return view('documents.show', [
             'attachment' => $attachment->load('attachable', 'uploader'),
             'versions' => $versions,
+            'zugferdData' => $zugferdData,
         ]);
     }
 

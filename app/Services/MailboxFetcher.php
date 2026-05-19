@@ -161,18 +161,73 @@ class MailboxFetcher
 
             $attachable = $instance ?: null;
             $attCount = 0;
+
+            // Erst alle Bytes sammeln, dann XRechnung/ZUGFeRD-XML einem
+            // PDF-Anhang derselben Mail zuordnen.
+            $files = [];
             foreach ($message->getAttachments() as $att) {
                 $bytes = $att->getContent();
                 if (! is_string($bytes) || $bytes === '') continue;
-                $name = $att->getName() ?: 'anhang-'.($attCount + 1);
-                $mime = $att->getMimeType() ?: 'application/octet-stream';
-                try {
-                    $this->storage->storeBytes($bytes, $name, $mime, $attachable, $subject, null, $mailbox->document_type);
-                    $attCount++;
-                } catch (\Throwable $e) {
-                    Log::info('Mail-Anhang verworfen', ['name' => $name, 'mime' => $mime, 'reason' => $e->getMessage()]);
+                $files[] = [
+                    'name' => $att->getName() ?: 'anhang-'.(count($files) + 1),
+                    'mime' => $att->getMimeType() ?: 'application/octet-stream',
+                    'bytes' => $bytes,
+                ];
+            }
+
+            // ZUGFeRD-XML separat erkennen?
+            $zugferdXml = null;
+            foreach ($files as $f) {
+                $isXml = str_contains(strtolower($f['mime']), 'xml')
+                    || str_ends_with(strtolower($f['name']), '.xml');
+                if (! $isXml) continue;
+                $lower = strtolower($f['name']);
+                $looksLikeInvoice = str_contains($lower, 'factur-x')
+                    || str_contains($lower, 'zugferd')
+                    || str_contains($lower, 'xrechnung')
+                    || str_contains($lower, 'invoice')
+                    || str_contains($lower, 'rechnung');
+                if (! $looksLikeInvoice) {
+                    // Heuristik: trotzdem versuchen zu parsen — wenn ein CII/UBL-Root rauskommt, zaehlt's.
+                    if (! str_contains($f['bytes'], 'CrossIndustryInvoice') && ! str_contains($f['bytes'], 'UBLDocument') && ! str_contains($f['bytes'], '<Invoice')) {
+                        continue;
+                    }
+                }
+                $parsed = app(\App\Services\ZugferdParser::class)->parseXmlBytes($f['bytes']);
+                if ($parsed) {
+                    $zugferdXml = ['file' => $f, 'data' => $parsed];
+                    break;
                 }
             }
+
+            foreach ($files as $f) {
+                // XML, das wir als ZUGFeRD-Partner identifiziert haben, NICHT
+                // separat ablegen — die Daten gehen aufs PDF.
+                if ($zugferdXml && $f['name'] === $zugferdXml['file']['name']) continue;
+
+                try {
+                    $stored = $this->storage->storeBytes(
+                        $f['bytes'], $f['name'], $f['mime'], $attachable, $subject, null, $mailbox->document_type,
+                    );
+                    // Wenn dies das PDF ist und wir ZUGFeRD-Daten haben:
+                    // an indexed_fields._zugferd kleben (Viewer und Workflow
+                    // sehen die Daten dann ohne neuen PDF-Parse).
+                    if ($zugferdXml && str_contains(strtolower($f['mime']), 'pdf')) {
+                        $fields = (array) ($stored->indexed_fields ?? []);
+                        $fields['_zugferd'] = $zugferdXml['data'];
+                        // Standard-ZUGFeRD-Felder als first-class indexed_fields anheften,
+                        // damit Workflow-Bedingungen sie direkt sehen.
+                        foreach ($zugferdXml['data'] as $k => $v) {
+                            if (! array_key_exists($k, $fields)) $fields[$k] = $v;
+                        }
+                        $stored->forceFill(['indexed_fields' => $fields, 'indexed_at' => now()])->save();
+                    }
+                    $attCount++;
+                } catch (\Throwable $e) {
+                    Log::info('Mail-Anhang verworfen', ['name' => $f['name'], 'mime' => $f['mime'], 'reason' => $e->getMessage()]);
+                }
+            }
+
             $log->attachment_count = $attCount;
             $log->save();
 

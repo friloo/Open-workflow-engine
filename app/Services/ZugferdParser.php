@@ -121,6 +121,20 @@ class ZugferdParser
         return null;
     }
 
+    /**
+     * Public entry point fuer rohes XML (z. B. wenn die XRechnung als
+     * separater XML-Anhang in einer Mail kommt).
+     *
+     * @return array<string,string>|null
+     */
+    public function parseXmlBytes(string $xml): ?array
+    {
+        $xml = trim($xml);
+        if ($xml === '') return null;
+        $result = $this->parseInvoiceXml($xml);
+        return $result ?: null;
+    }
+
     private function parseInvoiceXml(string $xml): array
     {
         $doc = new \DOMDocument();

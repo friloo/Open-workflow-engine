@@ -71,6 +71,8 @@
                 @endif
             </x-card>
 
+            @include('documents._zugferd-card', ['zugferdData' => $zugferdData])
+
             @php($attTags = $attachment->tags ?? collect())
             @php($attCases = $attachment->cases ?? collect())
             <x-card title="Tags & Akten">
