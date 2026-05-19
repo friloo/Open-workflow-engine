@@ -61,9 +61,10 @@ class UpdateManager
         $current = $this->currentVersion();
         try {
             $resp = Http::withUserAgent(self::USER_AGENT)->timeout(20)->get($channel->baseUrl.'/version');
-            $latest = trim((string) $resp->body());
-            if (! $this->isValidSha($latest)) {
-                return ['current' => $current, 'latest' => null, 'has_update' => false, 'channel' => $channel->slug, 'label' => $channel->label, 'error' => 'Antwort nicht erkennbar.'];
+            $latest = $this->extractSha((string) $resp->body());
+            if ($latest === null) {
+                return ['current' => $current, 'latest' => null, 'has_update' => false, 'channel' => $channel->slug, 'label' => $channel->label,
+                    'error' => 'Antwort vom Proxy enthaelt keine 40-stellige SHA: '.\Illuminate\Support\Str::limit(trim((string) $resp->body()), 120)];
             }
             return [
                 'current' => $current,
@@ -295,5 +296,34 @@ class UpdateManager
     private function isValidSha(string $sha): bool
     {
         return (bool) preg_match('/^[0-9a-f]{40}$/', $sha);
+    }
+
+    /**
+     * Akzeptiert sowohl plain "<40-char-sha>" als auch JSON-Antworten vom
+     * Proxy ({"sha":"...","title":"..."} oder {"version":"..."} etc.).
+     */
+    private function extractSha(string $body): ?string
+    {
+        $trimmed = trim($body);
+        if ($trimmed === '') return null;
+
+        if (preg_match('/^[0-9a-f]{40}$/i', $trimmed)) {
+            return strtolower($trimmed);
+        }
+        if ($trimmed !== '' && $trimmed[0] === '{') {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                foreach (['sha', 'version', 'commit', 'ref'] as $key) {
+                    $v = $decoded[$key] ?? null;
+                    if (is_string($v) && preg_match('/^[0-9a-f]{40}$/i', $v)) {
+                        return strtolower($v);
+                    }
+                }
+            }
+        }
+        if (preg_match('/\b([0-9a-f]{40})\b/i', $trimmed, $m)) {
+            return strtolower($m[1]);
+        }
+        return null;
     }
 }
