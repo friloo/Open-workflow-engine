@@ -155,7 +155,14 @@
 
     <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <x-card title="KI-Integration" description="OpenAI, DeepSeek oder Ollama. Wird z. B. im HTTP-Knoten genutzt, um aus API-Beschreibungen Header/Body zu generieren.">
-            @php($ai = \App\Support\Settings::group('ai') + ['provider'=>'openai','base_url'=>'https://api.openai.com/v1','model'=>'gpt-4o-mini','api_key'=>''])
+            @php
+                $ai = \App\Support\Settings::group('ai') + [
+                    'provider' => 'openai',
+                    'base_url' => 'https://api.openai.com/v1',
+                    'model' => 'gpt-4o-mini',
+                    'api_key' => '',
+                ];
+            @endphp
             <form method="POST" action="{{ route('admin.ai.update') }}" class="space-y-3">
                 @csrf
                 <div>
@@ -270,7 +277,9 @@
                     @csrf
                     <div class="space-y-3">
                         @foreach($roles as $role)
-                            @php($allowed = $roleDocumentTypes[$role->slug] ?? [])
+                            @php
+                                $allowed = $roleDocumentTypes[$role->slug] ?? [];
+                            @endphp
                             <div class="rounded-lg border border-slate-200 p-3">
                                 <div class="text-sm font-medium text-slate-900">{{ $role->name }} <code class="ms-1 text-xs text-slate-500">{{ $role->slug }}</code></div>
                                 <div class="mt-2 flex flex-wrap gap-1.5">
