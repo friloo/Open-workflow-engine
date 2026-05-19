@@ -656,6 +656,7 @@ Damit laufen automatisch:
 | `ocr:run-pending` | taeglich 02:30 | OCR-Nachzieher |
 | `documents:retention-check` | taeglich 03:15 | DSGVO-Aufbewahrungsregeln |
 | `backup:run` | taeglich 01:30 | Tagessicherung (ZIP DB + Anhaenge) |
+| `update:notify-available` | taeglich 08:00 | Bell-Benachrichtigung an Admins bei neuer Version |
 | `shares:review` | taeglich 07:00 | Sharing-Link-Pruefung |
 | `audit:cleanup` | monatlich | IP/UA aelter 2 Jahre anonymisieren |
 

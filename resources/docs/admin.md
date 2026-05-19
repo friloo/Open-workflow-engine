@@ -114,6 +114,7 @@ Damit laufen automatisch:
 - `mail:fetch` (alle 5 Minuten) — IMAP-Postfaecher abrufen
 - `tasks:remind` (taeglich 09:00) — Erinnerung an offene Aufgaben
 - `backup:run` (taeglich 01:30) — Tagessicherung + Retention
+- `update:notify-available` (taeglich 08:00) — Glocken-Benachrichtigung an Admins bei neuer Version
 - `shares:review` (taeglich 07:00) — Sharing-Link-Pruefungs-Mails
 - Scheduler-Sentinel (jede Minute) — Health-Check weiss damit, dass
   der Cron laeuft

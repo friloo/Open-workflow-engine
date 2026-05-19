@@ -74,3 +74,10 @@ Schedule::command('backup:run')
     ->dailyAt('01:30')
     ->withoutOverlapping(120)
     ->runInBackground();
+
+// Update-Check: einmal taeglich pruefen, Admins per Glocke informieren
+// wenn eine neue Version vorliegt (pro Soll-SHA nur einmal).
+Schedule::command('update:notify-available')
+    ->dailyAt('08:00')
+    ->withoutOverlapping()
+    ->runInBackground();
