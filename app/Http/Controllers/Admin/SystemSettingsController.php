@@ -97,6 +97,124 @@ class SystemSettingsController extends Controller
         ]);
     }
 
+    public function support(): View
+    {
+        return view('admin.settings.support', [
+            'support' => Settings::group('support') + [
+                'enabled' => false,
+                'mode' => 'mail',
+                'email' => '',
+                'sidebar_label' => 'IT-Support',
+                'api_url' => '',
+                'api_method' => 'POST',
+                'api_headers' => [],
+                'api_body_template' => '{
+  "subject": "{{ subject }}",
+  "description": "{{ description }}",
+  "requester": {
+    "name": "{{ user_name }}",
+    "email": "{{ user_email }}"
+  }
+}',
+            ],
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    /**
+     * KI-Helfer fuer das Support-Body-Template. Bekommt eine kurze
+     * Beschreibung vom Admin (z. B. 'Zammad-Tickets erstellen'), liefert
+     * ein passendes JSON-Template mit Standard-Platzhaltern zurueck.
+     */
+    public function supportAiTemplate(Request $request, \App\Services\AIClient $ai): \Illuminate\Http\JsonResponse
+    {
+        $data = $request->validate([
+            'description' => ['required', 'string', 'min:5', 'max:1000'],
+        ]);
+
+        if (! $ai->isConfigured()) {
+            return response()->json(['error' => 'KI ist nicht konfiguriert. Geh zu Einstellungen → KI.'], 422);
+        }
+
+        $system = "Du baust JSON-Body-Templates fuer HTTP-API-Calls von einem internen "
+            ."Support-Formular an externe Ticketsysteme. Liefere AUSSCHLIESSLICH gueltiges JSON "
+            ."(keine Code-Blocks, keine Erklaerungen) als Body-Template fuer einen POST-Request. "
+            ."Nutze folgende Platzhalter, die zur Laufzeit ersetzt werden: "
+            ."{{ subject }}, {{ description }}, {{ user_name }}, {{ user_email }}, "
+            ."{{ user_id }}, {{ app_name }}, {{ app_url }}, {{ timestamp }}. "
+            ."Die Werte sind bereits JSON-sicher escaped — du musst sie in Quotes setzen. "
+            ."Gib keine Auth-Header an (die kommen separat in der Konfiguration).";
+
+        try {
+            $r = $ai->chat([
+                ['role' => 'system', 'content' => $system],
+                ['role' => 'user', 'content' => $data['description']],
+            ], 0.2);
+            $text = trim($r['text']);
+            // Manchmal liefert die KI ```json ... ``` — den Block entfernen.
+            $text = preg_replace('/^```(?:json)?\s*|\s*```$/m', '', $text);
+            $text = trim($text);
+            // Sanity-Check: muss als JSON parsebar sein.
+            $decoded = json_decode($text, true);
+            if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json(['error' => 'KI hat kein gueltiges JSON geliefert. Output: '.\Illuminate\Support\Str::limit($text, 200)], 422);
+            }
+            return response()->json(['template' => json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateSupport(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'enabled' => ['nullable', 'in:0,1'],
+            'mode' => ['required', 'in:mail,api,both'],
+            'email' => ['nullable', 'email'],
+            'sidebar_label' => ['nullable', 'string', 'max:64'],
+            'api_url' => ['nullable', 'url'],
+            'api_method' => ['nullable', 'in:GET,POST,PUT,PATCH'],
+            'api_headers' => ['array'],
+            'api_headers.*.key' => ['nullable', 'string', 'max:128'],
+            'api_headers.*.value' => ['nullable', 'string', 'max:1024'],
+            'api_body_template' => ['nullable', 'string', 'max:65535'],
+        ]);
+
+        // Validierung pro Modus: Mail braucht email, API braucht url.
+        if (in_array($data['mode'], ['mail', 'both'], true) && empty($data['email'])) {
+            return back()->withErrors(['email' => 'Bei Modus Mail/Beides musst du eine Support-Adresse setzen.'])->withInput();
+        }
+        if (in_array($data['mode'], ['api', 'both'], true) && empty($data['api_url'])) {
+            return back()->withErrors(['api_url' => 'Bei Modus API/Beides musst du eine API-URL setzen.'])->withInput();
+        }
+
+        $headers = [];
+        foreach ($data['api_headers'] ?? [] as $h) {
+            if (! empty($h['key'])) $headers[] = ['key' => $h['key'], 'value' => $h['value'] ?? ''];
+        }
+
+        $payload = [
+            'enabled' => ! empty($data['enabled']),
+            'mode' => $data['mode'],
+            'email' => $data['email'] ?? '',
+            'sidebar_label' => $data['sidebar_label'] ?: 'IT-Support',
+            'api_url' => $data['api_url'] ?? '',
+            'api_method' => $data['api_method'] ?? 'POST',
+            'api_headers' => $headers,
+            'api_body_template' => $data['api_body_template'] ?? '',
+        ];
+
+        foreach ($payload as $k => $v) {
+            Settings::set("support.{$k}", $v, $request->user()->id);
+        }
+
+        $this->audit->log('settings.support.updated', null, null, [
+            'mode' => $payload['mode'], 'enabled' => $payload['enabled'],
+        ], 'IT-Support-Konfiguration aktualisiert', $request->user()->id);
+
+        return redirect()->route('admin.settings.support')->with('status', 'Support-Konfiguration gespeichert.');
+    }
+
     /**
      * Liste aller Sub-Seiten — wird im Tab-Strip oben gerendert und auf
      * der Overview als Karten ausgegeben.
@@ -111,6 +229,7 @@ class SystemSettingsController extends Controller
             ['slug' => 'ai', 'route' => 'admin.settings.ai', 'label' => 'KI', 'icon' => 'cog', 'description' => 'OpenAI / DeepSeek / Ollama.'],
             ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente', 'icon' => 'document', 'description' => 'Archive, Retention, Rollen-Zuordnung.'],
             ['slug' => 'sharing', 'route' => 'admin.settings.sharing', 'label' => 'Sharing', 'icon' => 'cog', 'description' => 'Caps fuer externe Freigaben.'],
+            ['slug' => 'support', 'route' => 'admin.settings.support', 'label' => 'IT-Support', 'icon' => 'cog', 'description' => 'Support-Formular fuer Benutzer (Mail oder Ticket-API).'],
         ];
     }
 

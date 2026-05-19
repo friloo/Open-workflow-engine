@@ -9,6 +9,8 @@
                 }
             })->count()
         : 0;
+    $supportEnabled = (bool) \App\Support\Settings::get('support.enabled', false);
+    $supportLabel = (string) (\App\Support\Settings::get('support.sidebar_label', '') ?: 'IT-Support');
 
     // Archive (Dokumenttypen) als Sub-Eintraege unter "Dokumente".
     $documentArchives = [];
@@ -39,6 +41,7 @@
             'items' => [
                 ['name' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'home', 'active' => request()->routeIs('dashboard')],
                 ['name' => 'Meine Aufgaben', 'route' => 'tasks.index', 'icon' => 'inbox', 'active' => request()->routeIs('tasks.*'), 'badge' => $openTasks ?: null],
+                ['name' => $supportLabel, 'route' => 'support.show', 'icon' => 'cog', 'active' => request()->routeIs('support.*'), 'when' => $supportEnabled],
             ],
         ],
         [

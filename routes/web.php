@@ -79,6 +79,10 @@ Route::middleware(['auth'])->group(function () {
     // Global Search (Cmd+K)
     Route::get('/search', [\App\Http\Controllers\GlobalSearchController::class, 'search'])->name('search.global');
 
+    // IT-Support (eingeblendet wenn support.enabled in Settings)
+    Route::get('/support', [\App\Http\Controllers\SupportController::class, 'show'])->name('support.show');
+    Route::post('/support', [\App\Http\Controllers\SupportController::class, 'send'])->name('support.send');
+
     // In-App-Notifications
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/dropdown', [\App\Http\Controllers\NotificationController::class, 'dropdown'])->name('notifications.dropdown');
@@ -288,6 +292,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('settings/branding', [SystemSettingsController::class, 'branding'])->name('settings.branding');
         Route::get('settings/documents', [SystemSettingsController::class, 'documents'])->name('settings.documents');
         Route::get('settings/sharing', [SystemSettingsController::class, 'sharing'])->name('settings.sharing');
+        Route::get('settings/support', [SystemSettingsController::class, 'support'])->name('settings.support');
+        Route::post('settings/support', [SystemSettingsController::class, 'updateSupport'])->name('settings.support.update');
+        Route::post('settings/support/ai-template', [SystemSettingsController::class, 'supportAiTemplate'])->name('support.ai_template');
         Route::post('settings/mail', [SystemSettingsController::class, 'updateMail'])->name('settings.mail.update');
         Route::post('settings/mail/test', [SystemSettingsController::class, 'sendTestMail'])->name('settings.mail.test');
         Route::post('settings/m365', [SystemSettingsController::class, 'updateM365'])->name('settings.m365.update');
