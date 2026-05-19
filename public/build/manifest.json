@@ -1,0 +1,45 @@
+{
+  "_designer-BNXYc9iA.css": {
+    "file": "assets/designer-BNXYc9iA.css",
+    "src": "_designer-BNXYc9iA.css"
+  },
+  "_designer-G_lXzjSE.js": {
+    "file": "assets/designer-G_lXzjSE.js",
+    "name": "designer",
+    "css": [
+      "assets/designer-BNXYc9iA.css"
+    ]
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-RiW4cNPS.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-BFXdhL8Q.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/designer/index.js": {
+    "file": "assets/index-DApt7Go0.js",
+    "name": "index",
+    "src": "resources/js/designer/index.js",
+    "isEntry": true,
+    "imports": [
+      "_designer-G_lXzjSE.js"
+    ]
+  },
+  "resources/js/viewer/index.js": {
+    "file": "assets/index-C0VinAKB.js",
+    "name": "index",
+    "src": "resources/js/viewer/index.js",
+    "isEntry": true,
+    "imports": [
+      "_designer-G_lXzjSE.js"
+    ],
+    "css": [
+      "assets/index-vKbYgDeD.css"
+    ]
+  }
+}
