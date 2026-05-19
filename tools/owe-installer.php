@@ -114,14 +114,14 @@ function owe_step_download(string $baseDir, string $baseUrl, string $channel): v
     echo '<h2>Schritt 1: Download</h2>';
 
     // 1. Aktuelle Version vom Proxy holen
-    [$sha, $err] = owe_http_get_text($baseUrl.'/version');
+    [$body, $err] = owe_http_get_text($baseUrl.'/version');
     if ($err !== null) {
         owe_render_error('Konnte aktuelle Version nicht abfragen: '.$err);
         return;
     }
-    $sha = trim($sha);
-    if (! preg_match('/^[0-9a-f]{40}$/', $sha)) {
-        owe_render_error('Antwort vom Proxy ist keine 40-stellige SHA: '.htmlspecialchars(substr($sha, 0, 120)));
+    $sha = owe_extract_sha($body);
+    if ($sha === null) {
+        owe_render_error('Antwort vom Proxy enthaelt keine 40-stellige SHA: '.htmlspecialchars(substr(trim($body), 0, 200)));
         return;
     }
     echo '<p>Aktuelle Version (Channel <em>'.htmlspecialchars($channel).'</em>): <code>'.htmlspecialchars($sha).'</code></p>';
@@ -317,6 +317,42 @@ function owe_check_precondition(string $dir): array
         return ['blocked' => true, 'reason' => "vendor/autoload.php existiert bereits — sieht nach einer existierenden Installation aus. Bootstrap abgebrochen, damit nichts ueberschrieben wird. Bitte das Webroot leeren oder einen neuen Pfad nutzen."];
     }
     return ['blocked' => false, 'reason' => null];
+}
+
+/**
+ * Akzeptiert sowohl plain Body "<40-char-sha>" als auch JSON
+ *   {"sha": "<40-char>", ...} oder {"version": "<40-char>", ...}.
+ * Liefert die SHA als lower-case 40-Zeichen-Hex oder null.
+ */
+function owe_extract_sha(string $body): ?string
+{
+    $trimmed = trim($body);
+    if ($trimmed === '') return null;
+
+    // Plain Form
+    if (preg_match('/^[0-9a-f]{40}$/i', $trimmed)) {
+        return strtolower($trimmed);
+    }
+
+    // JSON-Antwort
+    if ($trimmed[0] === '{') {
+        $decoded = json_decode($trimmed, true);
+        if (is_array($decoded)) {
+            foreach (['sha', 'version', 'commit', 'ref'] as $key) {
+                $v = $decoded[$key] ?? null;
+                if (is_string($v) && preg_match('/^[0-9a-f]{40}$/i', $v)) {
+                    return strtolower($v);
+                }
+            }
+        }
+    }
+
+    // Letzte Chance: SHA irgendwo in der Antwort
+    if (preg_match('/\b([0-9a-f]{40})\b/i', $trimmed, $m)) {
+        return strtolower($m[1]);
+    }
+
+    return null;
 }
 
 function owe_http_get_text(string $url): array

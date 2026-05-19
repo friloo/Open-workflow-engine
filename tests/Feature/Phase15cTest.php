@@ -61,6 +61,32 @@ class Phase15cTest extends TestCase
         }
     }
 
+    public function test_check_accepts_json_response_from_proxy(): void
+    {
+        // Proxy liefert real {"sha":"...","title":"..."} statt plain SHA
+        $oldSha = str_repeat('a', 40);
+        $newSha = str_repeat('e', 40);
+        file_put_contents(base_path('.version'), $oldSha);
+
+        $channel = UpdateChannelFactory::current();
+        Http::fake([
+            $channel->baseUrl.'/version' => Http::response(
+                json_encode(['sha' => $newSha, 'title' => 'Some commit']),
+                200,
+                ['Content-Type' => 'application/json'],
+            ),
+        ]);
+
+        try {
+            $check = app(UpdateManager::class)->check();
+            $this->assertSame($newSha, $check['latest']);
+            $this->assertTrue($check['has_update']);
+            $this->assertNull($check['error']);
+        } finally {
+            @unlink(base_path('.version'));
+        }
+    }
+
     public function test_check_returns_error_on_invalid_sha(): void
     {
         $channel = UpdateChannelFactory::current();
