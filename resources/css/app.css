@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ---------- Help-Anleitungen: Callouts (GitHub-Style) ---------- */
+@layer components {
+    .callout {
+        @apply my-4 rounded-lg border-l-4 px-4 py-3;
+    }
+    .callout-title {
+        @apply text-xs font-semibold uppercase tracking-wider mb-1;
+    }
+    .callout-body > :first-child { margin-top: 0; }
+    .callout-body > :last-child { margin-bottom: 0; }
+
+    .callout-note      { @apply border-sky-400     bg-sky-50;     }
+    .callout-note .callout-title    { @apply text-sky-700;     }
+    .callout-tip       { @apply border-emerald-400 bg-emerald-50; }
+    .callout-tip .callout-title     { @apply text-emerald-700; }
+    .callout-important { @apply border-violet-400  bg-violet-50;  }
+    .callout-important .callout-title { @apply text-violet-700; }
+    .callout-warning   { @apply border-amber-400   bg-amber-50;   }
+    .callout-warning .callout-title { @apply text-amber-700;   }
+    .callout-danger    { @apply border-rose-400    bg-rose-50;    }
+    .callout-danger .callout-title  { @apply text-rose-700;    }
+
+    /* Tabellen aus Markdown ---------------------------- */
+    .owe-table {
+        @apply w-full text-sm border-collapse my-4;
+    }
+    .owe-table th {
+        @apply text-left bg-slate-50 border-b-2 border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600;
+    }
+    .owe-table td {
+        @apply border-b border-slate-100 px-3 py-2 align-top;
+    }
+    .owe-table tr:hover td {
+        @apply bg-slate-50;
+    }
+}
