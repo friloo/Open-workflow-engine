@@ -18,18 +18,57 @@ class TaskController extends Controller
     {
         $user = $request->user();
         $roleIds = $user->roles->pluck('id');
+        $filter = $request->get('filter', 'all');
+        $q = trim((string) $request->get('q', ''));
 
-        $open = WorkflowStepExecution::query()
-            ->with(['instance.workflow', 'instance.starter', 'assignedRole'])
+        $baseScope = fn ($query) => $query
             ->whereNull('completed_at')
-            ->where(function ($q) use ($user, $roleIds) {
-                $q->where('assigned_to_user_id', $user->id);
+            ->where(function ($q2) use ($user, $roleIds) {
+                $q2->where('assigned_to_user_id', $user->id);
                 if ($roleIds->isNotEmpty()) {
-                    $q->orWhereIn('assigned_to_role_id', $roleIds);
+                    $q2->orWhereIn('assigned_to_role_id', $roleIds);
                 }
-            })
-            ->orderBy('due_at')
-            ->paginate(20);
+            });
+
+        // Counts pro Filter-Chip — eine Roundtrip-Query reicht nicht, aber
+        // pro Chip eine count()-Query ist okay (kleine Datenmengen pro User).
+        $now = now();
+        $counts = [
+            'all' => $baseScope(WorkflowStepExecution::query())->count(),
+            'overdue' => $baseScope(WorkflowStepExecution::query())
+                ->whereNotNull('due_at')->where('due_at', '<', $now)->count(),
+            'today' => $baseScope(WorkflowStepExecution::query())
+                ->whereNotNull('due_at')->whereBetween('due_at', [$now->copy()->startOfDay(), $now->copy()->endOfDay()])->count(),
+            'week' => $baseScope(WorkflowStepExecution::query())
+                ->whereNotNull('due_at')->whereBetween('due_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])->count(),
+            'mine' => $baseScope(WorkflowStepExecution::query())
+                ->where('assigned_to_user_id', $user->id)->whereNull('assigned_to_role_id')->count(),
+        ];
+
+        $query = WorkflowStepExecution::query()
+            ->with(['instance.workflow', 'instance.starter', 'assignedRole']);
+        $baseScope($query);
+
+        switch ($filter) {
+            case 'overdue':
+                $query->whereNotNull('due_at')->where('due_at', '<', $now);
+                break;
+            case 'today':
+                $query->whereNotNull('due_at')->whereBetween('due_at', [$now->copy()->startOfDay(), $now->copy()->endOfDay()]);
+                break;
+            case 'week':
+                $query->whereNotNull('due_at')->whereBetween('due_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                break;
+            case 'mine':
+                $query->where('assigned_to_user_id', $user->id)->whereNull('assigned_to_role_id');
+                break;
+        }
+
+        if ($q !== '') {
+            $query->whereHas('instance.workflow', fn ($w) => $w->where('name', 'like', '%'.$q.'%'));
+        }
+
+        $open = $query->orderBy('due_at')->paginate(20)->withQueryString();
 
         $myRecent = WorkflowStepExecution::query()
             ->with(['instance.workflow'])
@@ -37,7 +76,7 @@ class TaskController extends Controller
             ->orderByDesc('completed_at')
             ->limit(5)->get();
 
-        return view('tasks.index', compact('open', 'myRecent'));
+        return view('tasks.index', compact('open', 'myRecent', 'counts', 'filter', 'q'));
     }
 
     public function show(WorkflowStepExecution $step, Request $request): View
