@@ -41,3 +41,82 @@
         @endforeach
     </div>
 </div>
+
+{{-- Dokument-Archive: pro Archiv eine Checkbox, ob diese Rolle es in der
+     Dokumenten-Suche sehen darf. Greift nur wenn der User ueberhaupt
+     documents.search hat. Admin sieht immer alles. --}}
+<div class="mt-8">
+    <h3 class="text-sm font-semibold text-slate-900">Sichtbare Dokument-Archive</h3>
+    <p class="text-xs text-slate-500 mb-3">
+        Welche Archive (Dokumenttypen) sieht diese Rolle in der Dokumenten-Suche.
+        Wirkt nur, wenn die Rolle die Permission <code>documents.search</code> hat.
+    </p>
+
+    @if(empty($documentTypes))
+        <p class="text-sm text-slate-500">Noch keine Archive definiert.
+            <a href="{{ route('admin.settings.documents') }}" class="text-indigo-600 hover:text-indigo-500">jetzt anlegen</a>
+        </p>
+    @else
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            @php($selectedTypes = old('document_types', $roleDocumentTypes ?? []))
+            @foreach($documentTypes as $dt)
+                <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 p-2.5 text-sm hover:bg-slate-50 has-[:checked]:border-indigo-400 has-[:checked]:bg-indigo-50">
+                    <input type="checkbox" name="document_types[]" value="{{ $dt }}"
+                        class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        @checked(in_array($dt, $selectedTypes))>
+                    <span class="text-slate-700">{{ $dt }}</span>
+                </label>
+            @endforeach
+        </div>
+    @endif
+</div>
+
+{{-- Listen / Lookup-Tabellen: zwei Checkboxen pro Liste — Lesen + Schreiben.
+     Eine Liste ohne Rollen-Eintrag ist fuer ALLE mit lists.view sichtbar. --}}
+<div class="mt-8">
+    <h3 class="text-sm font-semibold text-slate-900">Zugriff auf Listen / Lookup-Tabellen</h3>
+    <p class="text-xs text-slate-500 mb-3">
+        Wenn eine Liste hier nicht angehakt ist, kann diese Rolle sie nur sehen, falls die
+        Liste insgesamt ohne Rollen-Beschraenkung gepflegt ist (Default-offen).
+        Mit Haken bei „Bearbeiten" darf die Rolle Eintraege aendern.
+    </p>
+
+    @if($lists->isEmpty())
+        <p class="text-sm text-slate-500">Noch keine Listen vorhanden.
+            <a href="{{ route('lists.index') }}" class="text-indigo-600 hover:text-indigo-500">jetzt anlegen</a>
+        </p>
+    @else
+        @php($listAccess = old('list_access', $roleListAccess ?? []))
+        <div class="space-y-1.5">
+            @foreach($lists as $list)
+                @php
+                    $current = $listAccess[$list->id] ?? null;
+                    $hasAccess = ! empty($current['access']);
+                    $canEdit = ! empty($current['can_edit']);
+                @endphp
+                <div class="grid grid-cols-12 items-center gap-2 rounded-lg border border-slate-200 p-2.5"
+                     x-data="{ access: {{ $hasAccess ? 'true' : 'false' }} }">
+                    <div class="col-span-12 sm:col-span-6 min-w-0">
+                        <div class="text-sm font-medium text-slate-900 truncate">{{ $list->name }}</div>
+                        @if($list->description)
+                            <div class="text-xs text-slate-500 truncate">{{ $list->description }}</div>
+                        @endif
+                    </div>
+                    <label class="col-span-6 sm:col-span-3 inline-flex items-center gap-2 text-sm text-slate-700">
+                        <input type="checkbox" name="list_access[{{ $list->id }}][access]" value="1"
+                            class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            x-model="access" @checked($hasAccess)>
+                        Sehen
+                    </label>
+                    <label class="col-span-6 sm:col-span-3 inline-flex items-center gap-2 text-sm text-slate-700"
+                           :class="access ? '' : 'opacity-40'">
+                        <input type="checkbox" name="list_access[{{ $list->id }}][can_edit]" value="1"
+                            class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            :disabled="!access" @checked($canEdit)>
+                        Bearbeiten
+                    </label>
+                </div>
+            @endforeach
+        </div>
+    @endif
+</div>

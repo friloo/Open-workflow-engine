@@ -27,35 +27,48 @@
         <p class="mt-3 text-xs text-slate-500">Indexfelder pro Archiv pflegst du unter <a href="{{ route('admin.document_schemas.index') }}" class="text-indigo-600 hover:text-indigo-500">Dokument-Schemas</a>.</p>
     </x-card>
 
-    <x-card title="Berechtigungen je Rolle" description="Lege fest, welche Dokumenttypen eine Rolle in der Dokumenten-Suche sieht. Admin sieht immer alles.">
+    <x-card title="Berechtigungen je Rolle"
+            description="Welche Rolle welche Archive sieht — wird jetzt direkt bei der Rolle gepflegt, damit du beim Anlegen einer Rolle alles in einem Fenster hast.">
         @if(empty($documentTypes))
             <p class="text-sm text-slate-500">Lege zuerst Dokumenttypen oben an.</p>
+        @elseif($roles->isEmpty())
+            <p class="text-sm text-slate-500">Noch keine Rollen vorhanden.</p>
         @else
-            <form method="POST" action="{{ route('admin.settings.role_document_types.update') }}">
-                @csrf
-                <div class="space-y-3">
-                    @foreach($roles as $role)
-                        @php
-                            $allowed = $roleDocumentTypes[$role->slug] ?? [];
-                        @endphp
-                        <div class="rounded-lg border border-slate-200 p-3">
-                            <div class="text-sm font-medium text-slate-900">{{ $role->name }} <code class="ms-1 text-xs text-slate-500">{{ $role->slug }}</code></div>
-                            <div class="mt-2 flex flex-wrap gap-1.5">
-                                @foreach($documentTypes as $dt)
-                                    <label class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-2 py-0.5 text-xs has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
-                                        <input type="checkbox" name="roles[{{ $role->slug }}][]" value="{{ $dt }}" @checked(in_array($dt, $allowed))
-                                            class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                        {{ $dt }}
-                                    </label>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="mt-3 flex justify-end">
-                    <x-primary-button>Berechtigungen speichern</x-primary-button>
-                </div>
-            </form>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-xs font-semibold uppercase text-slate-500">
+                            <th class="py-2 pr-4">Rolle</th>
+                            <th class="py-2 pr-4">Sichtbare Archive</th>
+                            <th class="py-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($roles as $role)
+                            @php($allowed = $roleDocumentTypes[$role->slug] ?? [])
+                            <tr>
+                                <td class="py-2 pr-4 font-medium text-slate-900 whitespace-nowrap">{{ $role->name }}</td>
+                                <td class="py-2 pr-4">
+                                    @if($role->slug === 'admin')
+                                        <em class="text-slate-500">alle (implizit)</em>
+                                    @elseif(empty($allowed))
+                                        <span class="text-slate-400">keines</span>
+                                    @else
+                                        <span class="flex flex-wrap gap-1">
+                                            @foreach($allowed as $dt)
+                                                <span class="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">{{ $dt }}</span>
+                                            @endforeach
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="py-2 text-right whitespace-nowrap">
+                                    <a href="{{ route('admin.roles.edit', $role) }}" class="text-xs text-indigo-600 hover:text-indigo-500">Rolle bearbeiten &rarr;</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         @endif
     </x-card>
 

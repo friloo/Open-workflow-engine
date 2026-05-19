@@ -37,6 +37,12 @@ class Role extends Model
             ->withPivot(['assigned_by', 'assigned_at']);
     }
 
+    public function lookupLists(): BelongsToMany
+    {
+        return $this->belongsToMany(LookupList::class, 'lookup_list_role')
+            ->withPivot('can_edit')->withTimestamps();
+    }
+
     public function hasPermission(string $slug): bool
     {
         return $this->permissions->contains('slug', $slug);
