@@ -424,6 +424,11 @@ function owe_http_get_to_file(string $url, string $path): ?string
  * Stellt sicher, dass .env existiert und APP_KEY gesetzt ist. Damit
  * der App-Installer ueberhaupt aufrufbar ist — Laravel verweigert
  * sonst den Start mit MissingAppKeyException.
+ *
+ * Setzt zusaetzlich SESSION_DRIVER, CACHE_STORE und DB_CONNECTION auf
+ * file/sqlite, damit der Installer-Wizard OHNE eingerichtete DB
+ * laufen kann (sonst greift Laravel 11s Session-Middleware vor /install
+ * und versucht eine kaputte DB-Connection -> 500).
  */
 function owe_ensure_env_and_app_key(string $baseDir): void
 {
@@ -440,8 +445,30 @@ function owe_ensure_env_and_app_key(string $baseDir): void
         }
     }
 
-    // APP_KEY pruefen + generieren wenn leer
+    $sqlitePath = $baseDir.DIRECTORY_SEPARATOR.'database'.DIRECTORY_SEPARATOR.'database.sqlite';
+    if (! is_file($sqlitePath)) {
+        @mkdir(dirname($sqlitePath), 0775, true);
+        @touch($sqlitePath);
+    }
+
+    $defaults = [
+        'SESSION_DRIVER' => 'file',
+        'CACHE_STORE' => 'file',
+        'DB_CONNECTION' => 'sqlite',
+        'DB_DATABASE' => $sqlitePath,
+    ];
     $env = (string) @file_get_contents($envPath);
+    foreach ($defaults as $key => $value) {
+        if (! preg_match('/^\s*'.preg_quote($key, '/').'\s*=\s*\S/m', $env)) {
+            if (preg_match('/^\s*'.preg_quote($key, '/').'\s*=.*$/m', $env)) {
+                $env = preg_replace('/^\s*'.preg_quote($key, '/').'\s*=.*$/m', $key.'='.$value, $env);
+            } else {
+                $env .= (str_ends_with($env, "\n") ? '' : "\n").$key.'='.$value."\n";
+            }
+        }
+    }
+
+    // APP_KEY pruefen + generieren wenn leer
     if (! preg_match('/^\s*APP_KEY\s*=\s*\S+/m', $env)) {
         $key = 'base64:'.base64_encode(random_bytes(32));
         if (preg_match('/^\s*APP_KEY\s*=.*$/m', $env)) {
@@ -449,8 +476,9 @@ function owe_ensure_env_and_app_key(string $baseDir): void
         } else {
             $env .= (str_ends_with($env, "\n") ? '' : "\n").'APP_KEY='.$key."\n";
         }
-        @file_put_contents($envPath, $env);
     }
+
+    @file_put_contents($envPath, $env);
 }
 
 function owe_fallback_htaccess(): string
