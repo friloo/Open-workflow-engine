@@ -232,6 +232,11 @@ function owe_step_extract(string $baseDir, string $selfFile, string $channel): v
     // .version Marker schreiben
     @file_put_contents($baseDir.DIRECTORY_SEPARATOR.'.version', $state['sha']);
 
+    // .env + APP_KEY bootstrappen — sonst wirft Laravel beim ersten
+    // Request mit MissingAppKeyException 500, bevor der App-Installer
+    // ueberhaupt angezeigt werden kann.
+    owe_ensure_env_and_app_key($baseDir);
+
     // Fallback-.htaccess in den Webroot, falls noch keiner existiert.
     // (Fuer Hoster die den Document-Root nicht direkt auf public/ legen.)
     $rootHtaccess = $baseDir.DIRECTORY_SEPARATOR.'.htaccess';
@@ -413,6 +418,57 @@ function owe_http_get_to_file(string $url, string $path): ?string
     $ctx = stream_context_create(['http' => ['user_agent' => OWE_USER_AGENT, 'timeout' => 600]]);
     $bytes = @copy($url, $path, $ctx);
     return $bytes ? null : 'copy() fehlgeschlagen';
+}
+
+/**
+ * Stellt sicher, dass .env existiert und APP_KEY gesetzt ist. Damit
+ * der App-Installer ueberhaupt aufrufbar ist — Laravel verweigert
+ * sonst den Start mit MissingAppKeyException.
+ *
+ * Zwingt zusaetzlich SESSION_DRIVER=file und CACHE_STORE=file, damit
+ * der Installer-Wizard rendern kann, OHNE dass eine DB verfuegbar
+ * sein muss. DB_CONNECTION (sqlite/mysql/mariadb) waehlt der User
+ * im Wizard selbst — wir fassen das hier bewusst NICHT an.
+ */
+function owe_ensure_env_and_app_key(string $baseDir): void
+{
+    $envPath = $baseDir.DIRECTORY_SEPARATOR.'.env';
+    $examplePath = $baseDir.DIRECTORY_SEPARATOR.'.env.example';
+
+    if (! is_file($envPath)) {
+        if (is_file($examplePath)) {
+            @copy($examplePath, $envPath);
+        } else {
+            @file_put_contents($envPath,
+                "APP_NAME=OWE\nAPP_ENV=production\nAPP_DEBUG=false\nAPP_URL=\nAPP_KEY=\n"
+            );
+        }
+    }
+
+    $env = (string) @file_get_contents($envPath);
+
+    // SESSION/CACHE auf file zwingen — Laravel 11s Default 'database'
+    // wuerde sonst beim ersten Aufruf von /install in die DB schreiben
+    // wollen (die zu dem Zeitpunkt noch nicht konfiguriert ist).
+    foreach (['SESSION_DRIVER' => 'file', 'CACHE_STORE' => 'file'] as $key => $value) {
+        if (preg_match('/^\s*'.preg_quote($key, '/').'\s*=.*$/m', $env)) {
+            $env = preg_replace('/^\s*'.preg_quote($key, '/').'\s*=.*$/m', $key.'='.$value, $env);
+        } else {
+            $env .= (str_ends_with($env, "\n") ? '' : "\n").$key.'='.$value."\n";
+        }
+    }
+
+    // APP_KEY pruefen + generieren wenn leer
+    if (! preg_match('/^\s*APP_KEY\s*=\s*\S+/m', $env)) {
+        $key = 'base64:'.base64_encode(random_bytes(32));
+        if (preg_match('/^\s*APP_KEY\s*=.*$/m', $env)) {
+            $env = preg_replace('/^\s*APP_KEY\s*=.*$/m', 'APP_KEY='.$key, $env);
+        } else {
+            $env .= (str_ends_with($env, "\n") ? '' : "\n").'APP_KEY='.$key."\n";
+        }
+    }
+
+    @file_put_contents($envPath, $env);
 }
 
 function owe_fallback_htaccess(): string
