@@ -26,8 +26,9 @@
 
     <x-card title="Dokumente">
         @if($case->attachments->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Dokumente in dieser Akte.<br>
-                Tipp: In der Dokumenten-Liste mehrere Dokumente auswaehlen und ueber <strong>Bulk-Aktion -> „Zu Akte hinzufuegen"</strong> dieser Akte zuordnen.</p>
+            <x-empty-state icon="document"
+                title="Noch keine Dokumente in dieser Akte"
+                description='In der Dokumenten-Liste mehrere Dokumente auswaehlen und ueber Bulk-Aktion → "Zu Akte hinzufuegen" dieser Akte zuordnen.' />
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($case->attachments as $d)

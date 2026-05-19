@@ -11,7 +11,7 @@
 
     <x-card>
         @if($submissions->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Eingaben.</p>
+            <x-empty-state icon="form" title="Noch keine Eingaben" description="Sobald jemand das oeffentliche Formular ausfuellt, taucht es hier auf." />
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">

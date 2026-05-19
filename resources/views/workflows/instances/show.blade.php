@@ -52,7 +52,7 @@
 
                 <x-card title="Kommentare">
                     @if($instance->comments->isEmpty())
-                        <p class="text-sm text-slate-500">Noch keine Kommentare.</p>
+                        <x-empty-state title="Noch keine Kommentare" description="Bearbeiter koennen Notizen zu diesem Vorgang hinterlassen." />
                     @else
                         <ul class="space-y-3 mb-4">
                             @foreach($instance->comments as $c)
@@ -84,7 +84,7 @@
 
                 <x-card title="Schritt-Historie">
                     @if($instance->stepExecutions->isEmpty())
-                        <p class="text-sm text-slate-500">Noch keine Schritte ausgefuehrt.</p>
+                        <x-empty-state title="Noch keine Schritte ausgefuehrt" description="Sobald der erste Knoten verarbeitet wird, taucht er hier auf." />
                     @else
                         <ol class="relative ms-3 border-s border-slate-200">
                             @foreach($instance->stepExecutions->sortBy('id') as $step)

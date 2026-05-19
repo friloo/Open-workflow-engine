@@ -8,7 +8,7 @@
 
     <x-card>
         @if($versions->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Versionen vorhanden.</p>
+            <x-empty-state title="Noch keine Versionen" description="Sobald du den Designer speicherst, wird die erste Version angelegt." />
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($versions as $v)

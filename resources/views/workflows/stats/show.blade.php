@@ -35,7 +35,7 @@
 
     <x-card title="Engpaesse — langsamste Schritte" description="Durchschnittliche Bearbeitungszeit pro Schritt (assigned -> completed).">
         @if(empty($stats['bottlenecks']))
-            <p class="text-sm text-slate-500">Noch keine abgeschlossenen Schritte.</p>
+            <x-empty-state title="Noch keine abgeschlossenen Schritte" description="Sobald Vorgaenge durchgelaufen sind, erscheinen hier die Engpaesse." />
         @else
             <table class="min-w-full text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">

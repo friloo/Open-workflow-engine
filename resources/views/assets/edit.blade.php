@@ -85,7 +85,7 @@
         @if(! $isNew)
             <x-card title="Dateien" description="Scans und Belege (z. B. Fuehrerschein-Foto).">
                 @if($asset->attachments->isEmpty())
-                    <p class="text-sm text-slate-500">Noch keine Dateien.</p>
+                    <x-empty-state icon="document" title="Noch keine Dateien" description="Lade unten einen Scan oder ein Foto zu diesem Asset hoch." />
                 @else
                     <ul class="divide-y divide-slate-100">
                         @foreach($asset->attachments as $a)

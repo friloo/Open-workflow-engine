@@ -22,6 +22,9 @@
     </div>
 
     <x-card>
+        @if($users->isEmpty())
+            <x-empty-state title="Keine Benutzer gefunden" description="Aenderst du gerade Filter, probier sie zurueckzusetzen — oder lege einen ersten Benutzer an." />
+        @else
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead>
@@ -36,7 +39,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    @forelse($users as $u)
+                    @foreach($users as $u)
                         <tr>
                             <td class="py-3 pr-4 font-medium text-slate-900">{{ $u->name }}</td>
                             <td class="py-3 pr-4 text-slate-700">{{ $u->email }}</td>
@@ -68,12 +71,11 @@
                                 @endif
                             </td>
                         </tr>
-                    @empty
-                        <tr><td colspan="7" class="py-6 text-center text-slate-500">Keine Benutzer gefunden.</td></tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
         <div class="mt-4">{{ $users->links() }}</div>
+        @endif
     </x-card>
 </x-app-layout>

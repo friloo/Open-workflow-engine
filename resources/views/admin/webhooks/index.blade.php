@@ -8,7 +8,7 @@
 
     <x-card>
         @if($webhooks->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Webhooks.</p>
+            <x-empty-state title="Noch keine Webhooks" description="Lege oben einen Endpunkt an, um Events aus Workflows nach extern zu schicken." />
         @else
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">

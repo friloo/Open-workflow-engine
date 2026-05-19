@@ -30,7 +30,7 @@
 
     <x-card title="Pro Workflow">
         @if($workflows->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Workflows.</p>
+            <x-empty-state icon="workflow" title="Noch keine Workflows" description="Lege links unter Workflows einen ersten Workflow an — danach gibt's hier Statistiken." />
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($workflows as $w)

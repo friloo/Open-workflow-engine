@@ -6,7 +6,7 @@
         <div class="lg:col-span-2">
             <x-card>
                 @if($secrets->isEmpty())
-                    <p class="text-sm text-slate-500">Noch keine Secrets.</p>
+                    <x-empty-state title="Noch keine Secrets" description="Lege oben einen verschluesselten Wert an (API-Keys, Tokens) — in HTTP-Knoten via {{ '{{ secret.NAME }}' }} verwendbar." />
                 @else
                     <table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">

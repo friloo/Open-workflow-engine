@@ -38,8 +38,9 @@
 
     <x-card>
         @if($assets->isEmpty())
-            <p class="text-sm text-slate-500">Keine Assets.</p>
-            <p class="mt-2 text-xs text-slate-500">CSV-Spalten: <code>user_email;name;type;valid_until;lead_time_days;notes</code></p>
+            <x-empty-state icon="document"
+                title="Keine Assets"
+                description="Lege oben ein Asset an oder importiere per CSV. CSV-Spalten: user_email;name;type;valid_until;lead_time_days;notes" />
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">

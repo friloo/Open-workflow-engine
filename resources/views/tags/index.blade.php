@@ -19,7 +19,7 @@
 
     <x-card>
         @if($tags->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Tags.</p>
+            <x-empty-state title="Noch keine Tags" description="Lege oben einen Tag an. Tags helfen, Dokumente quer ueber Archive zu gruppieren." />
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($tags as $tag)

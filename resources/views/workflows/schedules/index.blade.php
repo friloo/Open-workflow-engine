@@ -55,7 +55,7 @@
     <div class="mt-6">
         <x-card title="Eingeplante Wiedervorlagen">
             @if($schedules->isEmpty())
-                <p class="text-sm text-slate-500">Noch keine Wiedervorlagen.</p>
+                <x-empty-state title="Noch keine Wiedervorlagen" description="Plane oben einen wiederkehrenden Trigger fuer einen Workflow." />
             @else
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-slate-200 text-sm">

@@ -22,7 +22,7 @@
             <p class="text-xs text-slate-500">{{ count($backups) }} Datei(en)</p>
         </div>
         @if(empty($backups))
-            <p class="text-sm text-slate-500">Noch keine Backups. Wird taeglich um 01:30 erstellt — oder per Klick oben.</p>
+            <x-empty-state title="Noch keine Backups" description="Wird taeglich um 01:30 erstellt — oder per Klick auf 'Backup jetzt'." />
         @else
             <table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">

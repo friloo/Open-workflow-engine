@@ -10,7 +10,7 @@
 
     <x-card>
         @if($lists->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Listen.</p>
+            <x-empty-state title="Noch keine Listen" description="Listen sind Lookup-Tabellen (z. B. Kostenstellen, Lieferanten) — Workflows greifen darauf zu." />
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">

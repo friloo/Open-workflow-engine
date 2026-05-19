@@ -10,7 +10,7 @@
 @endif
 
 @if($entries->isEmpty())
-    <p class="text-sm text-slate-500">Noch keine Eintraege.</p>
+    <x-empty-state title="Noch keine Eintraege" description="Pflege Werte ueber das Formular oder importiere eine CSV." />
 @else
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-200 text-sm">
