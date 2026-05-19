@@ -17,23 +17,101 @@ class SystemSettingsController extends Controller
 
     public function index(): View
     {
-        $roles = \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']);
-        return view('admin.settings.index', [
+        // Uebersicht mit Status-Karten pro Sub-Bereich.
+        $mail = Settings::group('mail');
+        $m365 = Settings::group('auth.m365');
+        $ai = Settings::group('ai');
+
+        return view('admin.settings.overview', [
+            'sections' => $this->sectionDescriptors(),
+            'status' => [
+                'mail_configured' => ! empty($mail['host']) && ! empty($mail['from_address']),
+                'm365_enabled' => (bool) ($m365['enabled'] ?? false),
+                'ai_configured' => ! empty($ai['provider']) && (! empty($ai['api_key']) || ($ai['provider'] ?? '') === 'ollama'),
+                'document_types_count' => count(\App\Support\DocumentTypes::all()),
+                'retention_rules_count' => count((array) Settings::get('attachments.retention', [])),
+            ],
+        ]);
+    }
+
+    public function mail(): View
+    {
+        return view('admin.settings.mail', [
             'mail' => Settings::group('mail') + $this->defaults(),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function m365(): View
+    {
+        return view('admin.settings.m365', [
             'm365' => Settings::group('auth.m365') + $this->m365Defaults(),
-            'roles' => $roles,
+            'roles' => \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function ai(): View
+    {
+        return view('admin.settings.ai', [
+            'ai' => Settings::group('ai') + [
+                'provider' => 'openai',
+                'base_url' => 'https://api.openai.com/v1',
+                'model' => 'gpt-4o-mini',
+                'api_key' => '',
+            ],
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function branding(): View
+    {
+        return view('admin.settings.branding', [
             'branding' => Settings::group('branding') + $this->brandingDefaults(),
             'customFields' => Settings::get('users.custom_fields', []),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function documents(): View
+    {
+        return view('admin.settings.documents', [
             'documentTypes' => \App\Support\DocumentTypes::all(),
             'roleDocumentTypes' => \App\Support\DocumentTypes::roleMapping(),
+            'roles' => \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']),
+            'retention' => Settings::get('attachments.retention', []),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function sharing(): View
+    {
+        return view('admin.settings.sharing', [
             'shares' => [
                 'max_expiry_days' => (int) Settings::get('shares.max_expiry_days', 90),
                 'default_expiry_days' => (int) Settings::get('shares.default_expiry_days', 14),
                 'review_interval_days' => (int) Settings::get('shares.review_interval_days', 7),
                 'review_grace_days' => (int) Settings::get('shares.review_grace_days', 3),
             ],
-            'retention' => Settings::get('attachments.retention', []),
+            'sections' => $this->sectionDescriptors(),
         ]);
+    }
+
+    /**
+     * Liste aller Sub-Seiten — wird im Tab-Strip oben gerendert und auf
+     * der Overview als Karten ausgegeben.
+     */
+    private function sectionDescriptors(): array
+    {
+        return [
+            ['slug' => 'overview', 'route' => 'admin.settings.index', 'label' => 'Uebersicht', 'icon' => 'home'],
+            ['slug' => 'mail', 'route' => 'admin.settings.mail', 'label' => 'Mail-Versand', 'icon' => 'cog', 'description' => 'SMTP fuer Benachrichtigungen.'],
+            ['slug' => 'm365', 'route' => 'admin.settings.m365', 'label' => 'Microsoft 365', 'icon' => 'shield', 'description' => 'SSO + Benutzer-Sync.'],
+            ['slug' => 'branding', 'route' => 'admin.settings.branding', 'label' => 'Branding', 'icon' => 'cog', 'description' => 'Name, Logo, Farben + Benutzerfelder.'],
+            ['slug' => 'ai', 'route' => 'admin.settings.ai', 'label' => 'KI', 'icon' => 'cog', 'description' => 'OpenAI / DeepSeek / Ollama.'],
+            ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente', 'icon' => 'document', 'description' => 'Archive, Retention, Rollen-Zuordnung.'],
+            ['slug' => 'sharing', 'route' => 'admin.settings.sharing', 'label' => 'Sharing', 'icon' => 'cog', 'description' => 'Caps fuer externe Freigaben.'],
+        ];
     }
 
     public function updateRetention(Request $request): RedirectResponse
@@ -183,7 +261,7 @@ class SystemSettingsController extends Controller
             $request->user()->id,
         );
 
-        return redirect()->route('admin.settings.index')->with('status', 'Mail-Konfiguration gespeichert.');
+        return redirect()->route('admin.settings.mail')->with('status', 'Mail-Konfiguration gespeichert.');
     }
 
     public function sendTestMail(Request $request): RedirectResponse
@@ -248,7 +326,7 @@ class SystemSettingsController extends Controller
             $request->user()->id,
         );
 
-        return redirect()->route('admin.settings.index')->with('status', 'Microsoft-365-Konfiguration gespeichert.');
+        return redirect()->route('admin.settings.m365')->with('status', 'Microsoft-365-Konfiguration gespeichert.');
     }
 
     public function syncM365(Request $request, MicrosoftGraphSync $sync): RedirectResponse

@@ -30,7 +30,7 @@ class SystemSettingsTest extends TestCase
             'from_address' => 'no-reply@example.com',
             'from_name' => 'OWE',
             'timeout' => 15,
-        ])->assertRedirect(route('admin.settings.index'));
+        ])->assertRedirect(route('admin.settings.mail'));
 
         $this->assertSame('mail.example.com', Settings::get('mail.host'));
         $this->assertSame('supersecret', Settings::get('mail.password'));

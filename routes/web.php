@@ -279,6 +279,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::middleware('permission:system.settings')->group(function () {
         Route::get('settings', [SystemSettingsController::class, 'index'])->name('settings.index');
+        Route::get('settings/mail', [SystemSettingsController::class, 'mail'])->name('settings.mail');
+        Route::get('settings/m365', [SystemSettingsController::class, 'm365'])->name('settings.m365');
+        Route::get('settings/ai', [SystemSettingsController::class, 'ai'])->name('settings.ai');
+        Route::get('settings/branding', [SystemSettingsController::class, 'branding'])->name('settings.branding');
+        Route::get('settings/documents', [SystemSettingsController::class, 'documents'])->name('settings.documents');
+        Route::get('settings/sharing', [SystemSettingsController::class, 'sharing'])->name('settings.sharing');
         Route::post('settings/mail', [SystemSettingsController::class, 'updateMail'])->name('settings.mail.update');
         Route::post('settings/mail/test', [SystemSettingsController::class, 'sendTestMail'])->name('settings.mail.test');
         Route::post('settings/m365', [SystemSettingsController::class, 'updateM365'])->name('settings.m365.update');
