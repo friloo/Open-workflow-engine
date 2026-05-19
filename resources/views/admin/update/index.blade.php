@@ -18,11 +18,12 @@
         </form>
     </x-card>
 
-    <x-card title="Status" x-data="{ poll: null,
-        load() {
+    <x-card title="Status" x-data="{ poll: null, checking: false,
+        load(force = false) {
+            if (force) this.checking = true;
             fetch('{{ route('admin.update.status') }}').then(r => r.json()).then(j => {
                 this.check = j.check; this.progress = j.progress; this.maintenance = j.maintenance;
-            });
+            }).finally(() => { this.checking = false; });
         },
         check: @js($check),
         progress: @js($progress),
@@ -41,6 +42,14 @@
                 <div class="text-xs text-slate-500">Verfuegbare Version</div>
                 <div class="font-mono text-xs break-all" x-text="check.latest || '—'"></div>
             </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="button" @click="load(true)" :disabled="checking"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed">
+                <span x-show="!checking">Jetzt pruefen</span>
+                <span x-show="checking">Pruefe &hellip;</span>
+            </button>
         </div>
 
         <template x-if="check.error">
@@ -79,5 +88,31 @@
                 <x-primary-button x-bind:disabled="!check.has_update || maintenance">Update jetzt installieren</x-primary-button>
             </form>
         </div>
+    </x-card>
+
+    <x-card title="Manueller ZIP-Upload" description="Plan B wenn der Update-Proxy nicht antwortet oder du gezielt eine bestimmte Version einspielen willst. Lade hier ein Release-ZIP hoch (mit oder ohne vendor/ — der Updater versucht composer install nachzuziehen).">
+        @if ($errors->any())
+            <div class="mb-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+                {{ $errors->first() }}
+            </div>
+        @endif
+        <form method="POST" action="{{ route('admin.update.upload') }}" enctype="multipart/form-data" class="space-y-3" onsubmit="return confirm('ZIP wird angewendet. Die App ist kurz nicht erreichbar. Fortfahren?')">
+            @csrf
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Release-ZIP</label>
+                <input type="file" name="zip" accept=".zip,application/zip" required
+                       class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+                <p class="mt-1 text-xs text-slate-500">Max. {{ ini_get('upload_max_filesize') }} (PHP <code>upload_max_filesize</code>). PHP <code>post_max_size</code>: {{ ini_get('post_max_size') }}.</p>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Version-Label (optional)</label>
+                <input type="text" name="version" placeholder="z. B. 40-stellige SHA, sonst manual-Zeitstempel"
+                       class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <p class="mt-1 text-xs text-slate-500">Wenn leer oder kein gueltiger SHA: <code>manual-YYYYMMDDHHMMSS</code> wird in <code>.version</code> geschrieben.</p>
+            </div>
+            <div>
+                <x-primary-button>ZIP anwenden</x-primary-button>
+            </div>
+        </form>
     </x-card>
 </x-app-layout>

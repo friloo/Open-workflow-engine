@@ -30,8 +30,18 @@ const OWE_STATE_NAME = '.owe-bootstrap.json';
 
 @set_time_limit(600);
 
-$baseDir = __DIR__;
+$selfDir = __DIR__;
 $selfFile = __FILE__;
+
+// Wenn der Bootstrap aus einem Ordner namens "public" laeuft, gehen wir
+// davon aus, dass dieser bereits der Webroot ist (User hat den
+// Document-Root in der Hosting-Verwaltung bereits korrekt auf public/
+// gestellt — empfohlener Weg). In dem Fall entpacken wir Laravel ein
+// Level hoeher, NICHT in den Webroot selbst.
+$installDir = (basename($selfDir) === 'public') ? dirname($selfDir) : $selfDir;
+$insidePublic = $installDir !== $selfDir;
+
+$baseDir = $installDir; // Rueckwaerts-kompatibler Name fuer die Schritt-Funktionen
 $step = preg_replace('/[^a-z]/', '', (string) ($_REQUEST['step'] ?? 'welcome'));
 $channel = ((string) ($_REQUEST['channel'] ?? '')) === 'development' ? 'development' : 'stable';
 $baseUrl = OWE_CHANNELS[$channel];
@@ -40,7 +50,7 @@ if (! in_array($step, ['welcome', 'download', 'extract', 'finish', 'doFinish'], 
     $step = 'welcome';
 }
 
-$precond = owe_check_precondition($baseDir);
+$precond = owe_check_precondition($baseDir, $insidePublic);
 
 // ────────────────────────────────────────────────────────────────────
 // Hauptschalter
@@ -56,19 +66,19 @@ if ($precond['blocked'] && $step === 'welcome') {
 
 switch ($step) {
     case 'welcome':
-        owe_step_welcome($channel);
+        owe_step_welcome($channel, $insidePublic);
         break;
     case 'download':
-        owe_step_download($baseDir, $baseUrl, $channel);
+        owe_step_download($selfDir, $baseUrl, $channel);
         break;
     case 'extract':
-        owe_step_extract($baseDir, $selfFile, $channel);
+        owe_step_extract($baseDir, $selfDir, $selfFile, $channel, $insidePublic);
         break;
     case 'finish':
         owe_step_finish($channel);
         break;
     case 'doFinish':
-        owe_do_finish($baseDir, $selfFile);
+        owe_do_finish($selfDir, $selfFile);
         // doFinish does its own header() + exit
         break;
 }
@@ -79,15 +89,20 @@ owe_render_end();
 // Steps
 // ════════════════════════════════════════════════════════════════════
 
-function owe_step_welcome(string $channel): void
+function owe_step_welcome(string $channel, bool $insidePublic): void
 {
     ?>
     <h2>Bootstrap-Installer</h2>
     <p>Dieses kleine PHP-Skript laedt die <strong>aktuelle Version</strong> der
        Open Workflow Engine vom Update-Proxy <code>update.loheide.eu</code>,
-       entpackt sie hier ins Webroot und leitet anschliessend zum
+       entpackt sie und leitet anschliessend zum
        eingebauten App-Installer <code>/install</code> weiter.</p>
     <p class="muted">Funktioniert ohne SSH und ohne Composer — solltest du nur einmal nutzen, danach loescht sich diese Datei selbst.</p>
+    <?php if ($insidePublic): ?>
+        <div class="ok"><strong>Erkannt:</strong> der Bootstrap laeuft aus einem <code>public/</code>-Ordner. Laravel wird ein Level <strong>darueber</strong> entpackt — dein Webroot zeigt also direkt auf <code>public/</code> (sauberste Variante).</div>
+    <?php else: ?>
+        <div class="warn"><strong>Hinweis:</strong> der Bootstrap laeuft im FTP-Root (nicht in einem <code>public/</code>-Ordner). Empfohlen ist, vorher in der Hosting-Verwaltung den Document-Root auf einen Unterordner <code>public/</code> zu legen und den Installer dorthin zu kopieren. Wenn das nicht geht, faehrt der Installer mit einer Fallback-<code>.htaccess</code> fort, die alle Requests intern nach <code>public/</code> umleitet — bei deaktiviertem <code>mod_rewrite</code> waere damit aber <code>vendor/</code> und <code>.env</code> oeffentlich erreichbar.</div>
+    <?php endif; ?>
 
     <form method="post" action="?step=download">
         <h3 style="margin-top:24px;">Channel</h3>
@@ -109,7 +124,7 @@ function owe_step_welcome(string $channel): void
     <?php
 }
 
-function owe_step_download(string $baseDir, string $baseUrl, string $channel): void
+function owe_step_download(string $selfDir, string $baseUrl, string $channel): void
 {
     echo '<h2>Schritt 1: Download</h2>';
 
@@ -117,6 +132,11 @@ function owe_step_download(string $baseDir, string $baseUrl, string $channel): v
     [$body, $err] = owe_http_get_text($baseUrl.'/version');
     if ($err !== null) {
         owe_render_error('Konnte aktuelle Version nicht abfragen: '.$err);
+        return;
+    }
+    $proxyError = owe_extract_proxy_error($body);
+    if ($proxyError !== null) {
+        owe_render_error('Update-Proxy meldet: '.$proxyError.' (URL: '.$baseUrl.'/version)');
         return;
     }
     $sha = owe_extract_sha($body);
@@ -127,7 +147,7 @@ function owe_step_download(string $baseDir, string $baseUrl, string $channel): v
     echo '<p>Aktuelle Version (Channel <em>'.htmlspecialchars($channel).'</em>): <code>'.htmlspecialchars($sha).'</code></p>';
 
     // 2. ZIP herunterladen
-    $zipPath = $baseDir.DIRECTORY_SEPARATOR.OWE_ZIP_NAME;
+    $zipPath = $selfDir.DIRECTORY_SEPARATOR.OWE_ZIP_NAME;
     @unlink($zipPath);
     echo '<p>Lade ZIP herunter &hellip;</p>';
 
@@ -145,8 +165,8 @@ function owe_step_download(string $baseDir, string $baseUrl, string $channel): v
 
     echo '<div class="ok">Heruntergeladen: '.number_format($size / 1024 / 1024, 2).' MB</div>';
 
-    // State speichern
-    owe_state_save($baseDir, ['sha' => $sha, 'channel' => $channel, 'zip' => OWE_ZIP_NAME]);
+    // State speichern (im Self-Dir, neben dem ZIP)
+    owe_state_save($selfDir, ['sha' => $sha, 'channel' => $channel, 'zip' => OWE_ZIP_NAME]);
 
     ?>
     <p style="text-align:right;">
@@ -155,22 +175,28 @@ function owe_step_download(string $baseDir, string $baseUrl, string $channel): v
     <?php
 }
 
-function owe_step_extract(string $baseDir, string $selfFile, string $channel): void
+function owe_step_extract(string $baseDir, string $selfDir, string $selfFile, string $channel, bool $insidePublic): void
 {
     echo '<h2>Schritt 2: Entpacken</h2>';
 
-    $state = owe_state_load($baseDir);
+    $state = owe_state_load($selfDir);
     if (! $state) {
         owe_render_error('Bootstrap-State nicht gefunden. Bitte mit Schritt 1 starten.');
         echo '<p><a href="?step=welcome">Zurueck</a></p>';
         return;
     }
 
-    $zipPath = $baseDir.DIRECTORY_SEPARATOR.$state['zip'];
+    $zipPath = $selfDir.DIRECTORY_SEPARATOR.$state['zip'];
     if (! is_file($zipPath)) {
         owe_render_error('ZIP-Datei fehlt: '.$zipPath);
         echo '<p><a href="?step=welcome">Zurueck</a></p>';
         return;
+    }
+
+    if ($insidePublic) {
+        echo '<p class="muted">Entpacke nach <code>'.htmlspecialchars($baseDir).'</code> (ein Level ueber diesem <code>public/</code>-Ordner).</p>';
+    } else {
+        echo '<p class="muted">Entpacke nach <code>'.htmlspecialchars($baseDir).'</code> (FTP-Root, Fallback-Modus).</p>';
     }
 
     $zip = new ZipArchive();
@@ -237,11 +263,15 @@ function owe_step_extract(string $baseDir, string $selfFile, string $channel): v
     // ueberhaupt angezeigt werden kann.
     owe_ensure_env_and_app_key($baseDir);
 
-    // Fallback-.htaccess in den Webroot, falls noch keiner existiert.
-    // (Fuer Hoster die den Document-Root nicht direkt auf public/ legen.)
-    $rootHtaccess = $baseDir.DIRECTORY_SEPARATOR.'.htaccess';
-    if (! is_file($rootHtaccess)) {
-        @file_put_contents($rootHtaccess, owe_fallback_htaccess());
+    // Fallback-.htaccess NUR schreiben wenn der Bootstrap aus dem FTP-Root
+    // laeuft und der User vermutlich den Document-Root NICHT auf public/
+    // umstellen kann. Wenn der Bootstrap aus einem public/-Ordner kommt,
+    // ist der Webroot bereits korrekt — kein Rewrite noetig.
+    if (! $insidePublic) {
+        $rootHtaccess = $baseDir.DIRECTORY_SEPARATOR.'.htaccess';
+        if (! is_file($rootHtaccess)) {
+            @file_put_contents($rootHtaccess, owe_fallback_htaccess());
+        }
     }
 
     // ZIP wegraeumen
@@ -283,10 +313,10 @@ function owe_step_finish(string $channel): void
     <?php
 }
 
-function owe_do_finish(string $baseDir, string $selfFile): void
+function owe_do_finish(string $selfDir, string $selfFile): void
 {
-    @unlink($baseDir.DIRECTORY_SEPARATOR.OWE_STATE_NAME);
-    @unlink($baseDir.DIRECTORY_SEPARATOR.OWE_ZIP_NAME);
+    @unlink($selfDir.DIRECTORY_SEPARATOR.OWE_STATE_NAME);
+    @unlink($selfDir.DIRECTORY_SEPARATOR.OWE_ZIP_NAME);
 
     // Selbst loeschen — best effort.
     $deleted = @unlink($selfFile);
@@ -306,7 +336,7 @@ function owe_do_finish(string $baseDir, string $selfFile): void
 // Helpers
 // ════════════════════════════════════════════════════════════════════
 
-function owe_check_precondition(string $dir): array
+function owe_check_precondition(string $installDir, bool $insidePublic): array
 {
     if (version_compare(PHP_VERSION, OWE_MIN_PHP, '<')) {
         return ['blocked' => true, 'reason' => 'PHP-Version zu alt: '.PHP_VERSION.' (benoetigt '.OWE_MIN_PHP.' oder neuer).'];
@@ -319,14 +349,17 @@ function owe_check_precondition(string $dir): array
     if (! function_exists('curl_init') && ! ini_get('allow_url_fopen')) {
         return ['blocked' => true, 'reason' => "Weder cURL noch allow_url_fopen verfuegbar — kein HTTP-Download moeglich. Bitte einen davon aktivieren."];
     }
-    if (! is_writable($dir)) {
-        return ['blocked' => true, 'reason' => "Verzeichnis nicht beschreibbar: {$dir}"];
+    if (! is_writable($installDir)) {
+        $hint = $insidePublic
+            ? " (Bootstrap laeuft aus public/, muss aber das Elternverzeichnis beschreiben koennen.)"
+            : '';
+        return ['blocked' => true, 'reason' => "Verzeichnis nicht beschreibbar: {$installDir}".$hint];
     }
-    if (is_file($dir.'/storage/app/.installed')) {
+    if (is_file($installDir.'/storage/app/.installed')) {
         return ['blocked' => true, 'reason' => "OWE ist hier bereits installiert (storage/app/.installed gefunden). Fuer Updates bitte /admin/update in der App nutzen — nicht diesen Bootstrap erneut laufen lassen."];
     }
-    if (is_file($dir.'/vendor/autoload.php')) {
-        return ['blocked' => true, 'reason' => "vendor/autoload.php existiert bereits — sieht nach einer existierenden Installation aus. Bootstrap abgebrochen, damit nichts ueberschrieben wird. Bitte das Webroot leeren oder einen neuen Pfad nutzen."];
+    if (is_file($installDir.'/vendor/autoload.php')) {
+        return ['blocked' => true, 'reason' => "vendor/autoload.php existiert bereits — sieht nach einer existierenden Installation aus. Bootstrap abgebrochen, damit nichts ueberschrieben wird. Bitte den Zielordner leeren."];
     }
     return ['blocked' => false, 'reason' => null];
 }
@@ -364,6 +397,25 @@ function owe_extract_sha(string $body): ?string
         return strtolower($m[1]);
     }
 
+    return null;
+}
+
+/**
+ * Wenn der Proxy explizit einen Fehler im JSON-Body meldet
+ * ({"error": "..."} oder {"message": "..."}), die Nachricht liefern.
+ * Hilft bei Diagnostik: Statt "keine 40-stellige SHA" sieht der User
+ * direkt den eigentlichen Fehlertext vom Proxy.
+ */
+function owe_extract_proxy_error(string $body): ?string
+{
+    $trimmed = trim($body);
+    if ($trimmed === '' || $trimmed[0] !== '{') return null;
+    $decoded = json_decode($trimmed, true);
+    if (! is_array($decoded)) return null;
+    foreach (['error', 'message', 'detail'] as $key) {
+        $v = $decoded[$key] ?? null;
+        if (is_string($v) && $v !== '') return $v;
+    }
     return null;
 }
 
