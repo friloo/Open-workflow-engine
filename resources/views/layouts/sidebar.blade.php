@@ -63,19 +63,31 @@
             ],
         ],
         [
-            'group' => 'Verwaltung',
-            'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','roles.view','roles.manage','audit.view','system.settings']),
+            'group' => 'Benutzer & Rechte',
+            'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','roles.view','roles.manage','audit.view']),
             'items' => [
                 ['name' => 'Benutzer', 'route' => 'admin.users.index', 'icon' => 'users', 'active' => request()->routeIs('admin.users.*'), 'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','users.import'])],
                 ['name' => 'Rollen & Rechte', 'route' => 'admin.roles.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.roles.*'), 'when' => $user?->hasAnyPermission(['roles.view','roles.manage'])],
                 ['name' => 'Audit-Log', 'route' => 'admin.audit.index', 'icon' => 'list', 'active' => request()->routeIs('admin.audit.*'), 'when' => $user?->hasPermission('audit.view')],
-                ['name' => 'Systemeinstellungen', 'route' => 'admin.settings.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.settings.*'), 'when' => $user?->hasPermission('system.settings')],
-                ['name' => 'Dokument-Schemas', 'route' => 'admin.document_schemas.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.document_schemas.*'), 'when' => $user?->hasPermission('system.settings')],
+            ],
+        ],
+        [
+            'group' => 'Integrationen',
+            'when' => $user?->hasAnyPermission(['mailboxes.manage','folder_inboxes.manage','webhooks.manage','incoming_webhooks.manage','secrets.manage']),
+            'items' => [
+                ['name' => 'E-Mail-Postfaecher', 'route' => 'admin.mailboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.mailboxes.*'), 'when' => $user?->hasPermission('mailboxes.manage')],
+                ['name' => 'Folder-Inboxen', 'route' => 'admin.folder-inboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.folder-inboxes.*'), 'when' => $user?->hasPermission('folder_inboxes.manage')],
                 ['name' => 'Webhooks (out)', 'route' => 'admin.webhooks.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.webhooks.*'), 'when' => $user?->hasPermission('webhooks.manage')],
                 ['name' => 'Webhooks (in)', 'route' => 'admin.incoming-webhooks.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.incoming-webhooks.*'), 'when' => $user?->hasPermission('incoming_webhooks.manage')],
                 ['name' => 'Secrets', 'route' => 'admin.secrets.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.secrets.*'), 'when' => $user?->hasPermission('secrets.manage')],
-                ['name' => 'E-Mail-Postfaecher', 'route' => 'admin.mailboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.mailboxes.*'), 'when' => $user?->hasPermission('mailboxes.manage')],
-                ['name' => 'Folder-Inboxen', 'route' => 'admin.folder-inboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.folder-inboxes.*'), 'when' => $user?->hasPermission('folder_inboxes.manage')],
+            ],
+        ],
+        [
+            'group' => 'System',
+            'when' => $user?->hasAnyPermission(['system.settings','system.health','system.update','system.backup']),
+            'items' => [
+                ['name' => 'Systemeinstellungen', 'route' => 'admin.settings.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.settings.*'), 'when' => $user?->hasPermission('system.settings')],
+                ['name' => 'Dokument-Schemas', 'route' => 'admin.document_schemas.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.document_schemas.*'), 'when' => $user?->hasPermission('system.settings')],
                 ['name' => 'System-Health', 'route' => 'admin.health.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.health.*'), 'when' => $user?->hasPermission('system.health')],
                 ['name' => 'System-Update', 'route' => 'admin.update.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.update.*'), 'when' => $user?->hasPermission('system.update')],
                 ['name' => 'Backups', 'route' => 'admin.backups.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.backups.*'), 'when' => $user?->hasPermission('system.backup')],
