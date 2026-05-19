@@ -26,6 +26,7 @@ class HelpController extends Controller
         'assets' => 'Assets (Fuehrerschein etc.)',
         'documents' => 'Dokumente (Versionen, OCR, Bulk)',
         'document-schemas' => 'Felder-Schemas pro Dokumenttyp',
+        'zugferd' => 'ZUGFeRD / XRechnung',
         'inbox-routing' => 'Postkorb + Lookup-Routing',
         'sharing' => 'Sharing-Links',
         'http-node' => 'HTTP-Knoten',

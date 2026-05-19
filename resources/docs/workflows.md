@@ -91,6 +91,22 @@ der nicht-mehr-zustaendige Empfaenger die Aufgabe nicht mehr.
 Sequenzielle Vier-Augen (Schritt-1 Buchhaltung -> Schritt-2 GF) ist
 weiterhin moeglich ueber zwei aufeinanderfolgende Approval-Knoten.
 
+## Warten + Felder setzen
+
+Zwei zusaetzliche Knoten ohne menschliche Interaktion:
+
+- **Warten** (`wait`) — pausiert den Workflow fuer Minuten / Stunden /
+  Tage / Wochen / Monate. Der Scheduler-Lauf `workflow:check-due`
+  (alle 5 Minuten) weckt automatisch wieder auf. Praktisch fuer
+  „warte 7 Tage, dann erinnere".
+- **Feld setzen** (`set_field`) — berechnet/setzt ein oder mehrere
+  Felder in den Instanz-Daten. Werte koennen Platzhalter enthalten
+  (`{{ netto }}`, `{{ doc.indexed_fields.brutto }}`). Mit „n"-
+  Checkbox wird der Wert als Zahl interpretiert.
+
+Damit kannst du Wartepunkte, Berechnungen und Variable-Manipulation
+ohne Workarounds bauen.
+
 ## Trockenlauf / Simulation
 
 Vor der Aktivierung: **Trockenlauf** (Button auf der Workflow-Edit-

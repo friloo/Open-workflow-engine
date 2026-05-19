@@ -99,6 +99,32 @@
                     <a href="{{ route('lists.index') }}"><x-secondary-button type="button">Abbrechen</x-secondary-button></a>
                     <x-primary-button>{{ $isNew ? 'Anlegen' : 'Speichern' }}</x-primary-button>
                 </div>
+
+                <x-card title="Zugriff pro Rolle" description="Wenn KEINE Rolle markiert ist, sehen alle mit lists.view die Liste. Sobald mindestens eine Rolle gesetzt ist, sehen nur diese sie.">
+                    @php($pivot = isset($list) && $list->exists ? $list->roles->keyBy('id') : collect())
+                    <table class="min-w-full text-sm">
+                        <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
+                            <th class="py-1 pr-3">Rolle</th>
+                            <th class="py-1 pr-3">Kein Zugriff</th>
+                            <th class="py-1 pr-3">Nur lesen</th>
+                            <th class="py-1 pr-3">Lesen + Bearbeiten</th>
+                        </tr></thead>
+                        <tbody>
+                            @foreach(($allRoles ?? []) as $role)
+                                @php($current = $pivot->get($role->id))
+                                @php($access = $current ? ($current->pivot->can_edit ? 'edit' : 'view') : 'none')
+                                <tr>
+                                    <td class="py-1 pr-3 text-sm">{{ $role->name }} <code class="text-xs text-slate-500">{{ $role->slug }}</code></td>
+                                    @foreach(['none', 'view', 'edit'] as $val)
+                                        <td class="py-1 pr-3">
+                                            <input type="radio" name="role_perms[{{ $role->id }}][access]" value="{{ $val }}" @checked($access === $val)>
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </x-card>
             </div>
 
             <div class="space-y-6">

@@ -144,6 +144,17 @@ class WorkflowEngine
                 // Pause here — task completion will resume via completeStep().
                 return;
 
+            case 'wait':
+                $this->createWaitStep($instance, $node);
+                // Pausiert bis due_at — workflow:check-due weckt auf.
+                return;
+
+            case 'set_field':
+                $this->setFieldsNode($instance, $node);
+                $next = $this->firstTarget($node, 'output_1');
+                if ($next) $this->run($instance, $next, $depth + 1);
+                break;
+
             default:
                 Log::warning('Unbekannter Knotentyp', ['class' => $node['class'] ?? null, 'instance' => $instance->id]);
         }
@@ -727,6 +738,99 @@ class WorkflowEngine
                 'decision' => 'cancelled_quorum',
             ])->save();
         }
+    }
+
+    /**
+     * Erzeugt einen Wait-Step (kein Empfaenger, nur due_at). Wird vom
+     * Scheduler-Command 'workflow:check-due' aufgeweckt, sobald due_at
+     * erreicht ist.
+     */
+    private function createWaitStep(WorkflowInstance $instance, array $node): void
+    {
+        $d = $node['data'] ?? [];
+        $value = max(0, (int) ($d['wait_value'] ?? 1));
+        $unit = $d['wait_unit'] ?? 'days';
+        $now = now();
+        $due = match ($unit) {
+            'minutes' => $now->copy()->addMinutes($value),
+            'hours' => $now->copy()->addHours($value),
+            'days' => $now->copy()->addDays($value),
+            'weeks' => $now->copy()->addWeeks($value),
+            'months' => $now->copy()->addMonths($value),
+            default => $now->copy()->addDays($value),
+        };
+
+        $step = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id,
+            'step_key' => (string) $node['id'],
+            'step_type' => 'wait',
+            'assigned_at' => $now,
+            'due_at' => $due,
+        ]);
+
+        $this->audit->log('workflow.wait.scheduled', $step, null, [
+            'value' => $value, 'unit' => $unit, 'due_at' => $due->toIso8601String(),
+        ], "Workflow pausiert bis {$due->format('d.m.Y H:i')}");
+    }
+
+    /**
+     * Vom Scheduler aufgerufen, wenn ein Wait-Step ueberfaellig ist.
+     * Markiert ihn als completed und faehrt den Workflow fort.
+     */
+    public function resumeWaitStep(WorkflowStepExecution $step): void
+    {
+        if ($step->completed_at) return;
+        if ($step->step_type !== 'wait') return;
+
+        $step->forceFill([
+            'completed_at' => now(),
+            'decision' => 'wait_done',
+        ])->save();
+
+        $instance = $step->instance()->firstOrFail();
+        $version = $instance->version()->firstOrFail();
+        $node = $version->definition['drawflow']['Home']['data'][$step->step_key] ?? null;
+        if (! $node) return;
+
+        $this->audit->log('workflow.wait.resumed', $step, null, null,
+            'Wartezeit abgelaufen, Workflow laeuft weiter.');
+
+        $next = $this->firstTarget($node, 'output_1');
+        if ($next) $this->run($instance, $next);
+        else {
+            $instance->update(['status' => WorkflowInstance::STATUS_COMPLETED, 'completed_at' => now()]);
+        }
+    }
+
+    /**
+     * Set-Field-Knoten: rendert Werte aus Templates und schreibt sie
+     * in instance.data. Damit kannst du z. B. doc.indexed_fields.netto
+     * mit Faktor multipliziert nach instance.data.brutto schreiben.
+     */
+    private function setFieldsNode(WorkflowInstance $instance, array $node): void
+    {
+        $d = $node['data'] ?? [];
+        $assignments = (array) ($d['assignments'] ?? []);
+        if (! $assignments) return;
+
+        $context = $this->buildContext($instance);
+        $data = $instance->data ?? [];
+        $set = [];
+        foreach ($assignments as $a) {
+            $key = trim((string) ($a['field'] ?? ''));
+            if ($key === '') continue;
+            $value = $this->renderTemplate((string) ($a['value'] ?? ''), $context);
+            // numerische Auswertung (sehr einfach: nur fuer Ausdruecke wie "1.19*100")
+            if (! empty($a['as_number']) && is_numeric(trim($value))) {
+                $value = $value + 0;
+            }
+            $data[$key] = $value;
+            $set[$key] = $value;
+        }
+        $instance->update(['data' => $data]);
+
+        $this->audit->log('workflow.set_field', $instance, null, ['fields' => $set],
+            'Felder gesetzt: '.implode(', ', array_keys($set)));
     }
 
     /**

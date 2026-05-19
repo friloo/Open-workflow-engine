@@ -39,6 +39,21 @@ Die Engine zieht zur Laufzeit die Verantwortlich-Spalte und mappt die
 E-Mail auf einen Benutzer. Eskalation funktioniert analog ueber die
 Eskalations-Spalte.
 
+## Zugriff pro Rolle
+
+Standardmaessig sind Listen fuer alle Benutzer mit `lists.view`
+sichtbar. Sobald du in der Liste **mindestens eine Rolle** markierst,
+sehen nur noch diese Rollen die Liste. Drei Zugriffs-Stufen pro Rolle:
+
+- **Kein Zugriff** — Rolle ist nicht zugeordnet
+- **Nur lesen** — sieht die Liste, kann sie aber nicht editieren
+- **Lesen + Bearbeiten** — voller Zugriff (Eintraege anlegen,
+  loeschen, CSV-Import)
+
+So kannst du z. B. die **Kostenstellen-Liste an die Rolle Buchhaltung
+mit Lesen+Bearbeiten** binden — Personen ausserhalb der Buchhaltung
+sehen die Liste gar nicht. Admins sehen immer alles.
+
 ## Verwendung als Lerngrundlage fuer Felder-Schemas
 
 Eine Lookup-Liste kann ohne Workflow auch dafuer benutzt werden, dass

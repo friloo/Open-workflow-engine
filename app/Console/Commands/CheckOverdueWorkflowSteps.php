@@ -18,9 +18,28 @@ class CheckOverdueWorkflowSteps extends Command
     {
         $limit = (int) $this->option('limit');
 
-        // Eskalation
+        // Wait-Steps mit faelligem due_at -> Workflow weiterlaufen lassen
+        $wakeable = WorkflowStepExecution::query()
+            ->whereNull('completed_at')
+            ->where('step_type', 'wait')
+            ->whereNotNull('due_at')
+            ->where('due_at', '<=', now())
+            ->orderBy('due_at')->limit($limit)->get();
+
+        $resumed = 0;
+        foreach ($wakeable as $step) {
+            try {
+                $engine->resumeWaitStep($step);
+                $resumed++;
+            } catch (\Throwable $e) {
+                $this->error("Wait-Step #{$step->id}: {$e->getMessage()}");
+            }
+        }
+
+        // Eskalation nur fuer Approval-Steps
         $overdue = WorkflowStepExecution::query()
             ->whereNull('completed_at')
+            ->where('step_type', 'approval')
             ->whereNotNull('due_at')
             ->where('due_at', '<', now())
             ->orderBy('due_at')->limit($limit)->get();
@@ -59,7 +78,7 @@ class CheckOverdueWorkflowSteps extends Command
             $reminded++;
         }
 
-        $this->info("Eskaliert: {$escalated} · Reminder: {$reminded} · Ueberfaellig insgesamt: {$overdue->count()}");
+        $this->info("Wait aufgeweckt: {$resumed} · Eskaliert: {$escalated} · Reminder: {$reminded}");
         return self::SUCCESS;
     }
 

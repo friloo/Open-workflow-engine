@@ -17,6 +17,7 @@ class LookupListEntryController extends Controller
 
     public function store(Request $request, LookupList $list): RedirectResponse
     {
+        abort_unless($list->editableByUser($request->user()), 403);
         $payload = $request->validate(['cells' => ['required', 'array']])['cells'];
         $keyColumn = $list->keyColumn();
         $keyValue = trim((string) ($payload[$keyColumn['key']] ?? ''));
@@ -32,8 +33,9 @@ class LookupListEntryController extends Controller
         return back()->with('status', "Eintrag {$keyValue} gespeichert.");
     }
 
-    public function destroy(LookupList $list, LookupListEntry $entry): RedirectResponse
+    public function destroy(LookupList $list, LookupListEntry $entry, Request $request): RedirectResponse
     {
+        abort_unless($list->editableByUser($request->user()), 403);
         abort_unless($entry->lookup_list_id === $list->id, 404);
         $key = $entry->key_value;
         $entry->delete();
@@ -43,6 +45,7 @@ class LookupListEntryController extends Controller
 
     public function import(Request $request, LookupList $list): RedirectResponse
     {
+        abort_unless($list->editableByUser($request->user()), 403);
         $request->validate([
             'csv' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
             'delimiter' => ['nullable', 'string', 'size:1'],

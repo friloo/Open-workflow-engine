@@ -16,7 +16,10 @@ use App\Support\DocumentFieldSchema;
  */
 class FieldExtractor
 {
-    public function __construct(private readonly ?AIFieldExtractor $ai = null) {}
+    public function __construct(
+        private readonly ?AIFieldExtractor $ai = null,
+        private readonly ?ZugferdParser $zugferd = null,
+    ) {}
 
     /**
      * Liest die Schema-Felder aus, fuehrt Extraktion durch und persistiert
@@ -33,11 +36,15 @@ class FieldExtractor
         $text = (string) ($att->ocr_text ?? '');
         $context = trim($att->original_name.' '.$att->label.' '.$text);
 
+        // ZUGFeRD nur einmal parsen falls mind. ein Feld es will.
+        $zugferdNeeded = collect($schema)->contains(fn ($f) => str_starts_with($f['extractor'], 'zugferd:'));
+        $zugferdData = ($zugferdNeeded && $this->zugferd) ? ($this->zugferd->parse($att) ?? []) : [];
+
         $aiNeeded = [];
         $result = [];
 
         foreach ($schema as $field) {
-            $value = $this->extractOne($field, $context, $text);
+            $value = $this->extractOne($field, $context, $text, $zugferdData);
             if ($value !== null && $value !== '') {
                 $result[$field['key']] = $value;
                 continue;
@@ -64,12 +71,17 @@ class FieldExtractor
         return $result;
     }
 
-    private function extractOne(array $field, string $context, string $text): ?string
+    private function extractOne(array $field, string $context, string $text, array $zugferdData = []): ?string
     {
         $ex = $field['extractor'];
         if ($ex === 'manual') return null;
         if ($ex === 'ki') return null; // wird gebuendelt verarbeitet
 
+        if (str_starts_with($ex, 'zugferd:')) {
+            $key = substr($ex, strlen('zugferd:'));
+            $v = $zugferdData[$key] ?? null;
+            return $v !== null && $v !== '' ? (string) $v : null;
+        }
         if ($ex === 'regex') {
             return $this->runRegex((string) ($field['pattern'] ?? ''), $context);
         }

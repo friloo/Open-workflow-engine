@@ -586,6 +586,56 @@
                                 </template>
 
                                 {{-- Start settings --}}
+                                {{-- Wait-Knoten --}}
+                                <template x-if="selectedNode.type==='wait'">
+                                    <div class="space-y-3">
+                                        <p class="text-xs text-slate-500">Pausiert den Workflow fuer den eingestellten Zeitraum. Der Scheduler (cron) weckt automatisch wieder auf.</p>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Dauer</label>
+                                                <input type="number" min="0" x-model.number="selectedNode.data.wait_value"
+                                                    class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Einheit</label>
+                                                <select x-model="selectedNode.data.wait_unit"
+                                                    class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <option value="minutes">Minuten</option>
+                                                    <option value="hours">Stunden</option>
+                                                    <option value="days">Tage</option>
+                                                    <option value="weeks">Wochen</option>
+                                                    <option value="months">Monate</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-slate-500">Hinweis: aufwecken passiert beim naechsten <code>workflow:check-due</code>-Lauf (alle 5 Minuten).</p>
+                                    </div>
+                                </template>
+
+                                {{-- Set-Field-Knoten --}}
+                                <template x-if="selectedNode.type==='set_field'">
+                                    <div class="space-y-3">
+                                        <p class="text-xs text-slate-500">Setzt oder berechnet Felder in den Instanz-Daten. Werte koennen Platzhalter enthalten.</p>
+                                        <template x-for="(a, ai) in selectedNode.data.assignments" :key="ai">
+                                            <div class="mb-1 grid grid-cols-5 gap-1 items-end">
+                                                <input type="text" x-model="a.field" placeholder="field_key"
+                                                    class="col-span-2 rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                <input type="text" x-model="a.value" placeholder="Wert oder Platzhalter"
+                                                    class="col-span-2 rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                <div class="flex items-center justify-between gap-1">
+                                                    <label class="text-xs inline-flex items-center gap-1">
+                                                        <input type="checkbox" x-model="a.as_number" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                        n
+                                                    </label>
+                                                    <button type="button" @click="selectedNode.data.assignments.splice(ai,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <button type="button" @click="selectedNode.data.assignments.push({field:'',value:'',as_number:false})" class="mt-1 w-full rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Zuweisung</button>
+                                        <p class="text-xs text-slate-500">„n" = als Zahl interpretieren, sofern das Ergebnis numerisch ist.</p>
+                                    </div>
+                                </template>
+
                                 <template x-if="selectedNode.type==='start'">
                                     <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Start-Knoten. Wird vom Workflow-Trigger automatisch ausgeloest.</p>
                                 </template>
