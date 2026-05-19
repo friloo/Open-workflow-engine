@@ -30,22 +30,46 @@ class DocumentController extends Controller
 
         $visibleTypes = DocumentTypes::visibleForUser($user);
         $allowAll = $user->hasRole('admin');
+        $includeUnclassified = (bool) \App\Support\Settings::get('attachments.unclassified_visible_for_all', false);
+
+        // Sichtbarkeits-Filter als Closure, damit wir ihn fuer Trefferliste UND Archiv-Counts wiederverwenden.
+        $applyVisibility = function ($q) use ($allowAll, $visibleTypes, $includeUnclassified) {
+            if ($allowAll) return $q;
+            return $q->where(function ($w) use ($visibleTypes, $includeUnclassified) {
+                if ($includeUnclassified) $w->whereNull('document_type');
+                if (! empty($visibleTypes)) $w->orWhereIn('document_type', $visibleTypes);
+                if (! $includeUnclassified && empty($visibleTypes)) $w->whereRaw('1=0');
+            });
+        };
+
+        // Anzahl pro Archiv (Dokumenttyp) — eine GROUP-BY-Query.
+        $rawCounts = $applyVisibility(
+            Attachment::query()->where('is_current_version', true)
+        )
+            ->selectRaw('document_type, COUNT(*) as c')
+            ->groupBy('document_type')
+            ->pluck('c', 'document_type')
+            ->all();
+        $archiveCounts = [];
+        $unclassifiedCount = 0;
+        foreach ($rawCounts as $key => $count) {
+            if ($key === null || $key === '') {
+                $unclassifiedCount += (int) $count;
+            } else {
+                $archiveCounts[(string) $key] = (int) $count;
+            }
+        }
+        $totalDocs = array_sum($archiveCounts) + $unclassifiedCount;
 
         // Standard: nur die aktuelle Version pro Chain anzeigen.
         $query = Attachment::with('attachable', 'uploader')
             ->where('is_current_version', true)
             ->orderByDesc('id');
+        $applyVisibility($query);
 
-        if (! $allowAll) {
-            $includeUnclassified = (bool) \App\Support\Settings::get('attachments.unclassified_visible_for_all', false);
-            $query->where(function ($w) use ($visibleTypes, $includeUnclassified) {
-                if ($includeUnclassified) $w->whereNull('document_type');
-                if (! empty($visibleTypes)) $w->orWhereIn('document_type', $visibleTypes);
-                if (! $includeUnclassified && empty($visibleTypes)) $w->whereRaw('1=0');
-            });
-        }
-
-        if ($type) {
+        if ($type === '__unclassified__') {
+            $query->whereNull('document_type');
+        } elseif ($type) {
             if (! $allowAll && ! in_array($type, $visibleTypes, true)) abort(403);
             $query->where('document_type', $type);
         }
@@ -60,7 +84,7 @@ class DocumentController extends Controller
 
         // Filter auf indexed_fields (nur wenn ein Typ gewaehlt ist, denn nur
         // dann gibt es ein Schema mit erlaubten Schluesseln).
-        $schema = $type ? \App\Support\DocumentFieldSchema::forType((string) $type) : [];
+        $schema = ($type && $type !== '__unclassified__') ? \App\Support\DocumentFieldSchema::forType((string) $type) : [];
         $activeFieldFilters = [];
         if ($schema && $fieldFilters) {
             $allowedKeys = array_column($schema, 'key');
@@ -98,6 +122,10 @@ class DocumentController extends Controller
         return view('documents.index', [
             'documents' => $query->paginate(25)->withQueryString(),
             'types' => $visibleTypes,
+            'archiveCounts' => $archiveCounts,
+            'unclassifiedCount' => $unclassifiedCount,
+            'totalDocs' => $totalDocs,
+            'unclassifiedVisible' => $allowAll || $includeUnclassified,
             'q' => $q,
             'type' => $type,
             'status' => $status,
