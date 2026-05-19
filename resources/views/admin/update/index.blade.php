@@ -83,9 +83,16 @@
         </div>
 
         <div class="mt-4">
-            <form method="POST" action="{{ route('admin.update.run') }}" onsubmit="return confirm('Jetzt updaten? Die App ist waehrend des Updates kurz nicht erreichbar.')">
+            <form method="POST" action="{{ route('admin.update.run') }}"
+                  x-data="{ busy: false }"
+                  @submit="if (!confirm('Jetzt updaten? Die App ist waehrend des Updates kurz nicht erreichbar.')) { $event.preventDefault(); return; } busy = true">
                 @csrf
-                <x-primary-button x-bind:disabled="!check.has_update || maintenance">Update jetzt installieren</x-primary-button>
+                <button type="submit" :disabled="!check.has_update || maintenance || busy"
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed">
+                    <svg x-show="busy" x-cloak class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span x-show="!busy">Update jetzt installieren</span>
+                    <span x-show="busy" x-cloak>Installiere &hellip; (App kurz weg)</span>
+                </button>
             </form>
         </div>
     </x-card>

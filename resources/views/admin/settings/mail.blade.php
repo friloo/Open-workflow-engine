@@ -66,7 +66,8 @@
         </div>
 
         <x-card title="Test-Mail" description="Sendet eine Test-Nachricht mit den oben gespeicherten Einstellungen.">
-            <form method="POST" action="{{ route('admin.settings.mail.test') }}" class="space-y-3">
+            <form method="POST" action="{{ route('admin.settings.mail.test') }}" class="space-y-3"
+                  x-data="{ busy: false }" @submit="busy = true">
                 @csrf
                 <div>
                     <x-input-label for="to" value="An (E-Mail)" />
@@ -74,7 +75,12 @@
                     <x-input-error :messages="$errors->get('to')" />
                     <x-input-error :messages="$errors->get('mail')" />
                 </div>
-                <x-primary-button>Test-Mail senden</x-primary-button>
+                <button type="submit" :disabled="busy"
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-wait">
+                    <svg x-show="busy" x-cloak class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span x-show="!busy">Test-Mail senden</span>
+                    <span x-show="busy" x-cloak>Sende &hellip;</span>
+                </button>
             </form>
         </x-card>
     </div>

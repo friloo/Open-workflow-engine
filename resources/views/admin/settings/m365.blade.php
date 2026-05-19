@@ -60,9 +60,15 @@
         </div>
 
         <x-card title="Verbindung testen" description="Prueft Credentials und Graph-Berechtigungen.">
-            <form method="POST" action="{{ route('admin.settings.m365.test') }}" class="space-y-2">
+            <form method="POST" action="{{ route('admin.settings.m365.test') }}" class="space-y-2"
+                  x-data="{ busy: false }" @submit="busy = true">
                 @csrf
-                <x-primary-button>Test-Verbindung</x-primary-button>
+                <button type="submit" :disabled="busy"
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-wait">
+                    <svg x-show="busy" x-cloak class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span x-show="!busy">Test-Verbindung</span>
+                    <span x-show="busy" x-cloak>Pruefe Tenant &hellip;</span>
+                </button>
                 <x-input-error :messages="$errors->get('m365')" />
             </form>
             <p class="mt-3 text-xs text-slate-500">Holt ein App-Token via Tenant und fragt Graph nach einem Benutzer.</p>
@@ -72,9 +78,16 @@
                 <strong>Benutzer-Sync</strong> erfordert in Azure AD:
                 <code>User.Read.All</code> als Application-Permission mit Admin Consent.
             </p>
-            <form method="POST" action="{{ route('admin.settings.m365.sync') }}" onsubmit="return confirm('Synchronisation jetzt starten?')">
+            <form method="POST" action="{{ route('admin.settings.m365.sync') }}"
+                  x-data="{ busy: false }"
+                  @submit="if (!confirm('Synchronisation jetzt starten?')) { $event.preventDefault(); return; } busy = true">
                 @csrf
-                <x-secondary-button>Sync jetzt ausfuehren</x-secondary-button>
+                <button type="submit" :disabled="busy"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-wait">
+                    <svg x-show="busy" x-cloak class="h-3.5 w-3.5 animate-spin text-slate-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span x-show="!busy">Sync jetzt ausfuehren</span>
+                    <span x-show="busy" x-cloak>Synchronisiere &hellip;</span>
+                </button>
             </form>
             <p class="mt-3 text-xs text-slate-500">Cron: <code>php artisan m365:sync-users</code></p>
         </x-card>

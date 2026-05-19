@@ -5,7 +5,8 @@
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'ai'])
 
     <x-card title="KI-Integration" description="OpenAI, DeepSeek oder Ollama. Wird z. B. im HTTP-Knoten genutzt, um aus API-Beschreibungen Header/Body zu generieren.">
-        <form method="POST" action="{{ route('admin.ai.update') }}" class="space-y-3 max-w-2xl">
+        <form method="POST" action="{{ route('admin.ai.update') }}" class="space-y-3 max-w-2xl"
+              x-data="{ busy: false, action: '' }" @submit="busy = true">
             @csrf
             <div>
                 <x-input-label for="ai_provider" value="Anbieter" />
@@ -35,8 +36,19 @@
                 <p class="mt-1 text-xs text-slate-500">Verschluesselt gespeichert.</p>
             </div>
             <div class="flex gap-2">
-                <x-primary-button>Speichern</x-primary-button>
-                <button type="submit" formaction="{{ route('admin.ai.ping') }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Verbindung testen</button>
+                <button type="submit" :disabled="busy" @click="action='save'"
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-wait">
+                    <svg x-show="busy && action==='save'" x-cloak class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span x-show="!(busy && action==='save')">Speichern</span>
+                    <span x-show="busy && action==='save'" x-cloak>Speichere &hellip;</span>
+                </button>
+                <button type="submit" formaction="{{ route('admin.ai.ping') }}" :disabled="busy"
+                    @click="action='ping'"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-wait">
+                    <svg x-show="busy && action==='ping'" x-cloak class="h-3.5 w-3.5 animate-spin text-slate-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    <span x-show="!(busy && action==='ping')">Verbindung testen</span>
+                    <span x-show="busy && action==='ping'" x-cloak>Verbinde &hellip;</span>
+                </button>
             </div>
             <x-input-error :messages="$errors->get('ai')" />
         </form>
