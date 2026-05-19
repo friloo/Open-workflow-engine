@@ -42,9 +42,11 @@
         </details>
     @endif
 
-    @php($reqApprove = (bool) data_get($node, 'data.require_comment_on_approval', false))
-    @php($reqReject = (bool) data_get($node, 'data.require_comment_on_rejection', false))
-    @php($commentRequired = ($isApprove && $reqApprove) || (! $isApprove && $reqReject))
+    @php
+        $reqApprove = (bool) data_get($node, 'data.require_comment_on_approval', false);
+        $reqReject = (bool) data_get($node, 'data.require_comment_on_rejection', false);
+        $commentRequired = ($isApprove && $reqApprove) || (! $isApprove && $reqReject);
+    @endphp
 
     @if ($errors->any())
         <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">

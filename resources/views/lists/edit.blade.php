@@ -101,7 +101,7 @@
                 </div>
 
                 <x-card title="Zugriff pro Rolle" description="Wenn KEINE Rolle markiert ist, sehen alle mit lists.view die Liste. Sobald mindestens eine Rolle gesetzt ist, sehen nur diese sie.">
-                    @php($pivot = isset($list) && $list->exists ? $list->roles->keyBy('id') : collect())
+                    @php $pivot = isset($list) && $list->exists ? $list->roles->keyBy('id') : collect(); @endphp
                     <table class="min-w-full text-sm">
                         <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                             <th class="py-1 pr-3">Rolle</th>
@@ -111,8 +111,10 @@
                         </tr></thead>
                         <tbody>
                             @foreach(($allRoles ?? []) as $role)
-                                @php($current = $pivot->get($role->id))
-                                @php($access = $current ? ($current->pivot->can_edit ? 'edit' : 'view') : 'none')
+                                @php
+                                    $current = $pivot->get($role->id);
+                                    $access = $current ? ($current->pivot->can_edit ? 'edit' : 'view') : 'none';
+                                @endphp
                                 <tr>
                                     <td class="py-1 pr-3 text-sm">{{ $role->name }} <code class="text-xs text-slate-500">{{ $role->slug }}</code></td>
                                     @foreach(['none', 'view', 'edit'] as $val)

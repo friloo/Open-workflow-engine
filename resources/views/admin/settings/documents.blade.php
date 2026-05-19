@@ -45,7 +45,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @foreach($roles as $role)
-                            @php($allowed = $roleDocumentTypes[$role->slug] ?? [])
+                            @php $allowed = $roleDocumentTypes[$role->slug] ?? []; @endphp
                             <tr>
                                 <td class="py-2 pr-4 font-medium text-slate-900 whitespace-nowrap">{{ $role->name }}</td>
                                 <td class="py-2 pr-4">

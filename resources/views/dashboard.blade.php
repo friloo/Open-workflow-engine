@@ -100,8 +100,10 @@
             @else
                 <ul class="divide-y divide-slate-100">
                     @foreach($myOpenTasks as $step)
-                        @php($node = $step->instance->version->definition['drawflow']['Home']['data'][$step->step_key] ?? null)
-                        @php($overdue = $step->due_at && $step->due_at->isPast())
+                        @php
+                            $node = $step->instance->version->definition['drawflow']['Home']['data'][$step->step_key] ?? null;
+                            $overdue = $step->due_at && $step->due_at->isPast();
+                        @endphp
                         <li class="py-3">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
@@ -138,7 +140,7 @@
                                 </a>
                                 <div class="text-xs text-slate-500">{{ $i->started_at?->diffForHumans() }}</div>
                             </div>
-                            @php($tone = ['running' => 'indigo', 'completed' => 'emerald', 'failed' => 'rose', 'cancelled' => 'slate'][$i->status] ?? 'slate')
+                            @php $tone = ['running' => 'indigo', 'completed' => 'emerald', 'failed' => 'rose', 'cancelled' => 'slate'][$i->status] ?? 'slate'; @endphp
                             <span class="inline-flex items-center rounded-full bg-{{ $tone }}-50 px-2 py-0.5 text-xs font-medium text-{{ $tone }}-700">{{ $i->status }}</span>
                         </li>
                     @endforeach
@@ -157,7 +159,7 @@
                                 <div class="font-medium text-slate-900">{{ $w['name'] }}</div>
                                 <div class="text-xs text-slate-500">{{ $w['message'] }}</div>
                             </div>
-                            @php($tone = ['warn' => 'amber', 'fail' => 'rose'][$w['status']] ?? 'slate')
+                            @php $tone = ['warn' => 'amber', 'fail' => 'rose'][$w['status']] ?? 'slate'; @endphp
                             <span class="inline-flex items-center rounded-full bg-{{ $tone }}-50 px-2 py-0.5 text-xs font-medium text-{{ $tone }}-700">{{ $w['status'] }}</span>
                         </li>
                     @endforeach

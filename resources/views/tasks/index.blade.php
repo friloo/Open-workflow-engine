@@ -50,9 +50,11 @@
 
     <x-card>
         @if($open->isEmpty())
-            @php($emptyDescription = $filter !== 'all'
-                ? 'Keine Aufgaben in diesem Filter. Probier "Alle" oben.'
-                : 'Inbox Zero — nichts wartet auf dich. Schoen.')
+            @php
+                $emptyDescription = $filter !== 'all'
+                    ? 'Keine Aufgaben in diesem Filter. Probier "Alle" oben.'
+                    : 'Inbox Zero — nichts wartet auf dich. Schoen.';
+            @endphp
             <x-empty-state icon="inbox" title="Keine Aufgaben" :description="$emptyDescription">
                 @if($filter !== 'all')
                     <a href="{{ route('tasks.index') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Alle anzeigen</a>

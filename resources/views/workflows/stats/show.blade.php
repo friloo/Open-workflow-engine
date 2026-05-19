@@ -59,7 +59,7 @@
     </x-card>
 
     <x-card title="Throughput (letzte 12 Wochen)">
-        @php($max = max(1, max(array_merge(array_column($stats['throughput'], 'started'), array_column($stats['throughput'], 'completed')))))
+        @php $max = max(1, max(array_merge(array_column($stats['throughput'], 'started'), array_column($stats['throughput'], 'completed')))); @endphp
         <div class="flex items-end gap-2 h-32">
             @foreach($stats['throughput'] as $w)
                 <div class="flex-1 flex flex-col items-center justify-end">
