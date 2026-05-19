@@ -373,10 +373,18 @@ class DocumentController extends Controller
             }
         }
 
+        // Aktive Workflows fuer den "Workflow starten"-Button (nur die,
+        // bei denen der User auch starten darf).
+        $availableWorkflows = \App\Models\Workflow::where('status', \App\Models\Workflow::STATUS_ACTIVE)
+            ->orderBy('name')->get(['id', 'name'])
+            ->filter(fn ($w) => $request->user()->hasAnyPermission(['workflows.run', 'workflows.design']))
+            ->values();
+
         return view('documents.show', [
             'attachment' => $attachment->load('attachable', 'uploader'),
             'versions' => $versions,
             'zugferdData' => $zugferdData,
+            'availableWorkflows' => $availableWorkflows,
         ]);
     }
 

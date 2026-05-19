@@ -6,7 +6,99 @@
         · {{ $attachment->sizeFormatted() }} · {{ $attachment->created_at->format('d.m.Y H:i') }}
     </x-slot>
 
-    <div class="mb-4"><a href="{{ route('documents.index') }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Dokumente</a></div>
+    <div><a href="{{ route('documents.index') }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Dokumente</a></div>
+
+    {{-- Action-Toolbar: was kann ich JETZT mit dem Dokument machen --}}
+    <div class="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm"
+         x-data="{ workflowOpen: false, versionOpen: false, moreOpen: false }">
+        {{-- Download (primary) --}}
+        <a href="{{ route('attachments.download', $attachment) }}"
+           class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            Herunterladen
+        </a>
+
+        @if($attachment->isPdf() || $attachment->isImage())
+            <a href="{{ route('documents.preview', $attachment) }}" target="_blank"
+               class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+                Im Tab oeffnen
+            </a>
+        @endif
+
+        {{-- Workflow starten --}}
+        @if($availableWorkflows->isNotEmpty() && auth()->user()->hasAnyPermission(['workflows.run', 'workflows.design']))
+            <div class="relative" @click.outside="workflowOpen = false">
+                <button type="button" @click="workflowOpen = !workflowOpen"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5 10.5 21l3-3 3 3 6.75-7.5M3.75 5.25h17m-17 4.5h17"/></svg>
+                    Workflow starten
+                    <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 12 12"><path d="M3 4.5 6 8l3-3.5"/></svg>
+                </button>
+                <div x-show="workflowOpen" x-transition class="absolute left-0 z-30 mt-1 w-72 rounded-lg bg-white shadow-lg ring-1 ring-slate-200" style="display:none;">
+                    <div class="border-b border-slate-100 px-3 py-2 text-xs font-semibold uppercase text-slate-500">Aktive Workflows</div>
+                    <ul class="max-h-72 overflow-y-auto py-1">
+                        @foreach($availableWorkflows as $wf)
+                            <li>
+                                <form method="POST" action="{{ route('documents.start_workflow', $attachment) }}">
+                                    @csrf
+                                    <input type="hidden" name="workflow_id" value="{{ $wf->id }}">
+                                    <button type="submit" class="block w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">{{ $wf->name }}</button>
+                                </form>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
+
+        {{-- Neue Version --}}
+        @if(auth()->user()->hasPermission('documents.search'))
+            <div class="relative" @click.outside="versionOpen = false">
+                <button type="button" @click="versionOpen = !versionOpen"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/></svg>
+                    Neue Version
+                </button>
+                <div x-show="versionOpen" x-transition class="absolute left-0 z-30 mt-1 w-80 rounded-lg bg-white shadow-lg ring-1 ring-slate-200 p-3" style="display:none;">
+                    <form method="POST" enctype="multipart/form-data" action="{{ route('documents.new_version', $attachment) }}" class="space-y-2">
+                        @csrf
+                        <p class="text-xs text-slate-500">Alte Versionen bleiben dauerhaft erhalten.</p>
+                        <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx,.txt,.csv" required
+                            class="block w-full text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-indigo-700 hover:file:bg-indigo-100">
+                        <x-input-error :messages="$errors->get('file')" />
+                        <button class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Hochladen</button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
+        {{-- Mehr-Dropdown: weniger haeufige Aktionen --}}
+        <div class="relative" @click.outside="moreOpen = false">
+            <button type="button" @click="moreOpen = !moreOpen"
+                class="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/></svg>
+            </button>
+            <div x-show="moreOpen" x-transition class="absolute right-0 z-30 mt-1 w-56 rounded-lg bg-white shadow-lg ring-1 ring-slate-200 py-1" style="display:none;">
+                @if(in_array($attachment->ocr_status, ['pending','failed','skipped','done']))
+                    <form method="POST" action="{{ route('documents.reindex', $attachment) }}">
+                        @csrf
+                        <button type="submit" class="block w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">OCR neu indexieren</button>
+                    </form>
+                @endif
+                <a href="{{ route('attachments.download', $attachment) }}" class="block px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">Original-Datei herunterladen</a>
+                @if(auth()->user()->hasPermission('audit.view'))
+                    <a href="{{ route('admin.audit.index', ['model_type' => 'attachment', 'model_id' => $attachment->id]) }}"
+                       class="block px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">Audit-Log fuer dieses Dokument</a>
+                @endif
+            </div>
+        </div>
+
+        <div class="ms-auto text-xs text-slate-500">
+            v{{ $attachment->version_number }}{{ $attachment->is_current_version ? '' : ' (alt)' }}
+            · {{ $attachment->sizeFormatted() }}
+        </div>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-6">
@@ -64,10 +156,7 @@
                     <p class="text-sm text-slate-500">Kein Text extrahiert. Status: <strong>{{ $attachment->ocr_status }}</strong></p>
                 @endif
                 @if(in_array($attachment->ocr_status, ['pending','failed','skipped']))
-                    <form method="POST" action="{{ route('documents.reindex', $attachment) }}" class="mt-3">
-                        @csrf
-                        <x-secondary-button>OCR erneut versuchen</x-secondary-button>
-                    </form>
+                    <p class="mt-3 text-xs text-slate-500">OCR steckt — nimm das <em>Mehr</em>-Menue oben fuer „OCR neu indexieren".</p>
                 @endif
             </x-card>
 
@@ -130,17 +219,7 @@
                         </li>
                     @endforeach
                 </ul>
-                @if(auth()->user()->hasPermission('documents.search'))
-                    <form method="POST" enctype="multipart/form-data" action="{{ route('documents.new_version', $attachment) }}" class="mt-4 border-t border-slate-200 pt-4 space-y-2">
-                        @csrf
-                        <label class="block text-xs font-medium text-slate-600">Neue Version hochladen</label>
-                        <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx,.txt,.csv" required
-                            class="block w-full text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100">
-                        <p class="text-xs text-slate-500">Alte Versionen bleiben dauerhaft erhalten und sind weiterhin abrufbar.</p>
-                        <x-input-error :messages="$errors->get('file')" />
-                        <button class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Neue Version speichern</button>
-                    </form>
-                @endif
+                <p class="mt-3 text-xs text-slate-500">Eine neue Version laedst du oben ueber den <em>Neue Version</em>-Button hoch.</p>
             </x-card>
         </div>
 
@@ -192,8 +271,7 @@
             @endif
 
             <x-card title="Datei">
-                <a href="{{ route('attachments.download', $attachment) }}" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Herunterladen</a>
-                <dl class="mt-4 space-y-2 text-xs">
+                <dl class="space-y-2 text-xs">
                     <div><dt class="text-slate-500">Original-Name</dt><dd class="text-slate-900">{{ $attachment->original_name }}</dd></div>
                     <div><dt class="text-slate-500">Mime-Type</dt><dd class="text-slate-900">{{ $attachment->mime_type }}</dd></div>
                     <div><dt class="text-slate-500">Groesse</dt><dd class="text-slate-900">{{ $attachment->sizeFormatted() }}</dd></div>
