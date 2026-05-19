@@ -109,6 +109,31 @@ Erkannte Felder sind:
 - via *Jetzt neu indexieren* pro Dokumenttyp komplett neu auslesbar
   (oder per Konsole `php artisan documents:reindex --type=Rechnung`).
 
+## Tags und Akten
+
+Neben dem Dokumenttyp gibt es zwei flexible Klassifizierungs-Ebenen:
+
+- **Tags** — freie Schlagwoerter mit Farbe (z. B. „dringend", „intern",
+  „rueckfrage"). Verwaltung unter *Tags* in der Sidebar.
+- **Akten** — thematische Sammlungen, in denen ein Dokument liegen kann.
+  Beispiele: „Akte Mueller GmbH" (alle Korrespondenz mit dem Kunden),
+  „Vertrag XY" (Vertrag + Nachtraege + Korrespondenz), „Projekt Alpha".
+  Verwaltung unter *Akten* in der Sidebar. Ein Dokument kann in mehreren
+  Akten liegen.
+
+## Bulk-Aktionen
+
+In der Dokumenten-Liste kannst du oben links **mehrere Zeilen anhaken**
+und eine Aktion auf alle anwenden:
+
+- **Typ aendern** (z. B. „Rechnung" → „Mahnung")
+- **Tag setzen** / **Tag entfernen**
+- **Zu Akte hinzufuegen**
+- **Archivieren** (Soft-Delete)
+
+Praktisch fuer das Aufraeumen frueher importierter Dokumente oder
+fuer thematische Gruppen-Bearbeitung.
+
 ## Postkorb
 
 *Dokumente -> Postkorb* zeigt alle Dokumente, die noch keinem Workflow

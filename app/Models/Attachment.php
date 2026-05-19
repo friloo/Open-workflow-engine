@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -70,6 +71,16 @@ class Attachment extends Model
     public function scopeCurrentVersions($query)
     {
         return $query->where('is_current_version', true);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
+    public function cases(): BelongsToMany
+    {
+        return $this->belongsToMany(DocumentCase::class, 'attachment_document_case')->withTimestamps();
     }
 
     public function sizeFormatted(): string

@@ -71,6 +71,44 @@
                 @endif
             </x-card>
 
+            @php($attTags = $attachment->tags ?? collect())
+            @php($attCases = $attachment->cases ?? collect())
+            <x-card title="Tags & Akten">
+                <div class="space-y-3">
+                    <div>
+                        <div class="text-xs font-medium text-slate-500 mb-1">Tags</div>
+                        @if($attTags->isEmpty())
+                            <p class="text-xs text-slate-500">— keine Tags —</p>
+                        @else
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach($attTags as $tag)
+                                    <span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium" style="background:{{ $tag->color }}22; color:{{ $tag->color }};">
+                                        <span class="inline-block h-1.5 w-1.5 rounded-full" style="background:{{ $tag->color }}"></span>
+                                        {{ $tag->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                    <div>
+                        <div class="text-xs font-medium text-slate-500 mb-1">In Akten</div>
+                        @if($attCases->isEmpty())
+                            <p class="text-xs text-slate-500">— keiner Akte zugeordnet —</p>
+                        @else
+                            <ul class="space-y-1">
+                                @foreach($attCases as $case)
+                                    <li class="text-sm">
+                                        <a href="{{ route('cases.show', $case) }}" class="text-indigo-600 hover:text-indigo-500">{{ $case->name }}</a>
+                                        @if($case->reference)<code class="ms-1 text-xs text-slate-500">{{ $case->reference }}</code>@endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                </div>
+                <p class="mt-3 text-xs text-slate-500">Tags und Akten weist du am bequemsten ueber die Bulk-Aktion in der Dokumenten-Liste zu.</p>
+            </x-card>
+
             <x-card title="Versionen ({{ $versions->count() }})">
                 <ul class="divide-y divide-slate-100">
                     @foreach($versions->sortByDesc('version_number') as $v)

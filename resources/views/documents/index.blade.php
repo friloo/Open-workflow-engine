@@ -88,11 +88,69 @@
                 <a href="{{ route('help.show', 'documents') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>
             </x-empty-state>
         @else
-            <ul class="divide-y divide-slate-100">
-                @foreach($documents as $d)
-                    @include('documents._row', ['d' => $d, 'q' => $q])
-                @endforeach
-            </ul>
+            @php($allTags = \App\Models\Tag::orderBy('name')->get())
+            @php($allCases = \App\Models\DocumentCase::whereNull('closed_at')->orderBy('name')->get())
+            <form method="POST" action="{{ route('documents.bulk_action') }}" x-data="{ selected: [], action: 'set_type' }">
+                @csrf
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div class="flex items-center gap-2 text-sm">
+                        <label class="inline-flex items-center gap-2">
+                            <input type="checkbox"
+                                @change="selected = $event.target.checked ? Array.from(document.querySelectorAll('input[name=&quot;attachment_ids[]&quot;]')).map(c => { c.checked = true; return Number(c.value); }) : (document.querySelectorAll('input[name=&quot;attachment_ids[]&quot;]').forEach(c => c.checked = false), [])"
+                                class="rounded border-slate-300 text-indigo-600">
+                            <span class="text-slate-700">Alle</span>
+                        </label>
+                        <span class="text-xs text-slate-500" x-text="selected.length === 0 ? 'nichts ausgewaehlt' : selected.length + ' ausgewaehlt'"></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select x-model="action" name="action" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="set_type">Typ aendern</option>
+                            <option value="add_tag">Tag setzen</option>
+                            <option value="remove_tag">Tag entfernen</option>
+                            <option value="add_case">Zu Akte hinzufuegen</option>
+                            <option value="archive">Archivieren</option>
+                        </select>
+                        <template x-if="action === 'set_type'">
+                            <select name="document_type" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">— ohne Typ —</option>
+                                @foreach(\App\Support\DocumentTypes::all() as $t)
+                                    <option value="{{ $t }}">{{ $t }}</option>
+                                @endforeach
+                            </select>
+                        </template>
+                        <template x-if="action === 'add_tag' || action === 'remove_tag'">
+                            <select name="tag_id" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">— Tag waehlen —</option>
+                                @foreach($allTags as $tag)
+                                    <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                                @endforeach
+                            </select>
+                        </template>
+                        <template x-if="action === 'add_case'">
+                            <select name="case_id" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">— Akte waehlen —</option>
+                                @foreach($allCases as $case)
+                                    <option value="{{ $case->id }}">{{ $case->name }}</option>
+                                @endforeach
+                            </select>
+                        </template>
+                        <x-primary-button x-bind:disabled="selected.length === 0" onclick="return confirm('Aktion auf ausgewaehlte Dokumente anwenden?')">Anwenden</x-primary-button>
+                    </div>
+                </div>
+
+                <ul class="divide-y divide-slate-100">
+                    @foreach($documents as $d)
+                        <li class="py-2 flex items-start gap-3">
+                            <input type="checkbox" name="attachment_ids[]" value="{{ $d->id }}"
+                                @change="selected = Array.from(document.querySelectorAll('input[name=&quot;attachment_ids[]&quot;]:checked')).map(c => Number(c.value))"
+                                class="mt-2 rounded border-slate-300 text-indigo-600">
+                            <div class="flex-1">
+                                @include('documents._row', ['d' => $d, 'q' => $q])
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </form>
         @endif
         <div class="mt-4">{{ $documents->links() }}</div>
     </x-card>

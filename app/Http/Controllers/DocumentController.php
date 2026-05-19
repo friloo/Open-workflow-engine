@@ -336,6 +336,65 @@ class DocumentController extends Controller
         ]);
     }
 
+    /**
+     * Bulk-Aktion auf mehrere ausgewaehlte Dokumente: Typ aendern, Tag
+     * setzen/entfernen, Akte hinzufuegen, archivieren.
+     */
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'attachment_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'attachment_ids.*' => ['integer', 'exists:attachments,id'],
+            'action' => ['required', 'in:set_type,add_tag,remove_tag,add_case,archive'],
+            'document_type' => ['nullable', 'string', 'max:64'],
+            'tag_id' => ['nullable', 'integer', 'exists:tags,id'],
+            'case_id' => ['nullable', 'integer', 'exists:document_cases,id'],
+        ]);
+
+        $user = $request->user();
+        $attachments = Attachment::whereIn('id', $data['attachment_ids'])->get();
+        $allowed = $attachments->filter(fn ($a) => DocumentTypes::canViewType($user, $a->document_type));
+        $touched = 0;
+
+        foreach ($allowed as $att) {
+            switch ($data['action']) {
+                case 'set_type':
+                    $att->forceFill(['document_type' => $data['document_type'] ?: null])->save();
+                    $touched++;
+                    break;
+                case 'add_tag':
+                    if ($data['tag_id']) {
+                        $att->tags()->syncWithoutDetaching([$data['tag_id']]);
+                        $touched++;
+                    }
+                    break;
+                case 'remove_tag':
+                    if ($data['tag_id']) {
+                        $att->tags()->detach($data['tag_id']);
+                        $touched++;
+                    }
+                    break;
+                case 'add_case':
+                    if ($data['case_id']) {
+                        $att->cases()->syncWithoutDetaching([$data['case_id']]);
+                        $touched++;
+                    }
+                    break;
+                case 'archive':
+                    $att->delete();
+                    $touched++;
+                    break;
+            }
+        }
+
+        $this->audit->log('documents.bulk_action', null, null, [
+            'action' => $data['action'], 'count' => $touched,
+            'ids' => $allowed->pluck('id')->all(),
+        ], "Bulk-Aktion {$data['action']}: {$touched} Dokument(e)", $user->id);
+
+        return back()->with('status', "{$touched} Dokument(e) verarbeitet.");
+    }
+
     public function updateIndexedFields(Request $request, Attachment $attachment): RedirectResponse
     {
         if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);

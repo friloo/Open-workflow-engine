@@ -219,6 +219,20 @@ Route::middleware(['auth', 'permission:documents.search'])->prefix('dokumente')-
     Route::post('{attachment}/fields', [\App\Http\Controllers\DocumentController::class, 'updateIndexedFields'])->name('fields.update');
     Route::post('{attachment}/start-workflow', [\App\Http\Controllers\DocumentController::class, 'startWorkflow'])->name('start_workflow');
     Route::post('{attachment}/new-version', [\App\Http\Controllers\DocumentController::class, 'uploadVersion'])->name('new_version');
+    Route::post('bulk-action', [\App\Http\Controllers\DocumentController::class, 'bulkAction'])->name('bulk_action');
+});
+
+// Tags + Akten — Permission documents.search reicht zum Anlegen/Editieren.
+Route::middleware(['auth', 'permission:documents.search'])->group(function () {
+    Route::get('/tags', [\App\Http\Controllers\TagController::class, 'index'])->name('tags.index');
+    Route::post('/tags', [\App\Http\Controllers\TagController::class, 'store'])->name('tags.store');
+    Route::put('/tags/{tag}', [\App\Http\Controllers\TagController::class, 'update'])->name('tags.update');
+    Route::delete('/tags/{tag}', [\App\Http\Controllers\TagController::class, 'destroy'])->name('tags.destroy');
+
+    Route::resource('akten', \App\Http\Controllers\DocumentCaseController::class)
+        ->parameters(['akten' => 'case'])
+        ->names('cases');
+    Route::post('/akten/{case}/close', [\App\Http\Controllers\DocumentCaseController::class, 'close'])->name('cases.close');
 });
 
 // Sharing-Links verwalten
