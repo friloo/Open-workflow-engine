@@ -7,12 +7,64 @@
     <x-slot name="subheader">Was heute auf dich wartet.</x-slot>
 
     @if($delegatedTo)
-        <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
             <strong>Vertretung aktiv</strong> — {{ $delegatedTo->name }} ({{ $delegatedTo->email }})
             uebernimmt deine neuen Aufgaben.
             <a href="{{ route('two-factor.show') }}" class="hidden"></a>
             <a href="{{ route('profile.edit') }}" class="ms-2 underline">aendern</a>
         </div>
+    @endif
+
+    @if($onboarding)
+        <x-card>
+            <div class="flex flex-col gap-4">
+                <div class="flex items-baseline justify-between">
+                    <div>
+                        <h2 class="text-base font-semibold text-slate-900">Erste Schritte</h2>
+                        <p class="text-xs text-slate-500">Diese Karte verschwindet, sobald alle Punkte abgehakt sind.</p>
+                    </div>
+                    <div class="text-sm text-slate-600">
+                        <strong class="text-slate-900">{{ $onboarding['done'] }}</strong> / {{ $onboarding['total'] }} erledigt
+                    </div>
+                </div>
+
+                {{-- Progress bar --}}
+                <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div class="h-full bg-emerald-500 transition-all"
+                         style="width: {{ round($onboarding['done'] / $onboarding['total'] * 100) }}%"></div>
+                </div>
+
+                <ul class="space-y-2">
+                    @foreach($onboarding['items'] as $item)
+                        <li>
+                            <a href="{{ $item['url'] }}"
+                               class="flex items-start gap-3 rounded-lg border p-3 transition
+                                      {{ $item['done']
+                                          ? 'border-emerald-100 bg-emerald-50/40 hover:bg-emerald-50'
+                                          : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50' }}">
+                                <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full
+                                             {{ $item['done'] ? 'bg-emerald-500 text-white' : 'border-2 border-slate-300 bg-white' }}">
+                                    @if($item['done'])
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                    @endif
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-medium {{ $item['done'] ? 'text-emerald-900 line-through opacity-70' : 'text-slate-900' }}">
+                                        {{ $item['label'] }}
+                                    </div>
+                                    <div class="text-xs {{ $item['done'] ? 'text-emerald-700/70' : 'text-slate-500' }}">
+                                        {{ $item['hint'] }}
+                                    </div>
+                                </div>
+                                @unless($item['done'])
+                                    <span class="text-xs text-indigo-600 self-center">jetzt →</span>
+                                @endunless
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </x-card>
     @endif
 
     {{-- KPI-Cards --}}
