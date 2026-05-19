@@ -51,20 +51,44 @@ class AIController extends Controller
     public function suggestHttp(AIClient $client, Request $request): JsonResponse
     {
         $data = $request->validate([
-            'description' => ['required', 'string', 'max:6000'],
+            // 'description' bleibt aus Rueckwaerts-Kompat; 'input' ist neu fuer
+            // einen freien Mix aus curl / OpenAPI / Markdown-Doku / Freitext.
+            'description' => ['nullable', 'string', 'max:20000'],
+            'input' => ['nullable', 'string', 'max:20000'],
             'available_fields' => ['nullable', 'array'],
+            'purpose' => ['nullable', 'string', 'max:500'],
         ]);
+        $input = trim((string) ($data['input'] ?? $data['description'] ?? ''));
+        if ($input === '') {
+            return response()->json(['error' => 'Bitte Beschreibung, curl-Befehl oder API-Doku angeben.'], 422);
+        }
         if (! $client->isConfigured()) {
             return response()->json(['error' => 'KI ist nicht konfiguriert.'], 422);
         }
 
+        // 1) Wenn der Input wie ein curl-Befehl aussieht, vorab strukturell
+        //    parsen. Das gibt der KI eine sichere Basis und spart Token.
+        $preparsed = null;
+        if (preg_match('/^\s*curl\b/i', $input) || str_contains($input, "\ncurl ")) {
+            try {
+                $preparsed = \App\Services\CurlParser::parse($input);
+            } catch (\Throwable) {
+                $preparsed = null;
+            }
+        }
+
         $fields = $data['available_fields'] ?? [];
-        $fieldList = $fields ? "Verfuegbare Platzhalter (Formular- und Workflow-Felder): ".implode(', ', $fields) : '';
+        $fieldList = $fields ? "Verfuegbare Platzhalter: ".implode(', ', $fields) : '';
+        $purpose = (string) ($data['purpose'] ?? '');
+        $purposeLine = $purpose !== '' ? "Aktueller Zweck des Calls: {$purpose}" : '';
 
         $system = <<<TXT
-Du bist Experte fuer API-Integrationen. Aus der gegebenen API-Beschreibung erzeugst du
-strikt eine JSON-Antwort fuer einen HTTP-Workflow-Knoten. Antworte ausschliesslich mit
-einem JSON-Objekt mit diesen Feldern (alle optional, leer lassen wenn nicht relevant):
+Du bist Experte fuer API-Integrationen. Aus dem gegebenen Input (kann sein:
+curl-Befehl, OpenAPI/Swagger-Snippet, Markdown-Doku, oder freie Beschreibung)
+erzeugst du ein JSON-Objekt fuer einen HTTP-Knoten.
+
+Antworte AUSSCHLIESSLICH mit reinem JSON, ohne Markdown-Wrapper, in diesem
+Format:
 
 {
   "method": "GET|POST|PUT|PATCH|DELETE",
@@ -78,31 +102,45 @@ einem JSON-Objekt mit diesen Feldern (alle optional, leer lassen wenn nicht rele
   "body_type": "none|json|form|raw",
   "body_template": "",
   "body_form": [{"key": "", "value": ""}],
-  "response_mapping": [{"path": "", "save_as": ""}]
+  "response_mapping": [{"path": "", "save_as": ""}],
+  "notes": "kurze Hinweise an den Admin (max 200 Zeichen)"
 }
 
 Regeln:
-- Dynamische Werte als Mustache-Platzhalter formulieren, z. B. {{ initiator_email }},
-  {{ subject_user_name }}, {{ kostenstelle }}, {{ instance_id }}, {{ workflow_name }}.
-- response_mapping nutzt Punktnotation, z. B. "data.id" -> "ticket_id".
-- Wenn der API-Body als JSON erwartet wird, body_type = json + body_template als
-  gueltiges JSON mit Platzhaltern.
-- Wenn die API ein API-Key-Header verlangt, auth_type = api_key_header und
-  auth_header_name korrekt setzen (z. B. "X-API-Key" oder "Authorization").
-- Antworte AUSSCHLIESSLICH mit reinem JSON, ohne Markdown-Wrapper.
+- KONKRETE BEISPIELWERTE im Body durch passende Platzhalter ersetzen.
+  z. B. "max@example.com" -> {{ user_email }}, "Max Mustermann" -> {{ user_name }},
+  "Drucker druckt nicht" -> {{ subject }}, etc.
+- Nur die unter "Verfuegbare Platzhalter" gelisteten Variablen verwenden.
+- Authorization-Header NICHT in "headers" auflisten, stattdessen via
+  auth_type/auth_token/auth_username/...
+- response_mapping mit Punktnotation, z. B. "data.id" -> "ticket_id".
+- Wenn mehrere Endpoints im Input stehen, waehle den passendsten zum
+  "Aktuellen Zweck" oder den ersten POST/PUT.
+- IDs oder Zahlen, fuer die kein Platzhalter passt, auf 0 oder einen
+  sinnvollen Default lassen und in "notes" erwaehnen.
+
+{$purposeLine}
 {$fieldList}
 TXT;
+
+        // Pre-Parse-Hilfe an die KI weiterreichen
+        $userMsg = $input;
+        if ($preparsed) {
+            $userMsg = "Ich habe diesen curl-Befehl bereits strukturell geparst:\n"
+                .json_encode($preparsed, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                ."\n\nOriginal-curl:\n".$input
+                ."\n\nNimm diese Struktur, ersetze Beispielwerte im Body durch passende Platzhalter und liefere das verlangte JSON.";
+        }
 
         try {
             $r = $client->chat([
                 ['role' => 'system', 'content' => $system],
-                ['role' => 'user', 'content' => $data['description']],
+                ['role' => 'user', 'content' => $userMsg],
             ], 0.1, true);
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 502);
         }
 
-        // JSON aus Antwort herausfischen (manche Modelle umgeben mit ```json)
         $text = trim($r['text']);
         if (str_starts_with($text, '```')) {
             $text = trim(preg_replace('/^```(json)?|```$/m', '', $text));
@@ -115,11 +153,22 @@ TXT;
             ], 422);
         }
 
+        // Wenn KI auth_token leer laesst, Pre-Parse-Auth uebernehmen (Token aus curl).
+        if ($preparsed && ! empty($preparsed['auth'])) {
+            $a = $preparsed['auth'];
+            if (empty($parsed['auth_type']) || $parsed['auth_type'] === 'none') $parsed['auth_type'] = $a['type'] ?? 'none';
+            if (empty($parsed['auth_token']) && ! empty($a['token'])) $parsed['auth_token'] = $a['token'];
+            if (empty($parsed['auth_username']) && ! empty($a['username'])) $parsed['auth_username'] = $a['username'];
+            if (empty($parsed['auth_password']) && ! empty($a['password'])) $parsed['auth_password'] = $a['password'];
+            if (empty($parsed['auth_header_name']) && ! empty($a['header_name'])) $parsed['auth_header_name'] = $a['header_name'];
+        }
+
         $this->audit->log('ai.suggest_http', null, null, [
             'provider' => $client->provider(),
             'method' => $parsed['method'] ?? null,
             'url' => $parsed['url'] ?? null,
-        ], 'KI-Vorschlag fuer HTTP-Knoten generiert', $request->user()->id);
+            'preparsed' => $preparsed !== null,
+        ], 'KI-Vorschlag fuer HTTP-Call generiert', $request->user()->id);
 
         return response()->json(['suggestion' => $parsed]);
     }

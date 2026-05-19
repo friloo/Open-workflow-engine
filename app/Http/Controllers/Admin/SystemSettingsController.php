@@ -121,50 +121,6 @@ class SystemSettingsController extends Controller
         ]);
     }
 
-    /**
-     * KI-Helfer fuer das Support-Body-Template. Bekommt eine kurze
-     * Beschreibung vom Admin (z. B. 'Zammad-Tickets erstellen'), liefert
-     * ein passendes JSON-Template mit Standard-Platzhaltern zurueck.
-     */
-    public function supportAiTemplate(Request $request, \App\Services\AIClient $ai): \Illuminate\Http\JsonResponse
-    {
-        $data = $request->validate([
-            'description' => ['required', 'string', 'min:5', 'max:1000'],
-        ]);
-
-        if (! $ai->isConfigured()) {
-            return response()->json(['error' => 'KI ist nicht konfiguriert. Geh zu Einstellungen → KI.'], 422);
-        }
-
-        $system = "Du baust JSON-Body-Templates fuer HTTP-API-Calls von einem internen "
-            ."Support-Formular an externe Ticketsysteme. Liefere AUSSCHLIESSLICH gueltiges JSON "
-            ."(keine Code-Blocks, keine Erklaerungen) als Body-Template fuer einen POST-Request. "
-            ."Nutze folgende Platzhalter, die zur Laufzeit ersetzt werden: "
-            ."{{ subject }}, {{ description }}, {{ user_name }}, {{ user_email }}, "
-            ."{{ user_id }}, {{ app_name }}, {{ app_url }}, {{ timestamp }}. "
-            ."Die Werte sind bereits JSON-sicher escaped — du musst sie in Quotes setzen. "
-            ."Gib keine Auth-Header an (die kommen separat in der Konfiguration).";
-
-        try {
-            $r = $ai->chat([
-                ['role' => 'system', 'content' => $system],
-                ['role' => 'user', 'content' => $data['description']],
-            ], 0.2);
-            $text = trim($r['text']);
-            // Manchmal liefert die KI ```json ... ``` — den Block entfernen.
-            $text = preg_replace('/^```(?:json)?\s*|\s*```$/m', '', $text);
-            $text = trim($text);
-            // Sanity-Check: muss als JSON parsebar sein.
-            $decoded = json_decode($text, true);
-            if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
-                return response()->json(['error' => 'KI hat kein gueltiges JSON geliefert. Output: '.\Illuminate\Support\Str::limit($text, 200)], 422);
-            }
-            return response()->json(['template' => json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
-        } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
     public function updateSupport(Request $request): RedirectResponse
     {
         $data = $request->validate([

@@ -434,29 +434,36 @@
                                         <p class="text-xs text-slate-500">Body und Header sind frei anpassbar. Antwort-Felder koennen zurueck in den Workflow uebernommen werden.</p>
 
                                         <div class="rounded-lg border border-violet-200 bg-violet-50 p-3 space-y-2">
-                                            <div class="text-xs font-semibold text-violet-800">✨ KI-Vorschlag aus API-Beschreibung</div>
-                                            <textarea x-model="aiDesc" rows="4" placeholder="z. B.: POST an https://example.atlassian.net/rest/api/3/issue mit Bearer-Token. JSON-Body mit fields.project.key='IT', fields.summary aus Antrag, fields.description aus 'beschreibung'. Antwort enthaelt 'key' = Ticket-ID."
-                                                class="block w-full rounded-lg border-violet-300 bg-white text-xs shadow-sm focus:border-violet-500 focus:ring-violet-500"></textarea>
+                                            <div class="text-xs font-semibold text-violet-800">+ KI-Import: curl, OpenAPI oder API-Doku</div>
+                                            <p class="text-[11px] text-violet-700">Komplettes curl reinpasten, OpenAPI-Snippet, Markdown-Endpoint oder Freitext — KI fuellt URL, Methode, Header, Auth und Body-Template aus. Beispielwerte werden durch passende Form-Platzhalter ersetzt.</p>
+                                            <textarea x-model="aiDesc" rows="6"
+                                                placeholder='curl -X POST "https://itdoku.example.com/api/tickets" -H "Authorization: Bearer xxx" -H "Content-Type: application/json" -d {"subject":"Test","from_email":"max@example.com","description":"..."}'
+                                                class="block w-full rounded-lg border-violet-300 bg-white text-xs shadow-sm focus:border-violet-500 focus:ring-violet-500 font-mono"></textarea>
                                             <div class="flex items-center gap-2">
-                                                <button type="button" :disabled="aiBusy || !aiDesc"
+                                                <button type="button" :disabled="aiBusy || !aiDesc.trim()"
                                                     @click="aiBusy = true; aiError = '';
                                                         fetch('{{ route('admin.ai.suggest_http') }}', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type':'application/json','X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept':'application/json' },
-                                                            body: JSON.stringify({ description: aiDesc, available_fields: (formSchema||[]).map(f=>f.key) }),
+                                                            body: JSON.stringify({
+                                                                input: aiDesc,
+                                                                purpose: 'Aufruf aus einem Workflow-HTTP-Knoten — Werte kommen aus dem Antragsteller-Kontext und Formular-Daten',
+                                                                available_fields: (formSchema||[]).map(f=>f.key).concat(['initiator_email','initiator_name','workflow_name','instance_id','timestamp']),
+                                                            }),
                                                         }).then(async r => {
                                                             const j = await r.json();
                                                             if (! r.ok) { aiError = j.error || 'Fehler'; return; }
                                                             const s = j.suggestion || {};
-                                                            ['method','url','auth_type','auth_token','auth_username','auth_password','auth_header_name','body_type','body_template'].forEach(k => { if (s[k] !== undefined) selectedNode.data[k] = s[k]; });
-                                                            if (Array.isArray(s.headers) && s.headers.length) selectedNode.data.headers = s.headers;
+                                                            ['method','url','auth_type','auth_token','auth_username','auth_password','auth_header_name','body_type','body_template'].forEach(k => { if (s[k] !== undefined && s[k] !== '') selectedNode.data[k] = s[k]; });
+                                                            if (Array.isArray(s.headers)) selectedNode.data.headers = s.headers.filter(h => h && h.key);
                                                             if (Array.isArray(s.body_form)) selectedNode.data.body_form = s.body_form;
                                                             if (Array.isArray(s.response_mapping) && s.response_mapping.length) selectedNode.data.response_mapping = s.response_mapping;
+                                                            if (s.notes) aiError = 'Hinweis: ' + s.notes;
                                                         }).catch(e => aiError = e.message).finally(() => aiBusy = false)"
                                                     class="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-violet-500 disabled:opacity-50">
-                                                    <span x-show="!aiBusy">Generieren</span><span x-show="aiBusy">Generiere…</span>
+                                                    <span x-show="!aiBusy">API uebernehmen</span><span x-show="aiBusy">analysiere &hellip;</span>
                                                 </button>
-                                                <span x-text="aiError" class="text-xs text-rose-700"></span>
+                                                <span x-text="aiError" class="text-xs text-violet-700"></span>
                                             </div>
                                         </div>
 
