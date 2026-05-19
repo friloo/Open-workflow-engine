@@ -1,5 +1,20 @@
 <x-app-layout :full="true">
-    <div x-data="designerApp()" x-init="boot()" class="flex h-[calc(100vh-4rem)] flex-col">
+    {{-- Mobile-Warnung: Designer braucht Drag & Drop und ist auf Touch-Geraeten kaum
+         bedienbar. Auf Geraeten kleiner als lg blenden wir die App komplett aus und
+         zeigen einen Hinweis statt einem kaputten Canvas. --}}
+    <div class="lg:hidden flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <div class="grid h-14 w-14 place-items-center rounded-full bg-amber-100 text-amber-700">
+            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        </div>
+        <h2 class="mt-4 text-base font-semibold text-slate-900">Designer braucht einen Desktop</h2>
+        <p class="mt-2 max-w-sm text-sm text-slate-500">
+            Drag-and-Drop von Knoten und das Ziehen von Verbindungen funktioniert auf
+            Touch-Geraeten nicht zuverlaessig. Oeffne diesen Workflow am Rechner.
+        </p>
+        <a href="{{ route('workflows.index') }}" class="mt-4 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">&larr; Zurueck zu Workflows</a>
+    </div>
+
+    <div x-data="designerApp()" x-init="boot()" class="hidden lg:flex h-[calc(100vh-4rem)] flex-col">
 
         {{-- Toolbar --}}
         <div class="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-6 py-3">
