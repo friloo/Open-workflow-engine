@@ -207,6 +207,13 @@ class TaskController extends Controller
         $instance = $step->instance;
         $docFields = [];
         $instanceFields = [];
+        // Mapping vom Designer-Feldtyp zum Schema-Feldtyp.
+        $typeMap = [
+            'text' => 'string', 'textarea' => 'string', 'select' => 'string',
+            'checkbox' => 'string', 'number' => 'number', 'date' => 'date',
+        ];
+        // Pro Doku-Type sammeln wir die Schema-Felder, die ggf. ergaenzt werden muessen.
+        $docSchemaUpdates = [];
 
         foreach ($fieldsConfig as $f) {
             $key = $f['key'];
@@ -222,11 +229,16 @@ class TaskController extends Controller
                 $instanceFields[$key] = $value;
             } else {
                 $docFields[$key] = $value;
+                $docSchemaUpdates[$key] = [
+                    'label' => $f['label'] ?? $key,
+                    'type' => $typeMap[$f['type'] ?? 'text'] ?? 'string',
+                ];
             }
         }
 
         if (! empty($docFields)) {
             $attachments = $instance->attachments;
+            $touchedTypes = [];
             foreach ($attachments as $att) {
                 $existing = (array) ($att->indexed_fields ?? []);
                 $merged = array_merge($existing, $docFields);
@@ -241,6 +253,29 @@ class TaskController extends Controller
                     'Indexfelder via Genehmigungs-Zusatzfelder aktualisiert',
                     $userId,
                 );
+                if ($att->document_type) $touchedTypes[$att->document_type] = true;
+            }
+
+            // Schema-Auto-Pflege: pro angefasstem Doku-Type fehlende Felder
+            // ergaenzen. Idempotent — bestehende Schemas bleiben unveraendert
+            // (Extractor/Pattern werden NICHT ueberschrieben).
+            foreach (array_keys($touchedTypes) as $docType) {
+                $added = [];
+                foreach ($docSchemaUpdates as $key => $meta) {
+                    if (\App\Support\DocumentFieldSchema::ensureField($docType, $key, $meta['label'], $meta['type'])) {
+                        $added[] = $key;
+                    }
+                }
+                if ($added) {
+                    app(\App\Services\AuditLogger::class)->log(
+                        'document_schema.field_added_from_approval',
+                        null,
+                        null,
+                        ['document_type' => $docType, 'added_keys' => $added, 'step_key' => $step->step_key],
+                        "Schema '{$docType}' um Felder erweitert: ".implode(', ', $added),
+                        $userId,
+                    );
+                }
             }
         }
 

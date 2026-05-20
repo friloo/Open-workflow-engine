@@ -75,6 +75,44 @@ class DocumentFieldSchema
         return $out;
     }
 
+    /**
+     * Stellt sicher, dass im Schema des Doku-Typs ein Feld mit dem
+     * gegebenen Key vorhanden ist. Wenn ja: nichts tun. Wenn nein:
+     * anhaengen — mit dem mitgegebenen Label/Typ, Extractor 'manual'.
+     *
+     * Wird nach einer Approval-Entscheidung aufgerufen, wenn der
+     * Genehmiger ein Zusatzfeld ausgefuellt hat und der Anhang einen
+     * Doku-Typ hat. Damit erscheint das Feld ab dann automatisch in der
+     * Suche und im Detail-Editor — der Designer-Eintrag pflegt sich
+     * also selbst ins Schema ein.
+     *
+     * @return bool true wenn das Schema veraendert wurde
+     */
+    public static function ensureField(string $documentType, string $key, string $label, string $type): bool
+    {
+        $documentType = trim($documentType);
+        $key = Str::slug($key, '_');
+        if ($documentType === '' || $key === '') return false;
+
+        $all = (array) Settings::get('attachments.field_schemas', []);
+        $existing = (array) ($all[$documentType] ?? []);
+        foreach ($existing as $f) {
+            if (($f['key'] ?? null) === $key) return false; // schon da
+        }
+
+        $existing[] = [
+            'key' => $key,
+            'label' => $label !== '' ? $label : $key,
+            'type' => in_array($type, array_keys(self::FIELD_TYPES), true) ? $type : 'string',
+            'extractor' => 'manual',
+            'pattern' => null,
+            'ki_fallback' => false,
+        ];
+        $all[$documentType] = array_values($existing);
+        Settings::set('attachments.field_schemas', $all);
+        return true;
+    }
+
     public static function save(string $documentType, array $fields): void
     {
         $all = (array) Settings::get('attachments.field_schemas', []);

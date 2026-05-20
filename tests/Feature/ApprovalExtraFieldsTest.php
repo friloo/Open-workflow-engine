@@ -84,6 +84,90 @@ class ApprovalExtraFieldsTest extends TestCase
         $this->assertNotNull($att->indexed_at);
     }
 
+    public function test_zusatzfeld_wird_ins_doku_schema_uebernommen(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        \App\Support\Settings::set('attachments.document_types', ['Rechnung']);
+        \App\Support\Settings::set('attachments.field_schemas', [
+            'Rechnung' => [['key' => 'rechnungsnummer', 'label' => 'Rechnungsnr.', 'type' => 'string', 'extractor' => 'manual']],
+        ]);
+        $user = User::factory()->create();
+        $user->assignRole('employee');
+
+        Storage::fake('local');
+
+        $definition = ['drawflow' => ['Home' => ['data' => [
+            'node-1' => [
+                'class' => 'approval',
+                'data' => [
+                    'label' => 'Pruefen',
+                    'extra_fields' => [[
+                        'key' => 'bemerkung', 'label' => 'Bemerkung', 'type' => 'textarea',
+                        'required' => false, 'target' => 'doc',
+                    ]],
+                ],
+                'outputs' => ['output_1' => ['connections' => []], 'output_2' => ['connections' => []]],
+            ],
+        ]]]];
+        $workflow = Workflow::create(['name' => 'TR', 'slug' => 'tr', 'status' => 'active', 'created_by' => $user->id]);
+        $version = WorkflowVersion::create(['workflow_id' => $workflow->id, 'version_number' => 1, 'definition' => $definition]);
+        $instance = WorkflowInstance::create([
+            'workflow_id' => $workflow->id, 'workflow_version_id' => $version->id,
+            'data' => [], 'status' => 'running', 'started_at' => now(), 'started_by' => $user->id,
+        ]);
+
+        Attachment::create([
+            'disk' => 'local', 'path' => 'docs/r.pdf',
+            'original_name' => 'r.pdf', 'mime_type' => 'application/pdf',
+            'size' => 100, 'content_hash' => str_repeat('e', 64),
+            'uploaded_by' => $user->id, 'is_current_version' => true,
+            'version_chain_id' => Str::uuid(), 'version_number' => 1,
+            'attachable_type' => WorkflowInstance::class,
+            'attachable_id' => $instance->id,
+            'document_type' => 'Rechnung',
+        ]);
+        $step = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id, 'step_key' => 'node-1',
+            'step_type' => 'approval', 'assigned_to_user_id' => $user->id,
+        ]);
+
+        $this->actingAs($user)->post(route('tasks.decide', $step), [
+            'decision' => 'approved',
+            'extra' => ['bemerkung' => 'sieht gut aus'],
+        ])->assertRedirect();
+
+        $schema = \App\Support\DocumentFieldSchema::forType('Rechnung');
+        $keys = collect($schema)->pluck('key')->all();
+        $this->assertContains('rechnungsnummer', $keys, 'Bestehendes Feld darf nicht weg sein');
+        $this->assertContains('bemerkung', $keys, 'Neues Feld muss ergaenzt sein');
+
+        // 2. Lauf: kein erneutes Anhaengen (Idempotenz)
+        $instance2 = WorkflowInstance::create([
+            'workflow_id' => $workflow->id, 'workflow_version_id' => $version->id,
+            'data' => [], 'status' => 'running', 'started_at' => now(), 'started_by' => $user->id,
+        ]);
+        Attachment::create([
+            'disk' => 'local', 'path' => 'docs/r2.pdf',
+            'original_name' => 'r2.pdf', 'mime_type' => 'application/pdf',
+            'size' => 100, 'content_hash' => str_repeat('f', 64),
+            'uploaded_by' => $user->id, 'is_current_version' => true,
+            'version_chain_id' => Str::uuid(), 'version_number' => 1,
+            'attachable_type' => WorkflowInstance::class,
+            'attachable_id' => $instance2->id, 'document_type' => 'Rechnung',
+        ]);
+        $step2 = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance2->id, 'step_key' => 'node-1',
+            'step_type' => 'approval', 'assigned_to_user_id' => $user->id,
+        ]);
+        $this->actingAs($user)->post(route('tasks.decide', $step2), [
+            'decision' => 'approved',
+            'extra' => ['bemerkung' => 'auch ok'],
+        ])->assertRedirect();
+
+        $schema2 = \App\Support\DocumentFieldSchema::forType('Rechnung');
+        $this->assertCount(2, $schema2, 'Schema soll bei wiederholtem Lauf nicht waeschsen');
+    }
+
     public function test_required_zusatzfeld_blockt_submit_ohne_wert(): void
     {
         $this->seed(RolesAndPermissionsSeeder::class);

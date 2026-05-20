@@ -330,8 +330,10 @@
                                                 <div>
                                                     <h4 class="text-xs font-semibold text-slate-700">Zusatzfelder beim Entscheiden</h4>
                                                     <p class="text-[11px] text-slate-500">
-                                                        Werden im Aufgaben-Formular angezeigt. Werte landen als Indexfelder
-                                                        am beigefuegten Dokument — z. B. „Bemerkung", „Pruefnummer".
+                                                        Werden im Aufgaben-Formular angezeigt. Werte mit Ziel <em>Dokument-Indexfeld</em>
+                                                        werden automatisch ins Schema des jeweiligen Doku-Typs uebernommen
+                                                        (falls noch nicht vorhanden) — danach sind sie in der Dokumenten-Suche
+                                                        als Filter und im Detail-Editor verfuegbar.
                                                     </p>
                                                 </div>
                                             </div>
