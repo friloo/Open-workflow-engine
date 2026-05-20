@@ -24,19 +24,38 @@ Route::middleware('token.auth')->prefix('v1')->group(function () {
         ]);
     });
 
+    // Workflows
+    Route::middleware('token.ability:workflows.read')->group(function () {
+        Route::get('/workflows', [\App\Http\Controllers\Api\V1\WorkflowsApiController::class, 'index']);
+        Route::get('/workflow-instances', [\App\Http\Controllers\Api\V1\WorkflowsApiController::class, 'instances']);
+        Route::get('/workflow-instances/{instance}', [\App\Http\Controllers\Api\V1\WorkflowsApiController::class, 'instance']);
+    });
     Route::middleware('token.ability:workflows.run')->post('/workflows/{workflow}/start', function (Request $request, Workflow $workflow, WorkflowEngine $engine) {
         if ($workflow->status !== Workflow::STATUS_ACTIVE) {
             return response()->json(['message' => 'Workflow nicht aktiv.'], 422);
         }
-        $data = $request->validate([
-            'data' => ['array'],
-        ]);
+        $data = $request->validate(['data' => ['array']]);
         $instance = $engine->start($workflow, $data['data'] ?? [], $request->user());
         return response()->json([
             'instance_id' => $instance->id,
             'status' => $instance->status,
             'current_step_key' => $instance->current_step_key,
         ], 201);
+    });
+
+    // Tasks
+    Route::middleware('token.ability:tasks.read')->get('/tasks', [\App\Http\Controllers\Api\V1\TasksApiController::class, 'index']);
+    Route::middleware('token.ability:tasks.write')->post('/tasks/{step}/decide', [\App\Http\Controllers\Api\V1\TasksApiController::class, 'decide']);
+
+    // Documents
+    Route::middleware('token.ability:documents.read')->group(function () {
+        Route::get('/documents', [\App\Http\Controllers\Api\V1\DocumentsApiController::class, 'index']);
+        Route::get('/documents/{attachment}', [\App\Http\Controllers\Api\V1\DocumentsApiController::class, 'show']);
+        Route::get('/documents/{attachment}/download', [\App\Http\Controllers\Api\V1\DocumentsApiController::class, 'download']);
+    });
+    Route::middleware('token.ability:documents.write')->group(function () {
+        Route::post('/documents', [\App\Http\Controllers\Api\V1\DocumentsApiController::class, 'upload']);
+        Route::patch('/documents/{attachment}', [\App\Http\Controllers\Api\V1\DocumentsApiController::class, 'update']);
     });
 });
 
