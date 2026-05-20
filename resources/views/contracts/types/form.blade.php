@@ -44,7 +44,9 @@
                     Wer Vertraege dieser Art sehen darf, und wer sie auch bearbeiten/loeschen darf.
                     Admins haben immer Zugriff (unabhaengig von dieser Liste).
                 </p>
-                @php($assigned = $type->exists ? $type->roles->keyBy('id') : collect())
+                @php
+                    $assigned = $type->exists ? $type->roles->keyBy('id') : collect();
+                @endphp
                 <div class="space-y-1.5">
                     @foreach($roles as $idx => $r)
                         @php
