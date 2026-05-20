@@ -121,18 +121,7 @@ class AttachmentStorage
             'is_current_version' => true,
         ]);
 
-        // OCR-Extraktion synchron versuchen (best-effort, kein Abbruch)
-        try {
-            $this->ocr->extract($att);
-        } catch (\Throwable) {
-            // Status bleibt pending — kann ueber 'ocr:run-pending' nachgeholt werden
-        }
-
-        // Felder-Extraktion nach OCR (best-effort, basierend auf document_type-Schema)
-        try {
-            $this->fields->extractFor($att->refresh());
-        } catch (\Throwable) {
-        }
+        $this->triggerOcrAndIndex($att);
 
         return $att;
     }
@@ -215,16 +204,25 @@ class AttachmentStorage
             'is_current_version' => true,
         ]);
 
-        try {
-            $this->ocr->extract($att);
-        } catch (\Throwable) {
-        }
-        try {
-            $this->fields->extractFor($att->refresh());
-        } catch (\Throwable) {
-        }
+        $this->triggerOcrAndIndex($att);
 
         return $att;
+    }
+
+    /**
+     * Triggert OCR + Feld-Indexierung. Default synchron (alter
+     * Verhalten). Per Setting QUEUE_OCR=true wandert das in einen
+     * Queue-Job — wer ein 'queue:work' am Laufen hat, bekommt sofortige
+     * Uploads ohne OCR-Wartezeit.
+     */
+    private function triggerOcrAndIndex(Attachment $att): void
+    {
+        if ((bool) config('app.queue_ocr', false)) {
+            \App\Jobs\ProcessAttachmentOcr::dispatch($att->id);
+            return;
+        }
+        try { $this->ocr->extract($att); } catch (\Throwable) {}
+        try { $this->fields->extractFor($att->refresh()); } catch (\Throwable) {}
     }
 
     public function streamDownload(Attachment $attachment)

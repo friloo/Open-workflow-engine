@@ -29,6 +29,13 @@ return [
         'send_header' => (bool) env('APP_PERF_HEADER', false),
     ],
 
+    // Wenn true: OCR + Feld-Indexierung laufen als Queue-Job statt
+    // synchron im Upload-Request. Sinnvoll bei vielen / grossen
+    // Uploads — Uploads sind sofort fertig, OCR passiert im Hintergrund.
+    // Voraussetzung: laufender 'php artisan queue:work' und QUEUE_CONNECTION
+    // != 'sync' (database / redis).
+    'queue_ocr' => (bool) env('QUEUE_OCR', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

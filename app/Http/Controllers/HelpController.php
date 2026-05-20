@@ -74,6 +74,7 @@ class HelpController extends Controller
             'revisionssicher' => 'Revisionssicherheit',
             'admin' => ['label' => 'Administration', 'any' => ['system.settings']],
             'object-storage' => ['label' => 'Object-Storage (S3/MinIO)', 'any' => ['system.settings']],
+            'queue-worker' => ['label' => 'Queue-Worker / Background-Jobs', 'any' => ['system.health']],
             'health' => ['label' => 'System-Health', 'any' => ['system.health']],
             'update' => ['label' => 'System-Update', 'any' => ['system.update']],
             'backup' => ['label' => 'Backup & Restore', 'any' => ['system.backup']],

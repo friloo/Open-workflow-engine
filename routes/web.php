@@ -374,6 +374,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('health', [\App\Http\Controllers\Admin\HealthController::class, 'index'])->name('health.index');
         Route::get('health.json', [\App\Http\Controllers\Admin\HealthController::class, 'json'])->name('health.json');
         Route::get('perf', [\App\Http\Controllers\Admin\PerfController::class, 'index'])->name('perf.index');
+        Route::get('queue', [\App\Http\Controllers\Admin\QueueController::class, 'index'])->name('queue.index');
     });
 
     Route::middleware('permission:system.backup')->group(function () {
