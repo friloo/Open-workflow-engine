@@ -388,6 +388,9 @@ class DocumentController extends Controller
             'versions' => $versions,
             'zugferdData' => $zugferdData,
             'availableWorkflows' => $availableWorkflows,
+            'annotations' => \App\Models\PdfAnnotation::where('attachment_id', $attachment->id)
+                ->with('creator')
+                ->orderByDesc('created_at')->get(),
         ]);
     }
 

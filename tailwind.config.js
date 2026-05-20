@@ -11,6 +11,16 @@ export default {
         './resources/js/**/*.js',
     ],
 
+    // PDF-Annotation + Stempel-Buttons nutzen dynamische Farbklassen
+    // basierend auf der 'color'-Spalte. Damit JIT die nicht abschneidet,
+    // explizit safelisten.
+    safelist: [
+        ...['slate','emerald','rose','amber','indigo','violet','sky'].flatMap(c => [
+            `bg-${c}-50`, `bg-${c}-100`, `border-${c}-200`, `border-${c}-400`,
+            `text-${c}-700`, `text-${c}-900`, `hover:bg-${c}-100`,
+        ]),
+    ],
+
     theme: {
         extend: {
             fontFamily: {

@@ -54,6 +54,7 @@ class HelpController extends Controller
         'Dokumente' => [
             'documents' => ['label' => 'Dokumente (Versionen, OCR, Bulk)', 'any' => ['documents.search']],
             'office-preview' => ['label' => 'Office-Vorschau (LibreOffice)', 'any' => ['system.settings']],
+            'annotations' => ['label' => 'Notizen & Stempel', 'any' => ['documents.search']],
             'search-meilisearch' => ['label' => 'Volltext-Suche skalieren (MeiliSearch)', 'any' => ['system.settings']],
             'document-schemas' => ['label' => 'Felder-Schemas pro Dokumenttyp', 'any' => ['system.settings']],
             'zugferd' => ['label' => 'ZUGFeRD / XRechnung', 'any' => ['documents.search']],

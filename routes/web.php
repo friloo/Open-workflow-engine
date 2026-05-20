@@ -230,6 +230,8 @@ Route::middleware(['auth', 'permission:documents.search'])->prefix('dokumente')-
     Route::post('{attachment}/fields', [\App\Http\Controllers\DocumentController::class, 'updateIndexedFields'])->name('fields.update');
     Route::post('{attachment}/start-workflow', [\App\Http\Controllers\DocumentController::class, 'startWorkflow'])->name('start_workflow');
     Route::post('{attachment}/new-version', [\App\Http\Controllers\DocumentController::class, 'uploadVersion'])->name('new_version');
+    Route::post('{attachment}/annotations', [\App\Http\Controllers\PdfAnnotationController::class, 'store'])->name('annotations.store');
+    Route::delete('annotations/{annotation}', [\App\Http\Controllers\PdfAnnotationController::class, 'destroy'])->name('annotations.destroy');
     Route::post('bulk-action', [\App\Http\Controllers\DocumentController::class, 'bulkAction'])->name('bulk_action');
 });
 

@@ -169,6 +169,81 @@
 
             @include('documents._zugferd-card', ['zugferdData' => $zugferdData])
 
+            {{-- Notizen + Stempel auf dem Dokument. Bewusst leichtgewichtig:
+                 keine pixel-genaue PDF-Overlay-Annotation, sondern eine
+                 Liste mit Author/Datum/Seitenzahl + 'Stempel'-Buttons fuer
+                 schnelle Markierungen wie 'Geprueft', 'Genehmigt'. --}}
+            <x-card title="Notizen & Stempel" description="Markiere das Dokument mit einem Stempel oder hinterlasse eine Notiz fuer Kollegen.">
+                <form method="POST" action="{{ route('documents.annotations.store', $attachment) }}"
+                      class="space-y-3 mb-4" x-data="{ kind: 'note', text: '', color: 'slate' }">
+                    @csrf
+                    <input type="hidden" name="kind" :value="kind">
+                    <input type="hidden" name="color" :value="color">
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-slate-500">Stempel:</span>
+                        @foreach([
+                            'Geprueft' => 'emerald',
+                            'Genehmigt' => 'indigo',
+                            'Bezahlt' => 'sky',
+                            'Storniert' => 'rose',
+                            'Rueckfrage' => 'amber',
+                            'Archiviert' => 'slate',
+                        ] as $label => $colorChip)
+                            <button type="button"
+                                @click="kind = 'stamp'; text = @js($label); color = @js($colorChip); $refs.t.focus()"
+                                class="inline-flex items-center gap-1 rounded-md border border-{{ $colorChip }}-200 bg-{{ $colorChip }}-50 px-2 py-0.5 text-xs font-medium text-{{ $colorChip }}-700 hover:bg-{{ $colorChip }}-100">
+                                {{ $label }}
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2">
+                        <input type="text" name="text" x-ref="t" x-model="text" required maxlength="500"
+                            placeholder='Notiz oder Stempel-Text …'
+                            class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <input type="number" name="page" min="1" max="9999" placeholder="Seite"
+                            class="w-20 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500">Hinzufuegen</button>
+                    </div>
+                </form>
+
+                @if($annotations->isEmpty())
+                    <p class="text-xs text-slate-500">Noch keine Notizen oder Stempel.</p>
+                @else
+                    <ul class="space-y-2">
+                        @foreach($annotations as $a)
+                            @php($tone = $a->color ?: 'slate')
+                            @php($kindLabel = $a->kind === 'stamp' ? 'Stempel' : ($a->kind === 'highlight' ? 'Markierung' : 'Notiz'))
+                            <li class="flex items-start gap-3 rounded-lg border border-{{ $tone }}-200 bg-{{ $tone }}-50 p-2">
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-medium text-{{ $tone }}-900">
+                                        @if($a->kind === 'stamp')
+                                            <span class="inline-flex items-center gap-1 rounded border border-{{ $tone }}-400 bg-white px-1.5 py-0.5 text-xs font-bold uppercase text-{{ $tone }}-700">{{ $a->text }}</span>
+                                        @else
+                                            {{ $a->text }}
+                                        @endif
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 mt-1">
+                                        {{ $kindLabel }}
+                                        @if($a->page) · Seite {{ $a->page }} @endif
+                                        @if($a->creator) · {{ $a->creator->name }} @endif
+                                        · {{ $a->created_at->diffForHumans() }}
+                                    </div>
+                                </div>
+                                @if(auth()->id() === $a->created_by || auth()->user()->hasAnyPermission(['workflows.design']))
+                                    <form method="POST" action="{{ route('documents.annotations.destroy', $a) }}" onsubmit="return confirm('Notiz wirklich entfernen?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-xs text-slate-400 hover:text-rose-600" title="Loeschen">×</button>
+                                    </form>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-card>
+
             @php($attTags = $attachment->tags ?? collect())
             @php($attCases = $attachment->cases ?? collect())
             <x-card title="Tags & Akten">
