@@ -1,5 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">Systemeinstellungen · Anmeldung & SSO</x-slot>
+    <x-slot name="header">
+        Systemeinstellungen · Anmeldung & SSO
+        <x-help-hint topic="sso" label="Anleitung Anmeldung &amp; SSO" />
+    </x-slot>
     <x-slot name="subheader">Microsoft 365, OpenID Connect (Keycloak/Authentik/Auth0/Okta), Google Workspace, SAML 2.0 und LDAP/Active Directory — alles in einer Uebersicht.</x-slot>
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'sso'])

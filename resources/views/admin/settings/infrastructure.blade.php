@@ -1,5 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">Systemeinstellungen · Infrastruktur</x-slot>
+    <x-slot name="header">
+        Systemeinstellungen · Infrastruktur
+        <x-help-hint topic="object-storage" label="Anleitung Object-Storage" />
+    </x-slot>
     <x-slot name="subheader">Storage, Queue, Suche und Office-Vorschau direkt aus dem UI konfigurieren. Aenderungen ueberschreiben die .env-Defaults.</x-slot>
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'infrastructure'])

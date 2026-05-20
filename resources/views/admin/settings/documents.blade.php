@@ -1,5 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">Systemeinstellungen · Dokumente</x-slot>
+    <x-slot name="header">
+        Systemeinstellungen · Dokumente
+        <x-help-hint topic="document-schemas" label="Anleitung Dokumente" />
+    </x-slot>
     <x-slot name="subheader">Archive, Berechtigungen pro Rolle, Aufbewahrungsregeln.</x-slot>
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'documents'])

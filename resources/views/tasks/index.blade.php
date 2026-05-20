@@ -1,5 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">Mein Eingang</x-slot>
+    <x-slot name="header">
+        Mein Eingang
+        <x-help-hint topic="delegation" label="Anleitung Aufgaben" />
+    </x-slot>
     <x-slot name="subheader">Aufgaben, Posteingang und Wiedervorlagen an einem Ort.</x-slot>
 
     <x-inbox-tabs :current="$filter === 'snoozed' ? 'snoozed' : 'tasks'" />

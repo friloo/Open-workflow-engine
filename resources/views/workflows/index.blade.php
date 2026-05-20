@@ -1,5 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">Workflows</x-slot>
+    <x-slot name="header">
+        Workflows
+        <x-help-hint topic="workflows" label="Anleitung Workflows" />
+    </x-slot>
     <x-slot name="subheader">Entwerfe und verwalte deine Automatisierungen.</x-slot>
 
     @if(auth()->user()->hasPermission('workflows.design'))

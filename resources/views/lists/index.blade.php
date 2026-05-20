@@ -10,7 +10,13 @@
 
     <x-card>
         @if($lists->isEmpty())
-            <x-empty-state title="Noch keine Listen" description="Listen sind Lookup-Tabellen (z. B. Kostenstellen, Lieferanten) — Workflows greifen darauf zu." />
+            <x-empty-state icon="list" title="Noch keine Listen"
+                description="Listen sind Lookup-Tabellen (z. B. Kostenstellen, Lieferanten) — Workflows greifen darauf zu.">
+                @if(auth()->user()->hasPermission('lists.manage'))
+                    <a href="{{ route('lists.create') }}"><x-primary-button type="button">Neue Liste anlegen</x-primary-button></a>
+                @endif
+                <a href="{{ route('help.show', 'lists') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>
+            </x-empty-state>
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">

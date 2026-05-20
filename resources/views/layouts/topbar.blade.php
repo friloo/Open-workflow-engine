@@ -29,6 +29,19 @@
                 </button>
             @endif
 
+            {{-- Inbox-Badge: Anzahl offener (nicht-snoozed) Aufgaben fuer aktuellen User --}}
+            @php($openTaskCount = \App\Support\InboxCounter::openCount())
+            <a href="{{ route('tasks.index') }}" title="Mein Eingang"
+               class="relative grid h-9 w-9 place-items-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
+                </svg>
+                @if($openTaskCount > 0)
+                    <span class="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-indigo-500 px-1 text-[10px] font-semibold text-white">{{ $openTaskCount > 99 ? '99+' : $openTaskCount }}</span>
+                @endif
+            </a>
+
             <div class="relative" x-data="{ open: false, items: [], unread: 0, loaded: false,
                 load() {
                     fetch('{{ route('notifications.dropdown') }}', { headers: { 'Accept':'application/json' } })

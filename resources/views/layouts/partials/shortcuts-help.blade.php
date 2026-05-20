@@ -40,6 +40,54 @@
             </div>
 
             <div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Navigation (g + …)</div>
+                <ul class="space-y-2">
+                    <li class="flex items-center justify-between">
+                        <span class="text-slate-700">Mein Eingang</span>
+                        <span class="flex items-center gap-1">
+                            <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">g</kbd>
+                            <span class="text-slate-400">dann</span>
+                            <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">i</kbd>
+                        </span>
+                    </li>
+                    <li class="flex items-center justify-between">
+                        <span class="text-slate-700">Aufgaben</span>
+                        <span class="flex items-center gap-1">
+                            <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">g</kbd>
+                            <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">t</kbd>
+                        </span>
+                    </li>
+                    @auth
+                        @if(auth()->user()->hasPermission('documents.search'))
+                            <li class="flex items-center justify-between">
+                                <span class="text-slate-700">Dokumente</span>
+                                <span class="flex items-center gap-1">
+                                    <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">g</kbd>
+                                    <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">d</kbd>
+                                </span>
+                            </li>
+                        @endif
+                        @if(auth()->user()->hasPermission('workflows.view') || auth()->user()->hasPermission('workflows.design'))
+                            <li class="flex items-center justify-between">
+                                <span class="text-slate-700">Workflows</span>
+                                <span class="flex items-center gap-1">
+                                    <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">g</kbd>
+                                    <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">w</kbd>
+                                </span>
+                            </li>
+                        @endif
+                    @endauth
+                    <li class="flex items-center justify-between">
+                        <span class="text-slate-700">Hilfe</span>
+                        <span class="flex items-center gap-1">
+                            <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">g</kbd>
+                            <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">h</kbd>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
                 <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">In der Schnellsuche</div>
                 <ul class="space-y-2">
                     <li class="flex items-center justify-between">

@@ -13,10 +13,40 @@
 </head>
 <body class="h-full font-sans antialiased bg-slate-50 text-slate-800">
 <div class="min-h-full"
-     x-data="{ sidebarOpen: false, globalSearchOpen: false, shortcutsOpen: false, supportOpen: false }"
+     x-data="{
+         sidebarOpen: false,
+         globalSearchOpen: false,
+         shortcutsOpen: false,
+         supportOpen: false,
+         goSeq: false,
+         goSeqTimer: null,
+         navigateTo(url) { window.location.href = url; this.goSeq = false; }
+     }"
      @keydown.window.ctrl.k.prevent="globalSearchOpen = true"
      @keydown.window.meta.k.prevent="globalSearchOpen = true"
-     @keydown.window="if ($event.key === '?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) { shortcutsOpen = true; }">
+     @keydown.window="
+        if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) return;
+        if ($event.key === '?') { shortcutsOpen = true; return; }
+        if (goSeq) {
+            // Zweiter Tastendruck einer g-Sequenz
+            clearTimeout(goSeqTimer);
+            goSeq = false;
+            const map = {
+                't': '{{ route('tasks.index') }}',
+                'd': '{{ auth()->user()?->hasPermission('documents.search') ? route('documents.index') : '' }}',
+                'w': '{{ auth()->user()?->hasPermission('workflows.view') || auth()->user()?->hasPermission('workflows.design') ? route('workflows.index') : '' }}',
+                'i': '{{ route('inbox') }}',
+                'h': '{{ route('help.index') }}',
+            };
+            if (map[$event.key]) navigateTo(map[$event.key]);
+            return;
+        }
+        if ($event.key === 'g') {
+            goSeq = true;
+            clearTimeout(goSeqTimer);
+            goSeqTimer = setTimeout(() => goSeq = false, 1500);
+        }
+     ">
     @auth
         @include('layouts.partials.global-search')
         @include('layouts.partials.shortcuts-help')
