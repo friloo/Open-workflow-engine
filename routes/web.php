@@ -390,6 +390,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('datev', [\App\Http\Controllers\Admin\DatevController::class, 'index'])->name('datev.index');
         Route::post('datev/config', [\App\Http\Controllers\Admin\DatevController::class, 'updateConfig'])->name('datev.config.update');
         Route::post('datev/export', [\App\Http\Controllers\Admin\DatevController::class, 'export'])->name('datev.export');
+
+        Route::get('dsgvo', [\App\Http\Controllers\Admin\GdprController::class, 'index'])->name('gdpr.index');
+        Route::post('dsgvo/export', [\App\Http\Controllers\Admin\GdprController::class, 'exportAccess'])->name('gdpr.export');
+        Route::post('dsgvo/anonymize', [\App\Http\Controllers\Admin\GdprController::class, 'anonymize'])->name('gdpr.anonymize');
     });
 
     Route::middleware('permission:system.backup')->group(function () {
