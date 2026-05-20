@@ -1,10 +1,35 @@
-# Single Sign-On (OIDC, Google, SAML, LDAP/AD)
+# Anmeldung & SSO
 
-Neben **Microsoft 365** (siehe [Microsoft 365](app:help.show?topic=m365))
-unterstuetzt Open Workflow Engine vier weitere Identity-Provider — alle
-ueber das Admin-UI konfigurierbar, ohne `.env`-Editieren.
+Open Workflow Engine unterstuetzt fuenf externe Identity-Provider plus
+lokales Passwort-Login — alle parallel aktivierbar, alle ueber das
+Admin-UI konfigurierbar, ohne `.env`-Editieren.
 
-> Konfiguration: **[Systemeinstellungen → SSO](app:admin.settings.sso)**
+| Provider | Wofuer | Login-Flow |
+|----------|-------|------------|
+| Microsoft 365 / Entra ID | Office-365-Tenant | Redirect |
+| OpenID Connect | Keycloak, Authentik, Auth0, Okta, Zitadel | Redirect |
+| Google Workspace | G-Workspace-Tenants | Redirect |
+| SAML 2.0 | ADFS, PingFederate, Shibboleth | Redirect |
+| LDAP / Active Directory | On-Prem AD/OpenLDAP/389DS | Direkter Bind |
+
+> Konfiguration: **[Systemeinstellungen → Anmeldung & SSO](app:admin.settings.sso)**
+
+## Microsoft 365 / Entra ID
+
+Voraussetzung: App-Registration in Azure Portal mit:
+- Redirect-URI = die im SSO-Formular angezeigte
+  `https://deine-instanz/auth/m365/callback`
+- API-Permissions: `User.Read` (delegated), optional `User.Read.All`
+  (Application) fuer Benutzer-Sync mit Admin-Consent
+- Client-Secret unter „Certificates & secrets"
+
+Die SSO-Seite hat zwei Extra-Buttons fuer M365:
+
+- **Verbindung testen** — holt ein App-Token und fragt Graph nach
+  einem Test-User
+- **Benutzer-Sync jetzt ausfuehren** — laedt alle aktiven Tenant-User
+  in OWE (mit Vorgesetzten-Beziehung), entsprechend dem Cronjob
+  `php artisan m365:sync-users`
 
 ## OpenID Connect (generisch)
 

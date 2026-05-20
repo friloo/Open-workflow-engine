@@ -71,8 +71,8 @@ zusammen mehr ergeben:
   dem Workflow an externe URLs schicken, mit HMAC-Signatur.
 - **[Secrets-Vault](app:help.show?topic=secrets)** — API-Tokens
   verschluesselt, in HTTP-Knoten als `{{ secret.NAME }}` verwendbar.
-- **[Microsoft 365](app:help.show?topic=m365)** — SSO ueber Entra ID,
-  Benutzer-Sync.
+- **[Anmeldung & SSO](app:help.show?topic=sso)** — Microsoft 365,
+  OIDC, Google Workspace, SAML 2.0, LDAP/AD und Benutzer-Sync.
 - **[API-Tokens](app:help.show?topic=api-tokens)** — fuer die JSON-API.
 
 ### Betrieb & Sicherheit

@@ -51,13 +51,10 @@ class SystemSettingsController extends Controller
         ]);
     }
 
-    public function m365(): View
+    public function m365(): RedirectResponse
     {
-        return view('admin.settings.m365', [
-            'm365' => Settings::group('auth.m365') + $this->m365Defaults(),
-            'roles' => \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']),
-            'sections' => $this->sectionDescriptors(),
-        ]);
+        // M365 ist seit der Konsolidierung Teil der SSO-Seite.
+        return redirect()->route('admin.settings.sso', ['#' => 'm365']);
     }
 
     public function ai(): View
@@ -380,8 +377,7 @@ class SystemSettingsController extends Controller
         return [
             ['slug' => 'overview', 'route' => 'admin.settings.index', 'label' => 'Uebersicht', 'icon' => 'home'],
             ['slug' => 'mail', 'route' => 'admin.settings.mail', 'label' => 'Mail-Versand', 'icon' => 'cog', 'description' => 'SMTP fuer Benachrichtigungen.'],
-            ['slug' => 'm365', 'route' => 'admin.settings.m365', 'label' => 'Microsoft 365', 'icon' => 'shield', 'description' => 'SSO + Benutzer-Sync.'],
-            ['slug' => 'sso', 'route' => 'admin.settings.sso', 'label' => 'SSO (OIDC/Google/SAML)', 'icon' => 'shield', 'description' => 'Weitere Identity-Provider.'],
+            ['slug' => 'sso', 'route' => 'admin.settings.sso', 'label' => 'Anmeldung & SSO', 'icon' => 'shield', 'description' => 'M365, OIDC, Google, SAML, LDAP/AD.'],
             ['slug' => 'branding', 'route' => 'admin.settings.branding', 'label' => 'Branding', 'icon' => 'cog', 'description' => 'Name, Logo, Farben + Benutzerfelder.'],
             ['slug' => 'ai', 'route' => 'admin.settings.ai', 'label' => 'KI', 'icon' => 'cog', 'description' => 'OpenAI / DeepSeek / Ollama.'],
             ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente', 'icon' => 'document', 'description' => 'Archive, Retention, Rollen-Zuordnung.'],
@@ -604,7 +600,7 @@ class SystemSettingsController extends Controller
             $request->user()->id,
         );
 
-        return redirect()->route('admin.settings.m365')->with('status', 'Microsoft-365-Konfiguration gespeichert.');
+        return redirect()->route('admin.settings.sso', ['#' => 'm365'])->with('status', 'Microsoft-365-Konfiguration gespeichert.');
     }
 
     public function syncM365(Request $request, MicrosoftGraphSync $sync): RedirectResponse
@@ -664,6 +660,7 @@ class SystemSettingsController extends Controller
     public function sso(): View
     {
         return view('admin.settings.sso', [
+            'm365' => Settings::group('auth.m365') + $this->m365Defaults(),
             'oidc' => Settings::group('auth.oidc') + $this->oidcDefaults(),
             'google' => Settings::group('auth.google') + $this->googleDefaults(),
             'saml' => Settings::group('auth.saml') + $this->samlDefaults(),

@@ -17,16 +17,16 @@
             <p class="text-sm text-slate-500">SMTP-Server fuer Workflow-Benachrichtigungen und Test-Mails.</p>
         </a>
 
-        <a href="{{ route('admin.settings.m365') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
+        <a href="{{ route('admin.settings.sso') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
             <div class="flex items-center justify-between mb-2">
-                <h3 class="text-base font-semibold text-slate-900">Microsoft 365</h3>
-                @if($status['m365_enabled'])
-                    <span class="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">aktiv</span>
+                <h3 class="text-base font-semibold text-slate-900">Anmeldung & SSO</h3>
+                @if(! empty($status['sso_providers']))
+                    <span class="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">{{ implode(' · ', $status['sso_providers']) }}</span>
                 @else
-                    <span class="text-xs rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">aus</span>
+                    <span class="text-xs rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">nur lokal</span>
                 @endif
             </div>
-            <p class="text-sm text-slate-500">SSO-Anmeldung via Entra ID und Benutzer-Sync aus dem Tenant.</p>
+            <p class="text-sm text-slate-500">M365, OIDC (Keycloak/Authentik/Auth0/Okta), Google, SAML, LDAP/AD.</p>
         </a>
 
         <a href="{{ route('admin.settings.branding') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">

@@ -33,27 +33,28 @@ versendet werden koennen, brauchst du einen Mail-Server.
 > stellen — Mails werden dann nur ins Laravel-Log geschrieben. Praktisch zum
 > Testen, aber natuerlich nichts fuer Produktion.
 
-## 3. (Optional) Microsoft 365 / SSO
+## 3. (Optional) Single Sign-On
 
-Wenn deine Organisation Entra ID (frueher Azure AD) nutzt, kannst du die
-Anmeldung darueber laufen lassen und Benutzer aus dem Tenant
-synchronisieren.
+Du kannst die Anmeldung ueber einen externen Identity-Provider laufen
+lassen — Microsoft 365 / Entra ID, OpenID Connect (Keycloak, Authentik,
+Auth0, Okta), Google Workspace, SAML 2.0 oder LDAP/Active Directory.
 
-Details: [Microsoft 365](app:help.show?topic=m365).
+Details: [Anmeldung & SSO](app:help.show?topic=sso).
 
-Kurzform: **[Einstellungen → Microsoft 365](app:admin.settings.m365)**,
-App-Registration aus Azure-Portal eintragen, Verbindung testen, dann
-Sync starten.
+Kurzform: **[Einstellungen → Anmeldung & SSO](app:admin.settings.sso)**,
+Provider auswaehlen, Credentials eintragen, Verbindung testen,
+aktivieren — Login-Button erscheint danach automatisch auf der
+Anmeldeseite.
 
 ## 4. Benutzer anlegen
 
-Zwei Wege:
+Drei Wege:
 
 | Weg | Wann | Wo |
 |-----|------|-----|
 | **Einzeln** | wenige Benutzer, manuell | [Benutzer → Neu](app:admin.users.create) |
 | **CSV-Import** | grosse Liste aus HR-System | [Benutzer → CSV-Import](app:admin.users.import.show) |
-| **M365-Sync** | Tenant ist Single Source of Truth | [Einstellungen → Microsoft 365](app:admin.settings.m365) |
+| **SSO-Auto-Provision** | IdP ist Single Source of Truth | [Einstellungen → Anmeldung & SSO](app:admin.settings.sso) |
 
 Beim CSV-Import muessen die Spalten den Feld-Keys deiner Custom-Fields
 entsprechen. **Vorgesetzte** verknuepfst du ueber `supervisor_email` —

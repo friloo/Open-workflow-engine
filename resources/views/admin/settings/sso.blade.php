@@ -1,8 +1,91 @@
 <x-app-layout>
-    <x-slot name="header">Systemeinstellungen · Single Sign-On</x-slot>
-    <x-slot name="subheader">OpenID Connect (Keycloak/Authentik/Auth0/Okta), Google Workspace und SAML 2.0.</x-slot>
+    <x-slot name="header">Systemeinstellungen · Anmeldung & SSO</x-slot>
+    <x-slot name="subheader">Microsoft 365, OpenID Connect (Keycloak/Authentik/Auth0/Okta), Google Workspace, SAML 2.0 und LDAP/Active Directory — alles in einer Uebersicht.</x-slot>
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'sso'])
+
+    @if(session('status'))
+        <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('status') }}</div>
+    @endif
+
+    {{-- Microsoft 365 / Entra ID — eigenes Form (separate Test+Sync-Actions) --}}
+    <div id="m365" class="mb-6">
+        <x-card title="Microsoft 365 / Entra ID"
+                description="SSO-Anmeldung und optionaler Benutzer-Sync via Microsoft Graph.">
+            <form method="POST" action="{{ route('admin.settings.m365.update') }}" class="space-y-4">
+                @csrf
+                <div class="flex flex-col gap-2">
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                        <input type="hidden" name="enabled" value="0">
+                        <input type="checkbox" name="enabled" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked($m365['enabled'])>
+                        Microsoft-Anmeldung aktivieren (Login-Button erscheint auf der Anmeldeseite)
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                        <input type="hidden" name="auto_provision" value="0">
+                        <input type="checkbox" name="auto_provision" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked($m365['auto_provision'])>
+                        Neue Benutzer beim ersten Login automatisch anlegen
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <x-input-label for="client_id" value="Client-ID" />
+                        <x-text-input id="client_id" name="client_id" value="{{ $m365['client_id'] }}" placeholder="00000000-0000-0000-0000-000000000000" autocomplete="off" />
+                        <x-input-error :messages="$errors->get('client_id')" />
+                    </div>
+                    <div>
+                        <x-input-label for="tenant_id" value="Tenant-ID" />
+                        <x-text-input id="tenant_id" name="tenant_id" value="{{ $m365['tenant_id'] }}" placeholder="common, organizations oder GUID" autocomplete="off" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="client_secret" value="Client-Secret" />
+                        <x-text-input id="client_secret" name="client_secret" type="password" placeholder="@if(! empty($m365['client_secret']))(unveraendert lassen)@endif" autocomplete="new-password" />
+                        <p class="mt-1 text-xs text-slate-500">Verschluesselt gespeichert. Leer = bisherigen Wert beibehalten.</p>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="redirect_uri" value="Redirect-URI" />
+                        <x-text-input id="redirect_uri" name="redirect_uri" value="{{ $m365['redirect_uri'] }}" />
+                        <p class="mt-1 text-xs text-slate-500">Diese URL muss exakt in der Azure-AD-App als Redirect-URI eingetragen sein.</p>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="default_role" value="Standardrolle fuer neue Benutzer" />
+                        <select id="default_role" name="default_role" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @foreach($roles as $r)
+                                <option value="{{ $r->slug }}" @selected($m365['default_role']===$r->slug)>{{ $r->name }} ({{ $r->slug }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-end gap-2">
+                    <x-primary-button>Microsoft-365-Konfiguration speichern</x-primary-button>
+                </div>
+            </form>
+
+            <div class="mt-4 border-t border-slate-200 pt-4 flex flex-wrap gap-2">
+                <form method="POST" action="{{ route('admin.settings.m365.test') }}" class="inline-block">
+                    @csrf
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+                        Verbindung testen
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('admin.settings.m365.sync') }}" class="inline-block"
+                      onsubmit="return confirm('Benutzer-Synchronisation jetzt starten?')">
+                    @csrf
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+                        Benutzer-Sync jetzt ausfuehren
+                    </button>
+                </form>
+                <span class="text-xs text-slate-500 self-center">
+                    Cron: <code>php artisan m365:sync-users</code> &mdash;
+                    Benoetigt <code>User.Read.All</code> als Application-Permission mit Admin-Consent.
+                </span>
+                <x-input-error :messages="$errors->get('m365')" />
+            </div>
+        </x-card>
+    </div>
 
     <form method="POST" action="{{ route('admin.settings.sso.update') }}" class="space-y-6">
         @csrf
