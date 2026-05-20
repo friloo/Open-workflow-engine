@@ -27,6 +27,9 @@ class RolesAndPermissionsSeeder extends Seeder
             ['slug' => 'workflows.design', 'name' => 'Workflows entwerfen & aktivieren', 'group' => 'Workflows'],
             ['slug' => 'workflows.run', 'name' => 'Workflows starten', 'group' => 'Workflows'],
 
+            // Reports / KPIs
+            ['slug' => 'reports.view', 'name' => 'Reports & KPIs ansehen', 'group' => 'Reports'],
+
             // Formulare
             ['slug' => 'forms.view', 'name' => 'Formulare ansehen', 'group' => 'Formulare'],
             ['slug' => 'forms.manage', 'name' => 'Formulare verwalten', 'group' => 'Formulare'],
@@ -89,7 +92,7 @@ class RolesAndPermissionsSeeder extends Seeder
                     'workflows.view', 'workflows.design', 'workflows.run',
                     'forms.view', 'forms.manage', 'users.view', 'roles.view',
                     'lists.view', 'lists.manage', 'assets.view', 'assets.manage',
-                    'documents.search', 'shares.create',
+                    'documents.search', 'shares.create', 'reports.view',
                 ],
             ],
             [

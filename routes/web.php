@@ -277,6 +277,11 @@ Route::middleware(['auth'])->prefix('freigaben')->name('shares.')->group(functio
 // Unified Inbox-Entry — leitet auf die Aufgaben-Hauptansicht weiter
 Route::middleware(['auth'])->get('/inbox', fn () => redirect()->route('tasks.index'))->name('inbox');
 
+// Reports / KPIs
+Route::middleware(['auth', 'permission:reports.view'])->group(function () {
+    Route::get('/reports', [\App\Http\Controllers\ReportsController::class, 'index'])->name('reports.index');
+});
+
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)
 Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('index');
