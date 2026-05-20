@@ -1242,14 +1242,16 @@ class WorkflowEngine
         $recipients = $this->stepRecipients($step);
         $workflow = $step->instance?->workflow;
         foreach ($recipients as $user) {
-            \App\Models\AppNotification::send(
-                $user,
-                'task.assigned',
-                'Neue Aufgabe: '.($workflow?->name ?? 'Workflow'),
-                'Du wurdest einer Genehmigungs-Aufgabe zugewiesen.',
-                route('tasks.show', $step),
-            );
-            if (! $user->email_notifications_enabled) continue;
+            if (\App\Support\NotificationPreferences::wants($user, 'task.assigned', 'in_app')) {
+                \App\Models\AppNotification::send(
+                    $user,
+                    'task.assigned',
+                    'Neue Aufgabe: '.($workflow?->name ?? 'Workflow'),
+                    'Du wurdest einer Genehmigungs-Aufgabe zugewiesen.',
+                    route('tasks.show', $step),
+                );
+            }
+            if (! \App\Support\NotificationPreferences::wants($user, 'task.assigned', 'mail')) continue;
             try {
                 Mail::to($user->email)->send(new WorkflowTaskAssignedMail($step, $user));
             } catch (\Throwable $e) {

@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/delegation', [\App\Http\Controllers\DelegationController::class, 'update'])->name('profile.delegation.update');
     Route::delete('/profile/delegation', [\App\Http\Controllers\DelegationController::class, 'clear'])->name('profile.delegation.clear');
+    Route::post('/profile/notifications', [\App\Http\Controllers\ProfileController::class, 'updateNotificationPreferences'])->name('profile.notifications.update');
 
     // 2FA-Verwaltung pro Benutzer (opt-in)
     Route::get('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'show'])->name('two-factor.show');

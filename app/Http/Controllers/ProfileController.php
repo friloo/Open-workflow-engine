@@ -18,7 +18,36 @@ class ProfileController extends Controller
     {
         return view('profile.edit', [
             'user' => $request->user(),
+            'notificationCatalog' => \App\Support\NotificationPreferences::catalog(),
+            'notificationChannels' => \App\Support\NotificationPreferences::channels(),
+            'notificationMatrix' => \App\Support\NotificationPreferences::matrixFor($request->user()),
         ]);
+    }
+
+    /**
+     * Schreibt die Notification-Praeferenzen aus dem Profile-Form.
+     * Form-Format: prefs[event_key][channel] = '1' wenn checked.
+     */
+    public function updateNotificationPreferences(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'prefs' => ['array'],
+            'prefs.*' => ['array'],
+        ]);
+        $user = $request->user();
+
+        $catalog = array_keys(\App\Support\NotificationPreferences::catalog());
+        $channels = array_keys(\App\Support\NotificationPreferences::channels());
+        $submitted = $data['prefs'] ?? [];
+
+        foreach ($catalog as $eventKey) {
+            foreach ($channels as $channel) {
+                $checked = isset($submitted[$eventKey][$channel]) && $submitted[$eventKey][$channel] === '1';
+                \App\Support\NotificationPreferences::set($user, $eventKey, $channel, $checked);
+            }
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'notifications-updated');
     }
 
     /**

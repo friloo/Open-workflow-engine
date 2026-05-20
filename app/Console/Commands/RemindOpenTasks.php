@@ -53,12 +53,14 @@ class RemindOpenTasks extends Command
             foreach ($recipients as $user) {
                 $this->line("#{$step->id} -> {$user->email}");
                 if ($dryRun) continue;
-                AppNotification::send($user, 'task.reminder',
-                    'Erinnerung: offene Aufgabe',
-                    'Eine Workflow-Aufgabe wartet seit '.(int) $step->assigned_at->diffInDays(now()).' Tag(en) auf deine Reaktion.',
-                    route('tasks.show', $step));
-                $notifications++;
-                if (! $user->email_notifications_enabled) continue;
+                if (\App\Support\NotificationPreferences::wants($user, 'task.reminder', 'in_app')) {
+                    AppNotification::send($user, 'task.reminder',
+                        'Erinnerung: offene Aufgabe',
+                        'Eine Workflow-Aufgabe wartet seit '.(int) $step->assigned_at->diffInDays(now()).' Tag(en) auf deine Reaktion.',
+                        route('tasks.show', $step));
+                    $notifications++;
+                }
+                if (! \App\Support\NotificationPreferences::wants($user, 'task.reminder', 'mail')) continue;
                 try {
                     Mail::to($user->email)->send(new TaskReminderMail($step, $user));
                     $mails++;
