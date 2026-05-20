@@ -9,7 +9,7 @@
      das Modal eine kurze Bestaetigung und schliesst nach 1.5s. --}}
 <div x-show="supportOpen"
      x-transition.opacity
-     class="fixed inset-0 z-50 flex items-start justify-center pt-[8vh] px-4"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4"
      style="display:none;"
      @keydown.escape.window="supportOpen = false">
     <div class="absolute inset-0 bg-slate-900/40" @click="supportOpen = false"></div>
