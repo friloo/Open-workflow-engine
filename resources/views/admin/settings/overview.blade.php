@@ -5,16 +5,16 @@
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'overview'])
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <a href="{{ route('admin.settings.mail') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
+        <a href="{{ route('admin.settings.communication') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
             <div class="flex items-center justify-between mb-2">
-                <h3 class="text-base font-semibold text-slate-900">Mail-Versand</h3>
+                <h3 class="text-base font-semibold text-slate-900">Kommunikation</h3>
                 @if($status['mail_configured'])
-                    <span class="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">aktiv</span>
+                    <span class="text-xs rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5">SMTP aktiv</span>
                 @else
-                    <span class="text-xs rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">nicht konfiguriert</span>
+                    <span class="text-xs rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">SMTP fehlt</span>
                 @endif
             </div>
-            <p class="text-sm text-slate-500">SMTP-Server fuer Workflow-Benachrichtigungen und Test-Mails.</p>
+            <p class="text-sm text-slate-500">SMTP fuer Mails, IT-Support-Formular, Microsoft Teams.</p>
         </a>
 
         <a href="{{ route('admin.settings.sso') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
@@ -51,18 +51,10 @@
 
         <a href="{{ route('admin.settings.documents') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
             <div class="flex items-center justify-between mb-2">
-                <h3 class="text-base font-semibold text-slate-900">Dokumente</h3>
+                <h3 class="text-base font-semibold text-slate-900">Dokumente & Sharing</h3>
                 <span class="text-xs rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">{{ $status['document_types_count'] }} Archiv(e) · {{ $status['retention_rules_count'] }} Regel(n)</span>
             </div>
-            <p class="text-sm text-slate-500">Archive (Dokumenttypen), Aufbewahrung, Berechtigungen pro Rolle.</p>
-        </a>
-
-        <a href="{{ route('admin.settings.sharing') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-base font-semibold text-slate-900">Sharing</h3>
-                <span class="text-xs rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">immer aktiv</span>
-            </div>
-            <p class="text-sm text-slate-500">Cap fuer Ablauf-Datum, Pruefungs-Intervall externer Freigabe-Links.</p>
+            <p class="text-sm text-slate-500">Archive (Dokumenttypen), Aufbewahrung, Berechtigungen pro Rolle, Freigabe-Caps.</p>
         </a>
     </div>
 </x-app-layout>

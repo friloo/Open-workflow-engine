@@ -313,6 +313,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::middleware('permission:system.settings')->group(function () {
         Route::get('settings', [SystemSettingsController::class, 'index'])->name('settings.index');
         Route::get('settings/mail', [SystemSettingsController::class, 'mail'])->name('settings.mail');
+        Route::get('settings/communication', [SystemSettingsController::class, 'communication'])->name('settings.communication');
         Route::get('settings/m365', [SystemSettingsController::class, 'm365'])->name('settings.m365');
         Route::get('settings/sso', [SystemSettingsController::class, 'sso'])->name('settings.sso');
         Route::post('settings/sso', [SystemSettingsController::class, 'updateSso'])->name('settings.sso.update');

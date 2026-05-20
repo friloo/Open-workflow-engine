@@ -51,6 +51,41 @@ class SystemSettingsController extends Controller
         ]);
     }
 
+    /**
+     * Konsolidierte Kommunikations-Seite: Mail-Versand + IT-Support + Teams
+     * (frueher drei separate Tabs).
+     */
+    public function communication(): View
+    {
+        return view('admin.settings.communication', [
+            'mail' => Settings::group('mail') + $this->defaults(),
+            'support' => Settings::group('support') + $this->supportDefaults(),
+            'integrations' => Settings::group('integrations'),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    private function supportDefaults(): array
+    {
+        return [
+            'enabled' => false,
+            'mode' => 'mail',
+            'email' => '',
+            'sidebar_label' => 'IT-Support',
+            'api_url' => '',
+            'api_method' => 'POST',
+            'api_headers' => [],
+            'api_body_template' => '{
+  "subject": "{{ subject }}",
+  "description": "{{ description }}",
+  "requester": {
+    "name": "{{ user_name }}",
+    "email": "{{ user_email }}"
+  }
+}',
+        ];
+    }
+
     public function m365(): RedirectResponse
     {
         // M365 ist seit der Konsolidierung Teil der SSO-Seite.
@@ -86,13 +121,6 @@ class SystemSettingsController extends Controller
             'roleDocumentTypes' => \App\Support\DocumentTypes::roleMapping(),
             'roles' => \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']),
             'retention' => Settings::get('attachments.retention', []),
-            'sections' => $this->sectionDescriptors(),
-        ]);
-    }
-
-    public function sharing(): View
-    {
-        return view('admin.settings.sharing', [
             'shares' => [
                 'max_expiry_days' => (int) Settings::get('shares.max_expiry_days', 90),
                 'default_expiry_days' => (int) Settings::get('shares.default_expiry_days', 14),
@@ -101,6 +129,12 @@ class SystemSettingsController extends Controller
             ],
             'sections' => $this->sectionDescriptors(),
         ]);
+    }
+
+    public function sharing(): RedirectResponse
+    {
+        // Sharing-Caps sind seit der Konsolidierung Teil der Dokumente-Seite.
+        return redirect()->route('admin.settings.documents', ['#' => 'sharing']);
     }
 
     public function integrations(): View
@@ -376,14 +410,11 @@ class SystemSettingsController extends Controller
     {
         return [
             ['slug' => 'overview', 'route' => 'admin.settings.index', 'label' => 'Uebersicht', 'icon' => 'home'],
-            ['slug' => 'mail', 'route' => 'admin.settings.mail', 'label' => 'Mail-Versand', 'icon' => 'cog', 'description' => 'SMTP fuer Benachrichtigungen.'],
             ['slug' => 'sso', 'route' => 'admin.settings.sso', 'label' => 'Anmeldung & SSO', 'icon' => 'shield', 'description' => 'M365, OIDC, Google, SAML, LDAP/AD.'],
+            ['slug' => 'communication', 'route' => 'admin.settings.communication', 'label' => 'Kommunikation', 'icon' => 'cog', 'description' => 'Mail-Versand, IT-Support, Teams.'],
+            ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente & Sharing', 'icon' => 'document', 'description' => 'Archive, Aufbewahrung, Rollen, externe Freigabe-Caps.'],
             ['slug' => 'branding', 'route' => 'admin.settings.branding', 'label' => 'Branding', 'icon' => 'cog', 'description' => 'Name, Logo, Farben + Benutzerfelder.'],
             ['slug' => 'ai', 'route' => 'admin.settings.ai', 'label' => 'KI', 'icon' => 'cog', 'description' => 'OpenAI / DeepSeek / Ollama.'],
-            ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente', 'icon' => 'document', 'description' => 'Archive, Retention, Rollen-Zuordnung.'],
-            ['slug' => 'sharing', 'route' => 'admin.settings.sharing', 'label' => 'Sharing', 'icon' => 'cog', 'description' => 'Caps fuer externe Freigaben.'],
-            ['slug' => 'support', 'route' => 'admin.settings.support', 'label' => 'IT-Support', 'icon' => 'cog', 'description' => 'Support-Formular fuer Benutzer (Mail oder Ticket-API).'],
-            ['slug' => 'integrations', 'route' => 'admin.settings.integrations', 'label' => 'Integrationen', 'icon' => 'cog', 'description' => 'Microsoft Teams, weitere externe Connectors.'],
             ['slug' => 'infrastructure', 'route' => 'admin.settings.infrastructure', 'label' => 'Infrastruktur', 'icon' => 'cog', 'description' => 'Storage, Queue, Such-Backend, Office-Vorschau.'],
         ];
     }
