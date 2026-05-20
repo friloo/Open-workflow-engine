@@ -77,6 +77,7 @@ class HelpController extends Controller
         'Sicherheit & Betrieb' => [
             '2fa' => 'Zwei-Faktor-Anmeldung',
             'revisionssicher' => 'Revisionssicherheit',
+            'gobd' => 'GoBD-Konformitaet (DE)',
             'admin' => ['label' => 'Administration', 'any' => ['system.settings']],
             'object-storage' => ['label' => 'Object-Storage (S3/MinIO)', 'any' => ['system.settings']],
             'queue-worker' => ['label' => 'Queue-Worker / Background-Jobs', 'any' => ['system.health']],
