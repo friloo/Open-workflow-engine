@@ -51,5 +51,10 @@ class ProcessAttachmentOcr implements ShouldQueue
             // Indexierung haengt am Schema-Typ; bei Fehler bleibt
             // indexed_fields leer.
         }
+
+        // Externen Such-Index aktualisieren (no-op bei driver=database).
+        try {
+            app(\App\Services\Search\DocumentSearch::class)->index($att->refresh());
+        } catch (\Throwable) {}
     }
 }

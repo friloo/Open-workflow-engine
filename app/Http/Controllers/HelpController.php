@@ -53,6 +53,7 @@ class HelpController extends Controller
         ],
         'Dokumente' => [
             'documents' => ['label' => 'Dokumente (Versionen, OCR, Bulk)', 'any' => ['documents.search']],
+            'search-meilisearch' => ['label' => 'Volltext-Suche skalieren (MeiliSearch)', 'any' => ['system.settings']],
             'document-schemas' => ['label' => 'Felder-Schemas pro Dokumenttyp', 'any' => ['system.settings']],
             'zugferd' => ['label' => 'ZUGFeRD / XRechnung', 'any' => ['documents.search']],
             'inbox-routing' => ['label' => 'Postkorb + Lookup-Routing', 'any' => ['documents.search']],

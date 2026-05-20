@@ -223,6 +223,7 @@ class AttachmentStorage
         }
         try { $this->ocr->extract($att); } catch (\Throwable) {}
         try { $this->fields->extractFor($att->refresh()); } catch (\Throwable) {}
+        try { app(\App\Services\Search\DocumentSearch::class)->index($att->refresh()); } catch (\Throwable) {}
     }
 
     public function streamDownload(Attachment $attachment)

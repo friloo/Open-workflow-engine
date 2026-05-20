@@ -77,11 +77,7 @@ class DocumentController extends Controller
         }
         if ($status) $query->where('ocr_status', $status);
         if ($q !== '') {
-            $query->where(function ($qq) use ($q) {
-                $qq->where('original_name', 'like', "%{$q}%")
-                   ->orWhere('label', 'like', "%{$q}%")
-                   ->orWhere('ocr_text', 'like', "%{$q}%");
-            });
+            app(\App\Services\Search\DocumentSearch::class)->applyFulltext($query, $q);
         }
 
         // Filter auf indexed_fields (nur wenn ein Typ gewaehlt ist, denn nur
@@ -176,11 +172,7 @@ class DocumentController extends Controller
         }
         if ($status) $query->where('ocr_status', $status);
         if ($q !== '') {
-            $query->where(function ($qq) use ($q) {
-                $qq->where('original_name', 'like', "%{$q}%")
-                   ->orWhere('label', 'like', "%{$q}%")
-                   ->orWhere('ocr_text', 'like', "%{$q}%");
-            });
+            app(\App\Services\Search\DocumentSearch::class)->applyFulltext($query, $q);
         }
 
         $schema = $type ? \App\Support\DocumentFieldSchema::forType((string) $type) : [];
