@@ -8,6 +8,7 @@ use App\Models\WorkflowStepExecution;
 use App\Services\WorkflowEngine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class TaskController extends Controller
@@ -32,9 +33,13 @@ class TaskController extends Controller
 
         // Snoozed (Wiedervorlage) standardmaessig ausblenden — User hat sich
         // bewusst entschieden, das erst spaeter zu bearbeiten.
-        $hideSnoozed = fn ($q) => $q->where(function ($q2) {
-            $q2->whereNull('snoozed_until')->orWhere('snoozed_until', '<=', now());
-        });
+        // Defensiv: ohne snoozed_until-Migration ueberspringen wir den Filter.
+        $hasSnooze = Schema::hasColumn('workflow_step_executions', 'snoozed_until');
+        $hideSnoozed = $hasSnooze
+            ? fn ($q) => $q->where(function ($q2) {
+                $q2->whereNull('snoozed_until')->orWhere('snoozed_until', '<=', now());
+            })
+            : fn ($q) => $q;
 
         // Counts pro Filter-Chip — eine Roundtrip-Query reicht nicht, aber
         // pro Chip eine count()-Query ist okay (kleine Datenmengen pro User).
@@ -49,8 +54,10 @@ class TaskController extends Controller
                 ->whereNotNull('due_at')->whereBetween('due_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])->count(),
             'mine' => $hideSnoozed($baseScope(WorkflowStepExecution::query()))
                 ->where('assigned_to_user_id', $user->id)->whereNull('assigned_to_role_id')->count(),
-            'snoozed' => $baseScope(WorkflowStepExecution::query())
-                ->whereNotNull('snoozed_until')->where('snoozed_until', '>', $now)->count(),
+            'snoozed' => $hasSnooze
+                ? $baseScope(WorkflowStepExecution::query())
+                    ->whereNotNull('snoozed_until')->where('snoozed_until', '>', $now)->count()
+                : 0,
         ];
 
         $query = WorkflowStepExecution::query()
@@ -75,7 +82,9 @@ class TaskController extends Controller
                 $query->where('assigned_to_user_id', $user->id)->whereNull('assigned_to_role_id');
                 break;
             case 'snoozed':
-                $query->whereNotNull('snoozed_until')->where('snoozed_until', '>', $now);
+                if ($hasSnooze) {
+                    $query->whereNotNull('snoozed_until')->where('snoozed_until', '>', $now);
+                }
                 break;
         }
 

@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Verwaltet die User-Praeferenz Matrix Event x Channel. Default-Verhalten
@@ -98,6 +99,11 @@ class NotificationPreferences
         static $cache = [];
         if (isset($cache[$user->id])) return $cache[$user->id];
 
+        // Defensive: ohne Migration einfach Defaults verwenden
+        if (! Schema::hasTable('user_notification_preferences')) {
+            return $cache[$user->id] = [];
+        }
+
         $rows = DB::table('user_notification_preferences')
             ->where('user_id', $user->id)
             ->get(['event_key', 'channel', 'enabled']);
@@ -117,6 +123,7 @@ class NotificationPreferences
     {
         if (! array_key_exists($eventKey, self::catalog())) return;
         if (! array_key_exists($channel, self::channels())) return;
+        if (! Schema::hasTable('user_notification_preferences')) return;
 
         DB::table('user_notification_preferences')
             ->updateOrInsert(

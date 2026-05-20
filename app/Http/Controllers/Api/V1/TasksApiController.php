@@ -8,6 +8,7 @@ use App\Models\WorkflowStepExecution;
 use App\Services\WorkflowEngine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class TasksApiController extends Controller
 {
@@ -27,10 +28,13 @@ class TasksApiController extends Controller
             ->where(function ($q2) use ($user, $roleIds) {
                 $q2->where('assigned_to_user_id', $user->id);
                 if ($roleIds->isNotEmpty()) $q2->orWhereIn('assigned_to_role_id', $roleIds);
-            })
-            ->where(function ($q2) {
+            });
+
+        if (Schema::hasColumn('workflow_step_executions', 'snoozed_until')) {
+            $q->where(function ($q2) {
                 $q2->whereNull('snoozed_until')->orWhere('snoozed_until', '<=', now());
             });
+        }
 
         $items = $q->orderBy('due_at')->limit(100)->get()->map(function ($s) {
             $node = data_get($s->instance->version->definition ?? [], "drawflow.Home.data.{$s->step_key}");
