@@ -39,8 +39,9 @@
                                 prose-h2:text-xl prose-h2:mt-8 prose-h2:pb-1 prose-h2:border-b prose-h2:border-slate-100
                                 prose-h3:text-base prose-h3:mt-6
                                 prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline
-                                prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[0.85em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
-                                prose-pre:bg-slate-900 prose-pre:text-slate-100
+                                prose-code:bg-slate-100 prose-code:text-slate-900 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[0.85em] prose-code:font-normal prose-code:before:content-none prose-code:after:content-none
+                                prose-pre:bg-slate-900 prose-pre:text-slate-100 prose-pre:p-4 prose-pre:overflow-x-auto
+                                [&_pre_code]:bg-transparent [&_pre_code]:text-slate-100 [&_pre_code]:p-0 [&_pre_code]:rounded-none [&_pre_code]:text-sm
                                 prose-li:my-1 prose-ul:my-3 prose-ol:my-3
                                 prose-img:rounded-lg prose-img:border prose-img:border-slate-200">
                     {!! $html !!}
