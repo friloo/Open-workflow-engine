@@ -36,6 +36,7 @@ class HelpController extends Controller
         ],
         'Workflows entwerfen' => [
             'workflows' => ['label' => 'Workflows entwerfen', 'any' => ['workflows.design', 'workflows.run', 'workflows.view']],
+            'process-doc' => ['label' => 'Prozessbeschreibung als PDF', 'any' => ['workflows.view', 'workflows.design']],
             'templates' => ['label' => 'Workflow-Vorlagen (Import/Export)', 'any' => ['workflows.design']],
             'http-node' => ['label' => 'HTTP-Knoten', 'any' => ['workflows.design']],
             'pdf-node' => ['label' => 'PDF-Knoten', 'any' => ['workflows.design']],

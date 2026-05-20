@@ -44,6 +44,7 @@
                 <input type="text" x-model="changeSummary" placeholder="Beschreibung der Aenderung (optional)"
                     class="w-64 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 <a href="{{ route('workflows.versions', $workflow) }}" class="text-sm text-slate-600 hover:text-slate-900">Versionen</a>
+                <a href="{{ route('workflows.process_doc', $workflow) }}" target="_blank" class="text-sm text-slate-600 hover:text-slate-900" title="Prozessbeschreibung als PDF herunterladen">PDF-Doku</a>
                 <button type="button" @click="save()" :disabled="saving"
                     class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
                     <span x-show="!saving">Speichern</span>

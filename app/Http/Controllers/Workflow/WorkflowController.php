@@ -120,6 +120,42 @@ class WorkflowController extends Controller
         return back()->with('status', 'Workflow archiviert.');
     }
 
+    /**
+     * Prozessbeschreibung als PDF — Knopfdruck-Variante. Nimmt die
+     * aktuellste Version, baut HTML-Template, DomPDF macht PDF.
+     */
+    public function processDoc(Workflow $workflow, \App\Services\WorkflowProcessDocService $svc)
+    {
+        return $this->renderProcessDoc($workflow, null, $svc);
+    }
+
+    public function processDocVersion(Workflow $workflow, \App\Models\WorkflowVersion $version, \App\Services\WorkflowProcessDocService $svc)
+    {
+        if ($version->workflow_id !== $workflow->id) abort(404);
+        return $this->renderProcessDoc($workflow, $version, $svc);
+    }
+
+    private function renderProcessDoc(Workflow $workflow, ?\App\Models\WorkflowVersion $version, \App\Services\WorkflowProcessDocService $svc)
+    {
+        try {
+            $payload = $svc->buildPayload($workflow, $version);
+        } catch (\Throwable $e) {
+            return back()->withErrors(['process_doc' => $e->getMessage()]);
+        }
+        $this->audit->log('workflow.process_doc.printed', $workflow, null, [
+            'version_id' => $payload['version']->id,
+            'definition_hash' => $payload['definition_hash'],
+        ], "Prozessbeschreibung gedruckt fuer {$workflow->name} v{$payload['version']->version_number}");
+
+        $html = view('workflows.print.process-doc', $payload)->render();
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4');
+        $filename = 'Prozessbeschreibung-'
+            .\Illuminate\Support\Str::slug($workflow->name, '_')
+            .'-v'.$payload['version']->version_number
+            .'-'.now()->format('Y-m-d').'.pdf';
+        return $pdf->download($filename);
+    }
+
     public function destroy(Workflow $workflow): RedirectResponse
     {
         $name = $workflow->name;

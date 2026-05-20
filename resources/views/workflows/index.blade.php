@@ -107,6 +107,7 @@
                                     <a href="{{ route('workflows.start', $w) }}" class="text-sm font-semibold text-emerald-700 hover:text-emerald-600">Starten</a>
                                 @endif
                                 <a href="{{ route('workflows.design', $w) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Designer</a>
+                                <a href="{{ route('workflows.process_doc', $w) }}" class="text-sm text-slate-600 hover:text-slate-900" title="Prozessbeschreibung als PDF herunterladen">PDF-Doku</a>
                                 @if(auth()->user()->hasPermission('workflows.design'))
                                     <a href="{{ route('workflows.edit', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Metadaten</a>
                                     <a href="{{ route('workflows.versions', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Versionen</a>
