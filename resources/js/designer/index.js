@@ -32,14 +32,11 @@ const NODE_TEMPLATES = {
             escalation_type: 'none',
             escalation_role_id: null,
             allow_forward: false,
-            // Pro Approval konfigurierbare Zusatzfelder, die der Genehmiger
-            // beim Entscheiden ausfuellen muss/kann. Jedes Feld:
-            //   key:      maschinen-lesbar (a-z0-9_)
-            //   label:    Anzeige
-            //   type:     text|number|date|select|checkbox|textarea
-            //   options:  fuer select (Array)
-            //   required: bool
-            //   target:   'doc' (Indexfelder am Doku) | 'instance' (Workflow-Daten)
+            // Parallele Genehmigung: 'single' (nur 1 Person, Default),
+            // 'all' (alle Rollen-/Listen-Mitglieder muessen approven),
+            // 'n_of_m' (mindestens quorum_min Approvals reichen).
+            quorum_mode: 'single',
+            quorum_min: 2,
             extra_fields: [],
         }),
         outputClasses: (data) => data.allow_forward

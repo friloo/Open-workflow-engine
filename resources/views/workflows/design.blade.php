@@ -324,6 +324,41 @@
                                         </div>
                                         <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgaenge: <strong>Genehmigt</strong> / <strong>Abgelehnt</strong> <span x-show="selectedNode.data.allow_forward">/ <strong>Weitergeleitet</strong></span></p>
 
+                                        {{-- Parallele Genehmigung: nur sinnvoll wenn Empfaenger eine Rolle
+                                             oder eine Liste ist (mehrere Personen) — bei Einzeluser wird die
+                                             Einstellung im Engine ignoriert. --}}
+                                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
+                                            <div>
+                                                <h4 class="text-xs font-semibold text-slate-700">Parallele Genehmigung</h4>
+                                                <p class="text-[11px] text-slate-500">
+                                                    Nur sinnvoll wenn der Empfaenger eine Rolle oder eine Liste ist
+                                                    (mehrere Personen werden parallel beteiligt). Bei Einzeluser hat das
+                                                    keinen Effekt.
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600 mb-1">Modus</label>
+                                                <select x-model="selectedNode.data.quorum_mode"
+                                                    x-init="if (!selectedNode.data.quorum_mode) selectedNode.data.quorum_mode = 'single'"
+                                                    class="block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <option value="single">Einzeln (Default) — eine Person genehmigt</option>
+                                                    <option value="all">Alle muessen genehmigen — eine Ablehnung bricht ab</option>
+                                                    <option value="n_of_m">N von M genehmigen — ab Schwelle wird durchgewunken</option>
+                                                </select>
+                                            </div>
+                                            <template x-if="selectedNode.data.quorum_mode === 'n_of_m'">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600 mb-1">Schwelle (mindestens N Approvals)</label>
+                                                    <input type="number" min="1" max="50" x-model.number="selectedNode.data.quorum_min"
+                                                        class="block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <p class="text-[11px] text-slate-500 mt-1">
+                                                        Sobald N Mitglieder genehmigen, geht der Workflow weiter. Wenn nicht
+                                                        mehr genug Stimmen uebrig sind, wird automatisch abgelehnt.
+                                                    </p>
+                                                </div>
+                                            </template>
+                                        </div>
+
                                         {{-- Zusatzfelder beim Genehmigen --}}
                                         <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
                                             <div class="flex items-baseline justify-between mb-2">
