@@ -25,14 +25,28 @@
                     <x-text-input id="party" name="party" value="{{ old('party', $contract->party) }}" maxlength="255" />
                 </div>
                 <div>
-                    <x-input-label for="category" value="Kategorie" />
-                    <x-text-input id="category" name="category" value="{{ old('category', $contract->category) }}"
-                                  list="contract-categories" placeholder="z. B. Wartung, Miete, Versicherung" />
-                    <datalist id="contract-categories">
-                        @foreach(['Wartung', 'Miete', 'Versicherung', 'Software-Lizenz', 'Dienstleistung', 'Lieferant', 'Beratung'] as $cat)
-                            <option value="{{ $cat }}">
+                    <x-input-label for="contract_type_id" value="Vertragsart" />
+                    <select id="contract_type_id" name="contract_type_id"
+                            class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            x-data
+                            @change="
+                                const opt = $el.options[$el.selectedIndex];
+                                const dn = opt.dataset.defaultDays;
+                                if (dn) document.getElementById('notice_period_days').value = dn;
+                            ">
+                        <option value="">— Keine Zuordnung —</option>
+                        @foreach($types as $t)
+                            <option value="{{ $t->id }}"
+                                    data-default-days="{{ $t->default_notice_period_days }}"
+                                    @selected(old('contract_type_id', $contract->contract_type_id) == $t->id)>
+                                {{ $t->name }}
+                            </option>
                         @endforeach
-                    </datalist>
+                    </select>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Bestimmt Default-Kuendigungsfrist + welche Rollen den Vertrag sehen duerfen.
+                        <a href="{{ route('contract-types.index') }}" class="text-indigo-600 hover:text-indigo-500">Vertragsarten verwalten</a>.
+                    </p>
                 </div>
                 <div class="sm:col-span-2">
                     <x-input-label for="description" value="Beschreibung" />
@@ -79,6 +93,44 @@
                         <x-input-label for="auto_renew_months" value="Verlaengerung um Monate" />
                         <x-text-input id="auto_renew_months" name="auto_renew_months" type="number" min="1" max="120"
                                       value="{{ old('auto_renew_months', $contract->auto_renew_months ?? 12) }}" />
+                    </div>
+                </div>
+
+                {{-- Pro-Vertrag Berechtigungen: zusaetzliche Rollen freischalten --}}
+                <div class="sm:col-span-2 rounded-lg border border-slate-200 p-3">
+                    <h4 class="text-sm font-semibold text-slate-900 mb-2">Zusaetzliche Berechtigungen pro Rolle</h4>
+                    <p class="text-xs text-slate-500 mb-3">
+                        Der <strong>Verantwortliche</strong> und alle ueber den <strong>Vertragstyp</strong>
+                        berechtigten Rollen sehen den Vertrag automatisch. Hier kannst du weitere Rollen
+                        nur fuer DIESEN Vertrag freischalten.
+                    </p>
+                    @php
+                        $assigned = $contract->exists ? $contract->roles->keyBy('id') : collect();
+                    @endphp
+                    <div class="space-y-1.5">
+                        @foreach($roles as $idx => $r)
+                            @php
+                                $row = $assigned->get($r->id);
+                                $canView = $row !== null;
+                                $canManage = $canView && $row->pivot->can_manage;
+                            @endphp
+                            <div class="grid grid-cols-12 items-center gap-2 text-xs">
+                                <span class="col-span-6 text-slate-700">{{ $r->name }}</span>
+                                <label class="col-span-3 inline-flex items-center gap-1.5 text-slate-700">
+                                    <input type="hidden" name="extra_roles[{{ $idx }}][id]" value="{{ $r->id }}">
+                                    <input type="checkbox" name="extra_roles[{{ $idx }}][can_view]" value="1"
+                                           @checked($canView)
+                                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    Sehen
+                                </label>
+                                <label class="col-span-3 inline-flex items-center gap-1.5 text-slate-700">
+                                    <input type="checkbox" name="extra_roles[{{ $idx }}][can_manage]" value="1"
+                                           @checked($canManage)
+                                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    Bearbeiten
+                                </label>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>

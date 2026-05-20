@@ -86,6 +86,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/notifications', [\App\Http\Controllers\ProfileController::class, 'updateNotificationPreferences'])->name('profile.notifications.update');
     Route::post('/profile/ical/rotate', [\App\Http\Controllers\IcalController::class, 'rotate'])->name('profile.ical.rotate');
     Route::post('/profile/ical/revoke', [\App\Http\Controllers\IcalController::class, 'revoke'])->name('profile.ical.revoke');
+    Route::post('/profile/push/subscribe', [\App\Http\Controllers\PushController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/profile/push/unsubscribe', [\App\Http\Controllers\PushController::class, 'unsubscribe'])->name('push.unsubscribe');
+    Route::post('/profile/push/test', [\App\Http\Controllers\PushController::class, 'test'])->name('push.test');
 
     // 2FA-Verwaltung pro Benutzer (opt-in)
     Route::get('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'show'])->name('two-factor.show');
@@ -303,6 +306,12 @@ Route::middleware(['auth', 'permission:contracts.view,contracts.manage'])->group
             'update' => 'permission:contracts.manage',
             'destroy' => 'permission:contracts.manage',
         ]);
+});
+// Vertragsarten-Verwaltung — nur fuer Admins/Manage-Berechtigte
+Route::middleware(['auth', 'permission:contracts.manage'])->group(function () {
+    Route::resource('contract-types', \App\Http\Controllers\ContractTypeController::class)
+        ->parameters(['contract-types' => 'contractType'])
+        ->except(['show']);
 });
 
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)

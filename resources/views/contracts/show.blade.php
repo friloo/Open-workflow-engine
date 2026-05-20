@@ -21,7 +21,7 @@
                             <span class="ms-2 inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">Auto-Verlaengerung {{ $contract->auto_renew_months }} Monate</span>
                         @endif
                     </div>
-                    @if(auth()->user()->hasPermission('contracts.manage'))
+                    @if($canManage)
                         <div class="flex gap-2">
                             <a href="{{ route('contracts.edit', $contract) }}" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Bearbeiten</a>
                             <form method="POST" action="{{ route('contracts.destroy', $contract) }}" onsubmit="return confirm('Vertrag wirklich loeschen?')">
@@ -44,8 +44,17 @@
                         <dd class="text-slate-900">{{ $contract->party ?: '—' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs uppercase text-slate-500">Kategorie</dt>
-                        <dd class="text-slate-900">{{ $contract->category ?: '—' }}</dd>
+                        <dt class="text-xs uppercase text-slate-500">Vertragsart</dt>
+                        <dd class="text-slate-900">
+                            @if($contract->type)
+                                <span class="inline-flex items-center gap-1">
+                                    <span class="inline-block h-2 w-2 rounded-full" style="background:{{ $contract->type->color }}"></span>
+                                    {{ $contract->type->name }}
+                                </span>
+                            @else
+                                <span class="text-slate-400">—</span>
+                            @endif
+                        </dd>
                     </div>
                     <div>
                         <dt class="text-xs uppercase text-slate-500">Beginn</dt>
@@ -91,6 +100,44 @@
                     </p>
                 </x-card>
             @endif
+
+            <x-card title="Zugriffsrechte" description="Wer kann diesen Vertrag sehen?">
+                <div class="text-sm space-y-2">
+                    <div>
+                        <div class="text-xs uppercase text-slate-500 mb-1">Ueber Vertragsart</div>
+                        @if($contract->type && $contract->type->roles->isNotEmpty())
+                            @foreach($contract->type->roles as $r)
+                                <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs me-1 mb-1">
+                                    {{ $r->name }}
+                                    @if($r->pivot->can_manage)
+                                        <span class="ms-1 text-[10px] font-semibold text-indigo-600">+M</span>
+                                    @endif
+                                </span>
+                            @endforeach
+                        @else
+                            <p class="text-xs text-slate-400">Keine Vertragsart oder keine Rollen ueber Typ freigeschaltet.</p>
+                        @endif
+                    </div>
+                    <div>
+                        <div class="text-xs uppercase text-slate-500 mb-1">Zusaetzlich nur fuer diesen Vertrag</div>
+                        @if($contract->roles->isNotEmpty())
+                            @foreach($contract->roles as $r)
+                                <span class="inline-flex items-center rounded bg-indigo-50 px-1.5 py-0.5 text-xs text-indigo-700 me-1 mb-1">
+                                    {{ $r->name }}
+                                    @if($r->pivot->can_manage)
+                                        <span class="ms-1 text-[10px] font-semibold">+M</span>
+                                    @endif
+                                </span>
+                            @endforeach
+                        @else
+                            <p class="text-xs text-slate-400">Keine zusaetzlichen Rollen.</p>
+                        @endif
+                    </div>
+                    <p class="text-xs text-slate-500 pt-2 border-t border-slate-100">
+                        <strong>+M</strong> = darf auch bearbeiten/loeschen. Admins haben immer vollen Zugriff.
+                    </p>
+                </div>
+            </x-card>
         </div>
     </div>
 </x-app-layout>

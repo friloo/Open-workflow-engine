@@ -22,6 +22,46 @@ Dauer-Wiedervorlage:
 5. Im Vertrag selbst aendert sich der Status auf
    „Kuendigungsfrist erreicht" — orange Badge in der Liste
 
+## Vertragsarten
+
+Vertraege werden in **Vertragsarten** organisiert (z. B. Mietvertrag,
+Wartung, Software-Lizenz). Verwaltung unter
+**[Vertraege → Arten](app:contract-types.index)**.
+
+Pro Vertragsart wird festgelegt:
+
+- **Name** + Farb-Markierung
+- **Default-Kuendigungsfrist** — wird beim Neuanlegen eines Vertrages
+  dieses Typs automatisch vorbelegt
+- **Rollen-Berechtigungen**: welche Rollen Vertraege dieser Art
+  - **sehen** (lesen)
+  - oder zusaetzlich **bearbeiten/loeschen** duerfen (`+M`)
+
+Vorteil: einmal in der Vertragsart konfiguriert, gilt das fuer alle
+zukuenftigen Vertraege dieses Typs.
+
+## Berechtigungen pro Vertrag
+
+Zusaetzlich zur Vertragsart-Berechtigung kannst du pro **einzelnem
+Vertrag** weitere Rollen freischalten (z. B. „nur diesen einen
+Vertrag darf auch die Buchhaltung sehen"). Im Bearbeitungs-Form
+unter „Zusaetzliche Berechtigungen pro Rolle".
+
+### Sichtbarkeit zusammengefasst
+
+Ein User sieht einen Vertrag, wenn EINES davon zutrifft:
+
+1. Er ist **Admin** (sieht alles)
+2. Er ist der **Verantwortliche** (owner)
+3. Eine seiner **Rollen** ist fuer die **Vertragsart** des Vertrages freigeschaltet
+4. Eine seiner **Rollen** ist **direkt fuer diesen Vertrag** freigeschaltet
+5. Der Vertrag hat **keine Vertragsart** (Legacy / unklassifiziert) — analog
+   zu Dokumenten ohne Typ
+
+Bearbeiten/Loeschen geht zusaetzlich nur mit der globalen
+`contracts.manage`-Permission UND einer der oben genannten
+Manage-Berechtigungen (`+M`).
+
 ## Felder
 
 | Feld | Bedeutung |

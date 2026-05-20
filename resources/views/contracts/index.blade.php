@@ -33,9 +33,17 @@
         @endforeach
         <div class="ms-auto flex items-center gap-2">
             <input type="hidden" name="filter" value="{{ $filter }}">
+            <select name="type" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    onchange="this.form.submit()">
+                <option value="0">Alle Arten</option>
+                @foreach($types as $t)
+                    <option value="{{ $t->id }}" @selected($typeFilter === $t->id)>{{ $t->name }}</option>
+                @endforeach
+            </select>
             <input type="text" name="q" value="{{ $q }}" placeholder="Vertrag suchen …"
                    class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             @if(auth()->user()->hasPermission('contracts.manage'))
+                <a href="{{ route('contract-types.index') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Arten</a>
                 <a href="{{ route('contracts.create') }}"><x-primary-button type="button">Neuer Vertrag</x-primary-button></a>
             @endif
         </div>
@@ -67,7 +75,12 @@
                         <tr class="hover:bg-slate-50">
                             <td class="py-3 pr-4">
                                 <a href="{{ route('contracts.show', $c) }}" class="font-medium text-slate-900 hover:text-indigo-600">{{ $c->name }}</a>
-                                @if($c->category)
+                                @if($c->type)
+                                    <div class="text-xs text-slate-500 flex items-center gap-1">
+                                        <span class="inline-block h-2 w-2 rounded-full" style="background:{{ $c->type->color }}"></span>
+                                        {{ $c->type->name }}
+                                    </div>
+                                @elseif($c->category)
                                     <div class="text-xs text-slate-500">{{ $c->category }}</div>
                                 @endif
                             </td>
