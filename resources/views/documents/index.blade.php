@@ -139,7 +139,7 @@
     @endphp
 
     <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"
-         x-data="documentsSplit(@js(request('doc')), @js($docsForJs), @js($availableWorkflows ?? []))"
+         x-data="documentsSplit(@js(request('doc')), @js($docsForJs), @js($availableWorkflows ?? []), @js((string) request('q', '')))"
          x-init="bootstrap()"
          @keydown.window="onKeydown($event)">
         @if($documents->isEmpty())
@@ -335,7 +335,10 @@
 
                             {{-- Preview-Body --}}
                             <template x-if="selected.previewable">
-                                <iframe :src="selected.previewUrl + '#toolbar=1'" :title="selected.name" class="flex-1 w-full bg-white"></iframe>
+                                {{-- #search=... wird vom Chrome/Edge-PDF-Viewer ausgewertet und
+                                     springt zum ersten Treffer (markiert ihn). Firefox/Safari
+                                     ignorieren den Hash, die Datei oeffnet trotzdem normal. --}}
+                                <iframe :src="previewSrc" :title="selected.name" class="flex-1 w-full bg-white"></iframe>
                             </template>
                             <template x-if="!selected.previewable">
                                 <div class="flex flex-col items-center justify-center flex-1 px-8 text-center text-sm text-slate-600 bg-white">
@@ -351,13 +354,22 @@
     </div>
 
     <script>
-        function documentsSplit(initialDocId, docs, workflows) {
+        function documentsSplit(initialDocId, docs, workflows, searchQuery) {
             return {
                 docs: docs || [],
                 workflows: workflows || [],
+                searchQuery: searchQuery || '',
                 selectedIdx: null,
                 get selected() {
                     return this.selectedIdx !== null ? this.docs[this.selectedIdx] : null;
+                },
+                get previewSrc() {
+                    if (!this.selected) return '';
+                    let url = this.selected.previewUrl + '#toolbar=1';
+                    if (this.searchQuery && this.searchQuery.length >= 2 && this.selected.previewable) {
+                        url += '&search=' + encodeURIComponent(this.searchQuery);
+                    }
+                    return url;
                 },
                 // Indexfelder fuer den schmalen Header oben — max 4 sichtbar,
                 // damit nichts in 2 Zeilen umbricht.
