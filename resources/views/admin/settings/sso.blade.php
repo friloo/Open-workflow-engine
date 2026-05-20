@@ -183,8 +183,115 @@
             </div>
         </x-card>
 
+        {{-- LDAP / Active Directory --}}
+        <x-card title="LDAP / Active Directory"
+                description="Direkte Bind-Authentifizierung gegen LDAP-Server (Active Directory, OpenLDAP, 389DS, Samba 4). Kein Redirect — User melden sich mit AD-Login direkt auf der OWE-Loginseite an.">
+            @if(! $ldapExtensionLoaded)
+                <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <strong>Hinweis:</strong> PHP-LDAP-Extension nicht geladen.
+                    Bitte <code>php-ldap</code> auf dem Server installieren
+                    (Debian/Ubuntu: <code>apt install php8.2-ldap</code>).
+                    Konfiguration kannst du trotzdem speichern; aktiviert wird LDAP
+                    erst nach Installation der Extension.
+                </div>
+            @endif
+
+            <div class="space-y-4">
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input type="hidden" name="ldap_enabled" value="0">
+                    <input type="checkbox" name="ldap_enabled" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked($ldap['enabled'])>
+                    LDAP-Anmeldung aktivieren (auf der Login-Seite Username/Passwort gegen AD pruefen)
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                    <input type="hidden" name="ldap_auto_provision" value="0">
+                    <input type="checkbox" name="ldap_auto_provision" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked($ldap['auto_provision'])>
+                    Neue Benutzer beim ersten Login automatisch anlegen
+                </label>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <x-input-label for="ldap_host" value="Host" />
+                        <x-text-input id="ldap_host" name="ldap_host" value="{{ $ldap['host'] }}"
+                                      placeholder="ldap.firma.local oder ldaps://ldap.firma.local" />
+                    </div>
+                    <div>
+                        <x-input-label for="ldap_port" value="Port" />
+                        <x-text-input id="ldap_port" name="ldap_port" type="number" value="{{ $ldap['port'] }}" />
+                        <p class="mt-1 text-xs text-slate-500">389 = LDAP, 636 = LDAPS.</p>
+                    </div>
+                    <div class="sm:col-span-3">
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                            <input type="hidden" name="ldap_use_tls" value="0">
+                            <input type="checkbox" name="ldap_use_tls" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked($ldap['use_tls'])>
+                            StartTLS auf Port 389 verwenden (empfohlen, wenn nicht schon LDAPS auf 636)
+                        </label>
+                    </div>
+                    <div class="sm:col-span-3">
+                        <x-input-label for="ldap_base_dn" value="Base-DN" />
+                        <x-text-input id="ldap_base_dn" name="ldap_base_dn" value="{{ $ldap['base_dn'] }}"
+                                      placeholder="DC=firma,DC=local" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="ldap_bind_dn" value="Service-Account DN" />
+                        <x-text-input id="ldap_bind_dn" name="ldap_bind_dn" value="{{ $ldap['bind_dn'] }}"
+                                      placeholder="CN=svc-owe,OU=Service-Accounts,DC=firma,DC=local" />
+                    </div>
+                    <div>
+                        <x-input-label for="ldap_bind_password" value="Service-Account Passwort" />
+                        <x-text-input id="ldap_bind_password" name="ldap_bind_password" type="password"
+                                      placeholder="@if(! empty($ldap['bind_password']))(unveraendert lassen)@endif" autocomplete="new-password" />
+                    </div>
+                    <div class="sm:col-span-3">
+                        <x-input-label for="ldap_user_filter" value="User-Filter ({username} wird ersetzt)" />
+                        <x-text-input id="ldap_user_filter" name="ldap_user_filter" value="{{ $ldap['user_filter'] }}" />
+                        <p class="mt-1 text-xs text-slate-500">
+                            AD: <code>(&(objectClass=user)(sAMAccountName={username}))</code>,
+                            OpenLDAP: <code>(&(objectClass=inetOrgPerson)(uid={username}))</code>.
+                            <code>{username}</code> wird RFC4515-eskapiert.
+                        </p>
+                    </div>
+                    <div>
+                        <x-input-label for="ldap_email_attribute" value="Attribut fuer E-Mail" />
+                        <x-text-input id="ldap_email_attribute" name="ldap_email_attribute" value="{{ $ldap['email_attribute'] }}" />
+                    </div>
+                    <div>
+                        <x-input-label for="ldap_name_attribute" value="Attribut fuer Anzeigename" />
+                        <x-text-input id="ldap_name_attribute" name="ldap_name_attribute" value="{{ $ldap['name_attribute'] }}" />
+                    </div>
+                    <div>
+                        <x-input-label for="ldap_default_role" value="Standardrolle" />
+                        <select id="ldap_default_role" name="ldap_default_role" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @foreach($roles as $r)
+                                <option value="{{ $r->slug }}" @selected($ldap['default_role']===$r->slug)>{{ $r->name }} ({{ $r->slug }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </x-card>
+
         <div class="flex justify-end">
             <x-primary-button>Speichern</x-primary-button>
         </div>
     </form>
+
+    {{-- Separate Test-Form ausserhalb des Save-Forms damit man speichern + testen unabhaengig kann --}}
+    <x-card title="LDAP-Verbindung testen"
+            description="Pruefe die Konfiguration mit einem echten AD-User. Passwort wird nirgendwo gespeichert.">
+        <form method="POST" action="{{ route('admin.settings.sso.test_ldap') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            @csrf
+            <div>
+                <x-input-label for="test_username" value="Test-Username (AD-Login)" />
+                <x-text-input id="test_username" name="test_username" autocomplete="off" />
+            </div>
+            <div>
+                <x-input-label for="test_password" value="Test-Passwort" />
+                <x-text-input id="test_password" name="test_password" type="password" autocomplete="new-password" />
+            </div>
+            <div>
+                <x-primary-button>Verbindung testen</x-primary-button>
+            </div>
+        </form>
+        <x-input-error :messages="$errors->get('ldap')" />
+    </x-card>
 </x-app-layout>

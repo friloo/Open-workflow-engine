@@ -667,9 +667,33 @@ class SystemSettingsController extends Controller
             'oidc' => Settings::group('auth.oidc') + $this->oidcDefaults(),
             'google' => Settings::group('auth.google') + $this->googleDefaults(),
             'saml' => Settings::group('auth.saml') + $this->samlDefaults(),
+            'ldap' => Settings::group('auth.ldap') + $this->ldapDefaults(),
+            'ldapExtensionLoaded' => function_exists('ldap_connect'),
             'roles' => \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']),
             'sections' => $this->sectionDescriptors(),
         ]);
+    }
+
+    public function testLdap(Request $request, \App\Services\LdapAuthenticator $ldap): RedirectResponse
+    {
+        $data = $request->validate([
+            'test_username' => ['required', 'string', 'max:128'],
+            'test_password' => ['required', 'string', 'max:255'],
+        ]);
+
+        $result = $ldap->authenticate($data['test_username'], $data['test_password']);
+
+        $this->audit->log(
+            $result['ok'] ? 'settings.ldap.test_ok' : 'settings.ldap.test_failed',
+            null, null, ['username' => $data['test_username']],
+            $result['ok'] ? "LDAP-Test OK fuer {$result['email']}" : ('LDAP-Test fehlgeschlagen: '.($result['error'] ?? 'unbekannt')),
+            $request->user()->id,
+        );
+
+        if (! $result['ok']) {
+            return back()->withErrors(['ldap' => 'LDAP-Test fehlgeschlagen: '.($result['error'] ?? 'unbekannt')]);
+        }
+        return back()->with('status', "LDAP-Test OK — DN: {$result['dn']}, Mail: {$result['email']}");
     }
 
     public function updateSso(Request $request): RedirectResponse
@@ -708,6 +732,20 @@ class SystemSettingsController extends Controller
             'saml_default_role' => ['nullable', 'string', 'max:64'],
             'saml_want_assertions_signed' => ['nullable', 'boolean'],
             'saml_want_messages_signed' => ['nullable', 'boolean'],
+
+            // LDAP
+            'ldap_enabled' => ['nullable', 'boolean'],
+            'ldap_host' => ['nullable', 'string', 'max:255'],
+            'ldap_port' => ['nullable', 'integer', 'between:1,65535'],
+            'ldap_use_tls' => ['nullable', 'boolean'],
+            'ldap_base_dn' => ['nullable', 'string', 'max:512'],
+            'ldap_bind_dn' => ['nullable', 'string', 'max:512'],
+            'ldap_bind_password' => ['nullable', 'string', 'max:512'],
+            'ldap_user_filter' => ['nullable', 'string', 'max:512'],
+            'ldap_email_attribute' => ['nullable', 'string', 'max:128'],
+            'ldap_name_attribute' => ['nullable', 'string', 'max:128'],
+            'ldap_auto_provision' => ['nullable', 'boolean'],
+            'ldap_default_role' => ['nullable', 'string', 'max:64'],
         ]);
 
         $userId = $request->user()->id;
@@ -745,10 +783,28 @@ class SystemSettingsController extends Controller
             Settings::set("auth.saml.{$k}", $data["saml_{$k}"] ?? null, $userId);
         }
 
+        // LDAP
+        Settings::set('auth.ldap.enabled', $request->boolean('ldap_enabled'), $userId);
+        Settings::set('auth.ldap.use_tls', $request->boolean('ldap_use_tls'), $userId);
+        Settings::set('auth.ldap.auto_provision', $request->boolean('ldap_auto_provision'), $userId);
+        foreach ([
+            'host', 'base_dn', 'bind_dn', 'user_filter',
+            'email_attribute', 'name_attribute', 'default_role',
+        ] as $k) {
+            Settings::set("auth.ldap.{$k}", $data["ldap_{$k}"] ?? null, $userId);
+        }
+        if (isset($data['ldap_port'])) {
+            Settings::set('auth.ldap.port', (int) $data['ldap_port'], $userId);
+        }
+        if (! empty($data['ldap_bind_password'])) {
+            Settings::set('auth.ldap.bind_password', $data['ldap_bind_password'], $userId);
+        }
+
         $this->audit->log('settings.sso.updated', null, null, [
             'oidc' => (bool) $request->boolean('oidc_enabled'),
             'google' => (bool) $request->boolean('google_enabled'),
             'saml' => (bool) $request->boolean('saml_enabled'),
+            'ldap' => (bool) $request->boolean('ldap_enabled'),
         ], 'SSO-Konfiguration aktualisiert', $userId);
 
         return redirect()->route('admin.settings.sso')->with('status', 'SSO-Konfiguration gespeichert.');
@@ -778,6 +834,24 @@ class SystemSettingsController extends Controller
             'client_secret' => '',
             'redirect' => url('/auth/google/callback'),
             'hosted_domain' => '',
+            'default_role' => 'employee',
+        ];
+    }
+
+    private function ldapDefaults(): array
+    {
+        return [
+            'enabled' => false,
+            'auto_provision' => true,
+            'host' => '',
+            'port' => 389,
+            'use_tls' => false,
+            'base_dn' => '',
+            'bind_dn' => '',
+            'bind_password' => '',
+            'user_filter' => '(&(objectClass=user)(sAMAccountName={username}))',
+            'email_attribute' => 'mail',
+            'name_attribute' => 'displayName',
             'default_role' => 'employee',
         ];
     }

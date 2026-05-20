@@ -65,6 +65,23 @@ return [
         'default_role' => env('GOOGLE_DEFAULT_ROLE', 'employee'),
     ],
 
+    'ldap' => [
+        'enabled' => env('LDAP_ENABLED', false),
+        'host' => env('LDAP_HOST'),
+        'port' => env('LDAP_PORT', 389),
+        'use_tls' => env('LDAP_USE_TLS', false),
+        'base_dn' => env('LDAP_BASE_DN'),
+        'bind_dn' => env('LDAP_BIND_DN'),
+        'bind_password' => env('LDAP_BIND_PASSWORD'),
+        // {username} wird durch die Eingabe ersetzt (RFC4515-escaped).
+        // AD-Default; fuer OpenLDAP/389DS typisch: (&(objectClass=inetOrgPerson)(uid={username}))
+        'user_filter' => env('LDAP_USER_FILTER', '(&(objectClass=user)(sAMAccountName={username}))'),
+        'email_attribute' => env('LDAP_EMAIL_ATTRIBUTE', 'mail'),
+        'name_attribute' => env('LDAP_NAME_ATTRIBUTE', 'displayName'),
+        'auto_provision' => env('LDAP_AUTO_PROVISION', true),
+        'default_role' => env('LDAP_DEFAULT_ROLE', 'employee'),
+    ],
+
     'saml' => [
         'enabled' => env('SAML_ENABLED', false),
         'idp_entity_id' => env('SAML_IDP_ENTITY_ID'),

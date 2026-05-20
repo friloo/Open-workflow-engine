@@ -14,8 +14,30 @@ class SettingsServiceProvider extends ServiceProvider
         $this->applyOidcConfig();
         $this->applyGoogleConfig();
         $this->applySamlConfig();
+        $this->applyLdapConfig();
         $this->applyBrandingConfig();
         $this->applyInfrastructureConfig();
+    }
+
+    private function applyLdapConfig(): void
+    {
+        $cfg = Settings::group('auth.ldap');
+        if ($cfg === []) return;
+
+        $current = config('services.ldap', []);
+        foreach ([
+            'host', 'port', 'base_dn', 'bind_dn', 'bind_password',
+            'user_filter', 'email_attribute', 'name_attribute', 'default_role',
+        ] as $k) {
+            if (array_key_exists($k, $cfg) && $cfg[$k] !== '' && $cfg[$k] !== null) {
+                $current[$k] = $cfg[$k];
+            }
+        }
+        $current['enabled'] = (bool) ($cfg['enabled'] ?? false);
+        $current['use_tls'] = (bool) ($cfg['use_tls'] ?? false);
+        $current['auto_provision'] = (bool) ($cfg['auto_provision'] ?? true);
+        if (isset($cfg['port'])) $current['port'] = (int) $cfg['port'];
+        config(['services.ldap' => $current]);
     }
 
     private function applyOidcConfig(): void

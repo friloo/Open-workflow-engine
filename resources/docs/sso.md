@@ -1,7 +1,7 @@
-# Single Sign-On (OIDC, Google, SAML)
+# Single Sign-On (OIDC, Google, SAML, LDAP/AD)
 
 Neben **Microsoft 365** (siehe [Microsoft 365](app:help.show?topic=m365))
-unterstuetzt Open Workflow Engine drei weitere Identity-Provider — alle
+unterstuetzt Open Workflow Engine vier weitere Identity-Provider — alle
 ueber das Admin-UI konfigurierbar, ohne `.env`-Editieren.
 
 > Konfiguration: **[Systemeinstellungen → SSO](app:admin.settings.sso)**
@@ -110,6 +110,77 @@ gueltige Antwort faelschen kann.
 - **Zertifikat-Format** — PEM mit oder ohne
   `-----BEGIN CERTIFICATE-----`-Zeilen wird automatisch normalisiert.
 
+## LDAP / Active Directory (direkt)
+
+Im Unterschied zu OIDC/SAML gibt es bei LDAP **keinen Redirect**. Der
+User tippt seinen AD-Login plus Passwort direkt in die OWE-Login-Maske
+ein und OWE bindet sich damit am LDAP-Server.
+
+### Voraussetzung
+
+PHP-LDAP-Extension auf dem Server:
+
+```
+apt install php8.2-ldap        # Debian/Ubuntu
+dnf install php-ldap            # Fedora/RHEL
+```
+
+Ohne Extension zeigt die SSO-Settings-Seite einen Hinweis und LDAP
+bleibt deaktiviert.
+
+### Konfiguration
+
+In **[SSO-Einstellungen](app:admin.settings.sso)** unter „LDAP / Active
+Directory":
+
+| Feld | Beispiel (Active Directory) |
+|------|-----------------------------|
+| Host | `ldap.firma.local` (oder `ldaps://ldap.firma.local`) |
+| Port | `389` (LDAP) oder `636` (LDAPS) |
+| StartTLS | an, wenn Port 389 |
+| Base-DN | `DC=firma,DC=local` |
+| Service-Account DN | `CN=svc-owe,OU=Service,DC=firma,DC=local` |
+| Service-Passwort | Passwort des Service-Accounts |
+| User-Filter | `(&(objectClass=user)(sAMAccountName={username}))` |
+| E-Mail-Attribut | `mail` |
+| Name-Attribut | `displayName` |
+
+Fuer **OpenLDAP / 389DS / Samba 4** entsprechend:
+
+```
+Filter: (&(objectClass=inetOrgPerson)(uid={username}))
+```
+
+### So laeuft der Login ab
+
+1. User tippt `mmustermann` (AD-Login) + Passwort
+2. OWE verbindet sich als Service-Account zum LDAP
+3. Sucht nach `(&(objectClass=user)(sAMAccountName=mmustermann))`
+4. Bindet sich dann als gefundener User mit dessen Passwort —
+   das ist die eigentliche Authentifizierung
+5. Mappt LDAP-Mail auf lokalen User (oder legt neu an, wenn
+   Auto-Provisioning an ist)
+
+### Test-Funktion
+
+Auf der SSO-Seite gibt's eine **„Verbindung testen"**-Karte. Du
+gibst einen echten AD-User + Passwort ein, OWE meldet zurueck:
+
+- Erfolg + den gefundenen DN + die Mail-Adresse
+- ODER eine Fehlermeldung („Service-Bind fehlgeschlagen", „Filter
+  ist nicht eindeutig", ...)
+
+Das Passwort wird nirgendwo gespeichert.
+
+### Sicherheits-Hinweise
+
+- **LDAPS oder StartTLS** verwenden — sonst geht das User-Passwort
+  im Klartext ueber's Netz.
+- **Service-Account** mit minimalen Rechten anlegen (nur Lese-Recht
+  auf die OU mit den User-Objekten).
+- **LDAP-Injection** ist verhindert: alle User-Eingaben werden
+  RFC4515-eskapiert, bevor sie in den Filter eingesetzt werden.
+
 ## Auto-Provisioning
 
 Bei allen Providern ist „Neue Benutzer beim ersten Login automatisch
@@ -129,7 +200,9 @@ Passwort-Login bleibt nebenher verfuegbar (lokale Service-Accounts).
 
 Jeder SSO-Login wird im Audit-Log festgehalten:
 
-- `auth.oidc.login`, `auth.google.login`, `auth.saml.login` — Login OK
+- `auth.oidc.login`, `auth.google.login`, `auth.saml.login`,
+  `auth.ldap.login` — Login OK
 - `auth.oidc.provisioned`, ... — Neuer User wurde automatisch angelegt
 - `auth.oidc.blocked`, ... — Login fuer deaktivierten Account verweigert
 - `settings.sso.updated` — Konfiguration wurde geaendert
+- `settings.ldap.test_ok` / `settings.ldap.test_failed` — Test-Verbindung

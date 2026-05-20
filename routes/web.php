@@ -316,6 +316,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('settings/m365', [SystemSettingsController::class, 'm365'])->name('settings.m365');
         Route::get('settings/sso', [SystemSettingsController::class, 'sso'])->name('settings.sso');
         Route::post('settings/sso', [SystemSettingsController::class, 'updateSso'])->name('settings.sso.update');
+        Route::post('settings/sso/test-ldap', [SystemSettingsController::class, 'testLdap'])->name('settings.sso.test_ldap');
         Route::get('settings/ai', [SystemSettingsController::class, 'ai'])->name('settings.ai');
         Route::get('settings/branding', [SystemSettingsController::class, 'branding'])->name('settings.branding');
         Route::get('settings/documents', [SystemSettingsController::class, 'documents'])->name('settings.documents');
