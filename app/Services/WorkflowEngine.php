@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\WorkflowNotificationMail;
 use App\Mail\WorkflowTaskAssignedMail;
+use App\Services\ApprovalStampService;
 use App\Models\User;
 use App\Models\Webhook;
 use App\Models\Workflow;
@@ -21,6 +22,15 @@ class WorkflowEngine
     private const MAX_DEPTH = 100;
 
     public function __construct(private readonly AuditLogger $audit) {}
+
+    /**
+     * ApprovalStampService wird ueber den Container aufgeloest, damit
+     * Tests einen Fake registrieren koennen (statt PDF wirklich zu rendern).
+     */
+    private function approvalStamper(): ApprovalStampService
+    {
+        return app(ApprovalStampService::class);
+    }
 
     /**
      * Start a new workflow instance. Walks the graph until it either
@@ -242,6 +252,16 @@ class WorkflowEngine
             return;
         }
         $decision = $quorum;
+
+        // Auto-Stempel: PDF-Anhaenge der Instance mit Approval-Stempel
+        // bedrucken, falls am Knoten konfiguriert (data.stamp_pdf=true).
+        if ($step->step_type === 'approval' && in_array($decision, ['approved', 'rejected'], true)) {
+            try {
+                $this->approvalStamper()->maybeStamp($step, $decision);
+            } catch (\Throwable $e) {
+                Log::warning('approval stamping crashed', ['step_id' => $step->id, 'error' => $e->getMessage()]);
+            }
+        }
 
         $outputKey = match ($decision) {
             'approved' => 'output_1',

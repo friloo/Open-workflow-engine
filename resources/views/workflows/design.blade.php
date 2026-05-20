@@ -433,6 +433,32 @@
                                                     class="w-full rounded-md border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Zusatzfeld</button>
                                             </div>
                                         </div>
+
+                                        {{-- PDF-Stempel beim Approval --}}
+                                        <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                                            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                                <input type="checkbox" x-model="selectedNode.data.stamp_pdf"
+                                                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                <span><strong>PDF-Anhaenge des Vorgangs automatisch stempeln</strong></span>
+                                            </label>
+                                            <p class="mt-1 text-xs text-slate-500">
+                                                Bei finaler Entscheidung wird ein „Genehmigt"/„Abgelehnt"-Stempel
+                                                unten rechts auf die letzte Seite gerendert (Name, Datum, Vorgang).
+                                                Originaldatei bleibt erhalten — der gestempelte PDF wird als neue
+                                                Version gespeichert.
+                                            </p>
+                                            <template x-if="selectedNode.data.stamp_pdf">
+                                                <div class="mt-2">
+                                                    <label class="block text-xs text-slate-600 mb-1">Wann stempeln?</label>
+                                                    <select x-model="selectedNode.data.stamp_pdf_only_on"
+                                                            class="block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                        <option value="approved">Nur bei Genehmigung</option>
+                                                        <option value="rejected">Nur bei Ablehnung</option>
+                                                        <option value="both">Bei jeder Entscheidung</option>
+                                                    </select>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </template>
 

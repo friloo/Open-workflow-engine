@@ -38,6 +38,9 @@ const NODE_TEMPLATES = {
             quorum_mode: 'single',
             quorum_min: 2,
             extra_fields: [],
+            // Stempel-Feature: gestempeltes PDF als neue Version anlegen
+            stamp_pdf: false,
+            stamp_pdf_only_on: 'approved',
         }),
         outputClasses: (data) => data.allow_forward
             ? ['genehmigt', 'abgelehnt', 'weitergeleitet']
