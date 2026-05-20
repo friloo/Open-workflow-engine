@@ -323,6 +323,78 @@
                                             </label>
                                         </div>
                                         <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgaenge: <strong>Genehmigt</strong> / <strong>Abgelehnt</strong> <span x-show="selectedNode.data.allow_forward">/ <strong>Weitergeleitet</strong></span></p>
+
+                                        {{-- Zusatzfelder beim Genehmigen --}}
+                                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                            <div class="flex items-baseline justify-between mb-2">
+                                                <div>
+                                                    <h4 class="text-xs font-semibold text-slate-700">Zusatzfelder beim Entscheiden</h4>
+                                                    <p class="text-[11px] text-slate-500">
+                                                        Werden im Aufgaben-Formular angezeigt. Werte landen als Indexfelder
+                                                        am beigefuegten Dokument — z. B. „Bemerkung", „Pruefnummer".
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <template x-if="!selectedNode.data.extra_fields">
+                                                <span x-init="selectedNode.data.extra_fields = []"></span>
+                                            </template>
+                                            <div class="space-y-2">
+                                                <template x-for="(f, fi) in selectedNode.data.extra_fields" :key="fi">
+                                                    <div class="rounded-md border border-slate-200 bg-white p-2 space-y-1.5">
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <span class="text-[11px] uppercase tracking-wider text-slate-400">Feld <span x-text="fi+1"></span></span>
+                                                            <button type="button" @click="selectedNode.data.extra_fields.splice(fi,1)" class="text-xs text-rose-600 hover:text-rose-500">entfernen</button>
+                                                        </div>
+                                                        <div class="grid grid-cols-3 gap-1.5">
+                                                            <input type="text" x-model="f.label" placeholder="Bezeichnung"
+                                                                class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            <input type="text" x-model="f.key"
+                                                                @input="f.key = f.key.toString().toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'')"
+                                                                placeholder="key (a-z, _)"
+                                                                class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                            <select x-model="f.type" class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                                <option value="text">Text</option>
+                                                                <option value="textarea">Textarea</option>
+                                                                <option value="number">Zahl</option>
+                                                                <option value="date">Datum</option>
+                                                                <option value="select">Auswahl</option>
+                                                                <option value="checkbox">Ja/Nein</option>
+                                                            </select>
+                                                        </div>
+                                                        <template x-if="f.type === 'select'">
+                                                            <textarea x-model="f.options_raw"
+                                                                @input="f.options = (f.options_raw||'').split('\n').map(s => s.trim()).filter(Boolean)"
+                                                                rows="2" placeholder="Optionen je Zeile"
+                                                                class="block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                                        </template>
+                                                        <div class="flex items-center justify-between gap-2 text-[11px]">
+                                                            <label class="inline-flex items-center gap-1.5 text-slate-700">
+                                                                <input type="checkbox" x-model="f.required" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                                Pflichtfeld
+                                                            </label>
+                                                            <label class="inline-flex items-center gap-1.5 text-slate-700">
+                                                                Speichern in
+                                                                <select x-model="f.target" class="rounded border-slate-300 text-[11px] shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                                    <option value="doc">Dokument-Indexfeld</option>
+                                                                    <option value="instance">Workflow-Daten</option>
+                                                                </select>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <button type="button"
+                                                    @click="selectedNode.data.extra_fields.push({
+                                                        key: 'feld_' + ((selectedNode.data.extra_fields?.length || 0) + 1),
+                                                        label: '',
+                                                        type: 'text',
+                                                        required: false,
+                                                        target: 'doc',
+                                                        options: [],
+                                                        options_raw: '',
+                                                    })"
+                                                    class="w-full rounded-md border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Zusatzfeld</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </template>
 

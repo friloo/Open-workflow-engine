@@ -32,6 +32,15 @@ const NODE_TEMPLATES = {
             escalation_type: 'none',
             escalation_role_id: null,
             allow_forward: false,
+            // Pro Approval konfigurierbare Zusatzfelder, die der Genehmiger
+            // beim Entscheiden ausfuellen muss/kann. Jedes Feld:
+            //   key:      maschinen-lesbar (a-z0-9_)
+            //   label:    Anzeige
+            //   type:     text|number|date|select|checkbox|textarea
+            //   options:  fuer select (Array)
+            //   required: bool
+            //   target:   'doc' (Indexfelder am Doku) | 'instance' (Workflow-Daten)
+            extra_fields: [],
         }),
         outputClasses: (data) => data.allow_forward
             ? ['genehmigt', 'abgelehnt', 'weitergeleitet']

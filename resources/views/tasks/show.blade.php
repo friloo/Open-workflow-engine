@@ -183,6 +183,71 @@
                         @error('comment')<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror
                     </div>
 
+                    {{-- Vom Designer konfigurierte Zusatzfelder. Werden bei Approve/Reject
+                         abgefragt, gehen ans Doku als indexed_fields oder an die Instanz. --}}
+                    @php($extraFields = collect(data_get($node, 'data.extra_fields', []))->filter(fn ($f) => ! empty($f['key']))->values())
+                    @if($extraFields->isNotEmpty())
+                        <div class="rounded-lg border border-slate-200 bg-slate-50/60 p-3 space-y-3" x-show="decision === 'approved' || decision === 'rejected'" x-transition>
+                            <div class="text-xs font-semibold text-slate-700">Zusaetzliche Angaben</div>
+                            @foreach($extraFields as $f)
+                                @php($name = 'extra['.$f['key'].']')
+                                @php($id = 'extra_'.$f['key'])
+                                @php($req = ! empty($f['required']))
+                                @php($old = old('extra.'.$f['key']))
+                                <div>
+                                    <label for="{{ $id }}" class="block text-xs font-medium text-slate-700 mb-1">
+                                        {{ $f['label'] ?? $f['key'] }}
+                                        @if($req)<span class="text-rose-600">*</span>@endif
+                                        <code class="ms-1 text-[10px] text-slate-400">{{ $f['key'] }}</code>
+                                    </label>
+                                    @switch($f['type'] ?? 'text')
+                                        @case('textarea')
+                                            <textarea id="{{ $id }}" name="{{ $name }}" rows="3"
+                                                @if($req) required @endif
+                                                class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ $old }}</textarea>
+                                            @break
+                                        @case('number')
+                                            <input id="{{ $id }}" name="{{ $name }}" type="number" step="any" value="{{ $old }}"
+                                                @if($req) required @endif
+                                                class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            @break
+                                        @case('date')
+                                            <input id="{{ $id }}" name="{{ $name }}" type="date" value="{{ $old }}"
+                                                @if($req) required @endif
+                                                class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            @break
+                                        @case('select')
+                                            <select id="{{ $id }}" name="{{ $name }}"
+                                                @if($req) required @endif
+                                                class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="">— bitte waehlen —</option>
+                                                @foreach((array) ($f['options'] ?? []) as $opt)
+                                                    <option value="{{ $opt }}" @selected($old === $opt)>{{ $opt }}</option>
+                                                @endforeach
+                                            </select>
+                                            @break
+                                        @case('checkbox')
+                                            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                                <input type="hidden" name="{{ $name }}" value="0">
+                                                <input id="{{ $id }}" name="{{ $name }}" type="checkbox" value="1" @checked($old)
+                                                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                ja
+                                            </label>
+                                            @break
+                                        @default
+                                            <input id="{{ $id }}" name="{{ $name }}" type="text" value="{{ $old }}"
+                                                @if($req) required @endif
+                                                class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    @endswitch
+                                    @php($extraErrKey = 'extra.'.$f['key'])
+                                    @if($errors->has($extraErrKey))
+                                        <p class="mt-1 text-xs text-rose-600">{{ $errors->first($extraErrKey) }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
                     <div class="flex justify-end gap-3">
                         <a href="{{ route('tasks.index') }}"><x-secondary-button type="button">Spaeter</x-secondary-button></a>
                         <x-primary-button x-bind:disabled="!decision">Senden</x-primary-button>
