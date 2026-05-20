@@ -138,6 +138,10 @@ class DocumentController extends Controller
             // Preview-Header. Permission-Check passiert serverseitig.
             'availableWorkflows' => \App\Models\Workflow::where('status', \App\Models\Workflow::STATUS_ACTIVE)
                 ->orderBy('name')->get(['id', 'name']),
+            // Gespeicherte Suchen des aktuellen Users
+            'savedSearches' => \App\Models\SavedSearch::where('user_id', $request->user()->id)
+                ->where('scope', 'documents')
+                ->orderBy('sort_order')->get(['id', 'name', 'params']),
         ]);
     }
 

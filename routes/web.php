@@ -83,6 +83,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/support', [\App\Http\Controllers\SupportController::class, 'show'])->name('support.show');
     Route::post('/support', [\App\Http\Controllers\SupportController::class, 'send'])->name('support.send');
 
+    // Saved Searches (Filter-Presets) — user-spezifisch
+    Route::post('/saved-searches', [\App\Http\Controllers\SavedSearchController::class, 'store'])->name('saved_searches.store');
+    Route::delete('/saved-searches/{savedSearch}', [\App\Http\Controllers\SavedSearchController::class, 'destroy'])->name('saved_searches.destroy');
+
     // In-App-Notifications
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/dropdown', [\App\Http\Controllers\NotificationController::class, 'dropdown'])->name('notifications.dropdown');

@@ -44,6 +44,50 @@
         </div>
     </div>
 
+    {{-- Saved-Searches: Chip-Strip mit gespeicherten Filter-Kombinationen + 'speichern'-Action --}}
+    @php $hasAnyFilter = $q !== '' || $type || $status || ! empty($fieldFilters); @endphp
+    @if($savedSearches->isNotEmpty() || $hasAnyFilter)
+        <div class="flex flex-wrap items-center gap-2">
+            @foreach($savedSearches as $s)
+                @php $url = route('documents.index', ($s->params ?? []) + ['saved' => $s->id]); @endphp
+                <div class="inline-flex items-center gap-0 rounded-full border border-slate-200 bg-white text-xs overflow-hidden">
+                    <a href="{{ $url }}"
+                        class="pl-3 pr-2 py-1 hover:bg-slate-50 {{ (int) request('saved') === $s->id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700' }}">
+                        {{ $s->name }}
+                    </a>
+                    <form method="POST" action="{{ route('saved_searches.destroy', $s) }}" onsubmit="return confirm('Suche „{{ $s->name }}" loeschen?')" class="border-l border-slate-200">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-2 py-1 text-slate-400 hover:text-rose-600" title="Loeschen">×</button>
+                    </form>
+                </div>
+            @endforeach
+
+            @if($hasAnyFilter)
+                <form method="POST" action="{{ route('saved_searches.store') }}" class="inline-flex items-center gap-1"
+                      onsubmit="this.querySelector('[name=name]').value || (this.querySelector('[name=name]').focus(), event.preventDefault())">
+                    @csrf
+                    <input type="hidden" name="scope" value="documents">
+                    @if($q !== '')<input type="hidden" name="params[q]" value="{{ $q }}">@endif
+                    @if($type)<input type="hidden" name="params[type]" value="{{ $type }}">@endif
+                    @if($status)<input type="hidden" name="params[status]" value="{{ $status }}">@endif
+                    @foreach($fieldFilters as $key => $val)
+                        @if(is_array($val))
+                            @if(! empty($val['from']))<input type="hidden" name="params[fields][{{ $key }}][from]" value="{{ $val['from'] }}">@endif
+                            @if(! empty($val['to']))<input type="hidden" name="params[fields][{{ $key }}][to]" value="{{ $val['to'] }}">@endif
+                        @else
+                            <input type="hidden" name="params[fields][{{ $key }}]" value="{{ $val }}">
+                        @endif
+                    @endforeach
+                    <input type="text" name="name" placeholder="aktuelle Filter unter Namen speichern …"
+                        class="w-64 rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-xs focus:border-indigo-500 focus:ring-indigo-500"
+                        maxlength="128">
+                    <button type="submit" class="text-xs text-indigo-600 hover:text-indigo-500">speichern</button>
+                </form>
+            @endif
+        </div>
+    @endif
+
     <form method="GET" class="space-y-3">
         @if($type)
             <input type="hidden" name="type" value="{{ $type }}">
