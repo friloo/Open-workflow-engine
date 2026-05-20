@@ -3,8 +3,8 @@
     <x-slot name="subheader">{{ $contract->party ?: 'Vertrag' }} · {{ $contract->category ?: '—' }}</x-slot>
 
     <x-breadcrumbs :items="[
-        ['label' => 'Vertraege', 'url' => route('contracts.index')],
-        ['label' => $contract->name],
+        ['title' => 'Vertraege', 'url' => route('contracts.index')],
+        ['title' => $contract->name],
     ]" />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

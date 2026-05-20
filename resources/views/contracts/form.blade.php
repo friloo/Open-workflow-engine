@@ -3,8 +3,8 @@
     <x-slot name="subheader">{{ $contract->name ?? 'Stammdaten + Laufzeit + Kuendigungsfrist' }}</x-slot>
 
     <x-breadcrumbs :items="[
-        ['label' => 'Vertraege', 'url' => route('contracts.index')],
-        ['label' => $contract->exists ? $contract->name : 'Neu'],
+        ['title' => 'Vertraege', 'url' => route('contracts.index')],
+        ['title' => $contract->exists ? $contract->name : 'Neu'],
     ]" />
 
     <x-card>
