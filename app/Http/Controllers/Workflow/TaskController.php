@@ -30,24 +30,36 @@ class TaskController extends Controller
                 }
             });
 
+        // Snoozed (Wiedervorlage) standardmaessig ausblenden — User hat sich
+        // bewusst entschieden, das erst spaeter zu bearbeiten.
+        $hideSnoozed = fn ($q) => $q->where(function ($q2) {
+            $q2->whereNull('snoozed_until')->orWhere('snoozed_until', '<=', now());
+        });
+
         // Counts pro Filter-Chip — eine Roundtrip-Query reicht nicht, aber
         // pro Chip eine count()-Query ist okay (kleine Datenmengen pro User).
         $now = now();
         $counts = [
-            'all' => $baseScope(WorkflowStepExecution::query())->count(),
-            'overdue' => $baseScope(WorkflowStepExecution::query())
+            'all' => $hideSnoozed($baseScope(WorkflowStepExecution::query()))->count(),
+            'overdue' => $hideSnoozed($baseScope(WorkflowStepExecution::query()))
                 ->whereNotNull('due_at')->where('due_at', '<', $now)->count(),
-            'today' => $baseScope(WorkflowStepExecution::query())
+            'today' => $hideSnoozed($baseScope(WorkflowStepExecution::query()))
                 ->whereNotNull('due_at')->whereBetween('due_at', [$now->copy()->startOfDay(), $now->copy()->endOfDay()])->count(),
-            'week' => $baseScope(WorkflowStepExecution::query())
+            'week' => $hideSnoozed($baseScope(WorkflowStepExecution::query()))
                 ->whereNotNull('due_at')->whereBetween('due_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])->count(),
-            'mine' => $baseScope(WorkflowStepExecution::query())
+            'mine' => $hideSnoozed($baseScope(WorkflowStepExecution::query()))
                 ->where('assigned_to_user_id', $user->id)->whereNull('assigned_to_role_id')->count(),
+            'snoozed' => $baseScope(WorkflowStepExecution::query())
+                ->whereNotNull('snoozed_until')->where('snoozed_until', '>', $now)->count(),
         ];
 
         $query = WorkflowStepExecution::query()
             ->with(['instance.workflow', 'instance.starter', 'assignedRole']);
         $baseScope($query);
+
+        // Snoozed-Filter zeigt absichtlich die zurueckgestellten Aufgaben;
+        // sonst werden sie ausgeblendet.
+        if ($filter !== 'snoozed') $hideSnoozed($query);
 
         switch ($filter) {
             case 'overdue':
@@ -61,6 +73,9 @@ class TaskController extends Controller
                 break;
             case 'mine':
                 $query->where('assigned_to_user_id', $user->id)->whereNull('assigned_to_role_id');
+                break;
+            case 'snoozed':
+                $query->whereNotNull('snoozed_until')->where('snoozed_until', '>', $now);
                 break;
         }
 
@@ -291,6 +306,42 @@ class TaskController extends Controller
             $instance->data = $payload;
             $instance->save();
         }
+    }
+
+    /**
+     * Snooze (Wiedervorlage): User legt fest, ab wann er die Aufgabe wieder
+     * sehen will. Bis dahin ist sie aus seiner Liste — taucht aber nicht
+     * verloren, nur ausgeblendet. Bei 'cancel' wird der Snooze entfernt.
+     */
+    public function snooze(Request $request, WorkflowStepExecution $step): RedirectResponse
+    {
+        $this->authorizeStep($step, $request->user());
+
+        $data = $request->validate([
+            'when' => ['required', 'in:1h,4h,tomorrow,3d,1w,custom,cancel'],
+            'custom_at' => ['nullable', 'date', 'after:now'],
+        ]);
+
+        if ($data['when'] === 'cancel') {
+            $step->update(['snoozed_until' => null]);
+            return back()->with('status', 'Wiedervorlage entfernt.');
+        }
+
+        $target = match ($data['when']) {
+            '1h' => now()->addHour(),
+            '4h' => now()->addHours(4),
+            'tomorrow' => now()->addDay()->startOfDay()->addHours(8),
+            '3d' => now()->addDays(3),
+            '1w' => now()->addWeek(),
+            'custom' => $data['custom_at'] ? \Carbon\Carbon::parse($data['custom_at']) : null,
+        };
+        if (! $target) {
+            return back()->withErrors(['custom_at' => 'Bitte ein gueltiges Datum angeben.']);
+        }
+
+        $step->update(['snoozed_until' => $target]);
+        return redirect()->route('tasks.index')
+            ->with('status', 'Wiedervorlage gesetzt: '.$target->format('d.m.Y H:i'));
     }
 
     private function authorizeStep(WorkflowStepExecution $step, User $user): void

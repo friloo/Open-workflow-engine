@@ -72,6 +72,49 @@ class SmokeTest extends TestCase
         $this->assertStringContainsString('Klick ein Dokument links an', $body, 'Preview-Placeholder fehlt');
     }
 
+    public function test_snooze_versteckt_aufgabe_aus_inbox(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $user = User::factory()->create();
+        $user->assignRole('employee');
+
+        $workflow = \App\Models\Workflow::create(['name' => 'TS', 'slug' => 'ts', 'status' => 'active', 'created_by' => $user->id]);
+        $version = \App\Models\WorkflowVersion::create(['workflow_id' => $workflow->id, 'version_number' => 1, 'definition' => ['drawflow' => ['Home' => ['data' => []]]]]);
+        $instance = \App\Models\WorkflowInstance::create([
+            'workflow_id' => $workflow->id, 'workflow_version_id' => $version->id,
+            'data' => [], 'status' => 'running', 'started_at' => now(), 'started_by' => $user->id,
+        ]);
+        $step = \App\Models\WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id, 'step_key' => 'n1',
+            'step_type' => 'approval', 'assigned_to_user_id' => $user->id,
+        ]);
+
+        // Vorher: in Inbox sichtbar
+        $r = $this->actingAs($user)->get(route('tasks.index'));
+        $r->assertOk()->assertSeeText($workflow->name);
+
+        // Snoozen auf in 3 Tagen
+        $this->actingAs($user)->post(route('tasks.snooze', $step), ['when' => '3d'])
+            ->assertRedirect();
+        $step->refresh();
+        $this->assertNotNull($step->snoozed_until);
+        $this->assertTrue($step->snoozed_until->isFuture());
+
+        // Inbox: nicht mehr im 'all'-Filter
+        $r = $this->actingAs($user)->get(route('tasks.index'));
+        $r->assertOk()->assertDontSeeText($workflow->name);
+
+        // Filter 'snoozed': wieder sichtbar
+        $r = $this->actingAs($user)->get(route('tasks.index', ['filter' => 'snoozed']));
+        $r->assertOk()->assertSeeText($workflow->name);
+
+        // Cancel: weg
+        $this->actingAs($user)->post(route('tasks.snooze', $step), ['when' => 'cancel'])
+            ->assertRedirect();
+        $step->refresh();
+        $this->assertNull($step->snoozed_until);
+    }
+
     public function test_task_show_zeigt_pdf_preview_iframe(): void
     {
         $this->seed(RolesAndPermissionsSeeder::class);

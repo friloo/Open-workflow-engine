@@ -254,8 +254,53 @@
                         </div>
                     @endif
 
-                    <div class="flex justify-end gap-3">
-                        <a href="{{ route('tasks.index') }}"><x-secondary-button type="button">Spaeter</x-secondary-button></a>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        {{-- Wiedervorlage-Dropdown: User legt fest, ab wann er die
+                             Aufgabe wieder sehen will. Bis dahin ist sie aus der
+                             Inbox raus, taucht aber im Filter 'Wiedervorlage' auf. --}}
+                        <div class="relative" x-data="{ snoozeOpen: false }" @click.outside="snoozeOpen = false">
+                            <button type="button" @click="snoozeOpen = !snoozeOpen"
+                                class="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                @if($step->snoozed_until && $step->snoozed_until->isFuture())
+                                    Wiedervorlage: {{ $step->snoozed_until->format('d.m. H:i') }}
+                                @else
+                                    Spaeter
+                                @endif
+                                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 12 12"><path d="M3 4.5 6 8l3-3.5"/></svg>
+                            </button>
+                            <div x-show="snoozeOpen" x-transition class="absolute right-0 z-30 mt-1 w-64 rounded-lg bg-white shadow-lg ring-1 ring-slate-200 py-1" style="display:none;">
+                                <div class="border-b border-slate-100 px-3 py-1.5 text-[11px] font-semibold uppercase text-slate-500">Wiedervorlage</div>
+                                @foreach([
+                                    '1h' => 'in 1 Stunde',
+                                    '4h' => 'in 4 Stunden',
+                                    'tomorrow' => 'morgen frueh (8 Uhr)',
+                                    '3d' => 'in 3 Tagen',
+                                    '1w' => 'in 1 Woche',
+                                ] as $key => $label)
+                                    <form method="POST" action="{{ route('tasks.snooze', $step) }}">
+                                        @csrf
+                                        <input type="hidden" name="when" value="{{ $key }}">
+                                        <button type="submit" class="block w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">{{ $label }}</button>
+                                    </form>
+                                @endforeach
+                                <form method="POST" action="{{ route('tasks.snooze', $step) }}" class="px-3 py-2 border-t border-slate-100 space-y-1">
+                                    @csrf
+                                    <input type="hidden" name="when" value="custom">
+                                    <label class="block text-[11px] text-slate-500">eigenes Datum</label>
+                                    <input type="datetime-local" name="custom_at" required
+                                        class="block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <button type="submit" class="w-full rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200">setzen</button>
+                                </form>
+                                @if($step->snoozed_until && $step->snoozed_until->isFuture())
+                                    <form method="POST" action="{{ route('tasks.snooze', $step) }}" class="border-t border-slate-100">
+                                        @csrf
+                                        <input type="hidden" name="when" value="cancel">
+                                        <button type="submit" class="block w-full text-left px-3 py-1.5 text-sm text-rose-600 hover:bg-rose-50">Wiedervorlage entfernen</button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                        <a href="{{ route('tasks.index') }}"><x-secondary-button type="button">Zurueck</x-secondary-button></a>
                         <x-primary-button x-bind:disabled="!decision">Senden</x-primary-button>
                     </div>
                 </form>

@@ -9,6 +9,7 @@
             ['key' => 'today', 'label' => 'Heute faellig', 'tone' => 'amber'],
             ['key' => 'week', 'label' => 'Diese Woche', 'tone' => 'indigo'],
             ['key' => 'mine', 'label' => 'Direkt an mich', 'tone' => 'emerald'],
+            ['key' => 'snoozed', 'label' => 'Wiedervorlage', 'tone' => 'slate'],
         ];
     @endphp
 
@@ -96,7 +97,10 @@
                                 </div>
                             </div>
                             <div class="text-right text-xs whitespace-nowrap">
-                                @if($step->due_at)
+                                @if($step->snoozed_until && $step->snoozed_until->isFuture())
+                                    <div class="text-slate-700 font-medium">Wiedervorlage</div>
+                                    <div class="text-slate-500">{{ $step->snoozed_until->format('d.m.Y H:i') }}</div>
+                                @elseif($step->due_at)
                                     <div class="{{ $overdue ? 'text-rose-600 font-semibold' : 'text-slate-700' }}">
                                         {{ $step->due_at->format('d.m.Y H:i') }}
                                     </div>

@@ -258,6 +258,7 @@ Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () 
     Route::get('/', [TaskController::class, 'index'])->name('index');
     Route::get('{step}', [TaskController::class, 'show'])->name('show');
     Route::post('{step}/decide', [TaskController::class, 'decide'])->name('decide');
+    Route::post('{step}/snooze', [TaskController::class, 'snooze'])->name('snooze');
 });
 
 // Attachments (polymorph)
