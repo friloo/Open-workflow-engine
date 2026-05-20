@@ -40,6 +40,7 @@ class HelpController extends Controller
             'http-node' => ['label' => 'HTTP-Knoten', 'any' => ['workflows.design']],
             'pdf-node' => ['label' => 'PDF-Knoten', 'any' => ['workflows.design']],
             'simulation' => ['label' => 'Workflow-Simulation', 'any' => ['workflows.design']],
+            'sub-workflows' => ['label' => 'Sub-Workflows & Loops', 'any' => ['workflows.design']],
             'ai' => ['label' => 'KI im Designer', 'any' => ['workflows.design']],
             'stats' => ['label' => 'Workflow-Statistik', 'any' => ['workflows.design', 'workflows.view']],
             'delegation' => 'Vertretungsregelung',

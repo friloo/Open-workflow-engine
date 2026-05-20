@@ -100,6 +100,10 @@ class WorkflowEngine
                 $this->audit->log('workflow.instance.completed', $instance, null, ['result' => $result],
                     "Workflow-Instanz #{$instance->id} beendet ({$result})");
                 $this->dispatchWebhook(Webhook::EVENT_INSTANCE_COMPLETED, $instance);
+                // Sub-Workflow: Parent aufwecken
+                if ($instance->parent_step_execution_id) {
+                    $this->finishChild($instance);
+                }
                 break;
 
             case 'http':
@@ -147,6 +151,16 @@ class WorkflowEngine
             case 'wait':
                 $this->createWaitStep($instance, $node);
                 // Pausiert bis due_at — workflow:check-due weckt auf.
+                return;
+
+            case 'subworkflow':
+                $this->startSubworkflow($instance, $node);
+                // Pausiert bis Child-Instance completed — wake-up via finishChild().
+                return;
+
+            case 'loop':
+                $this->startForEachLoop($instance, $node);
+                // Pausiert bis alle Child-Instances completed.
                 return;
 
             case 'set_field':
@@ -745,6 +759,226 @@ class WorkflowEngine
      * Scheduler-Command 'workflow:check-due' aufgeweckt, sobald due_at
      * erreicht ist.
      */
+    /**
+     * Startet einen Sub-Workflow synchron — der aktuelle Workflow pausiert
+     * bis die Child-Instance completed ist. Beim Abschluss feuert
+     * finishChild() den parent-Step ab und schreibt das output_mapping
+     * in die Parent-Daten.
+     */
+    private function startSubworkflow(WorkflowInstance $instance, array $node): void
+    {
+        $data = $node['data'] ?? [];
+        $targetId = (int) ($data['target_workflow_id'] ?? 0);
+        $target = Workflow::find($targetId);
+        if (! $target || $target->status !== Workflow::STATUS_ACTIVE) {
+            // Fehler — geh auf den Error-Output, falls vorhanden.
+            $this->failSubworkflow($instance, $node, 'Ziel-Workflow nicht gefunden oder inaktiv.');
+            return;
+        }
+
+        $parentStep = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id,
+            'step_key' => (string) $node['id'],
+            'step_type' => 'subworkflow',
+            'assigned_at' => now(),
+            'children_count' => 1,
+            'children_completed_count' => 0,
+        ]);
+
+        $childData = $this->mapFields((array) ($data['input_mapping'] ?? []), $this->buildContext($instance));
+        $version = $target->versions()->latest('version_number')->first();
+        if (! $version) {
+            $this->failSubworkflow($instance, $node, 'Ziel-Workflow hat keine Version.');
+            return;
+        }
+
+        $child = WorkflowInstance::create([
+            'workflow_id' => $target->id,
+            'workflow_version_id' => $version->id,
+            'started_by' => $instance->started_by,
+            'parent_step_execution_id' => $parentStep->id,
+            'status' => WorkflowInstance::STATUS_RUNNING,
+            'started_at' => now(),
+            'data' => $childData,
+        ]);
+        $this->audit->log('workflow.subworkflow.started', $child, null, [
+            'parent_instance_id' => $instance->id,
+            'parent_step_key' => $node['id'],
+        ], "Sub-Workflow #{$child->id} ({$target->name}) gestartet von Parent #{$instance->id}");
+        $this->run($child, $this->startKey($version));
+    }
+
+    /**
+     * Loop-Knoten: pro Element der Source-Liste wird eine parallele
+     * Sub-Instance angelegt. Aktueller Workflow pausiert bis alle fertig.
+     */
+    private function startForEachLoop(WorkflowInstance $instance, array $node): void
+    {
+        $data = $node['data'] ?? [];
+        $sourceField = trim((string) ($data['source_field'] ?? ''));
+        $items = data_get($this->buildContext($instance), $sourceField, []);
+        if (! is_array($items)) $items = [];
+        $items = array_values($items);
+        $maxIter = max(1, (int) ($data['max_iterations'] ?? 100));
+        if (count($items) > $maxIter) {
+            $items = array_slice($items, 0, $maxIter);
+        }
+
+        $targetId = (int) ($data['target_workflow_id'] ?? 0);
+        $target = Workflow::find($targetId);
+        $itemField = (string) ($data['item_field_name'] ?? '_item');
+        $extraMap = (array) ($data['extra_input_mapping'] ?? []);
+
+        $parentStep = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id,
+            'step_key' => (string) $node['id'],
+            'step_type' => 'loop',
+            'assigned_at' => now(),
+            'children_count' => count($items),
+            'children_completed_count' => 0,
+        ]);
+
+        // Sonderfall: leere Liste oder kein Ziel — sofort weitermachen.
+        if (empty($items) || ! $target || $target->status !== Workflow::STATUS_ACTIVE) {
+            $parentStep->update(['completed_at' => now(), 'decision' => 'skipped']);
+            $next = $this->firstTarget($node, 'output_1');
+            if ($next) $this->run($instance, $next);
+            return;
+        }
+
+        $version = $target->versions()->latest('version_number')->first();
+        $extraData = $this->mapFields($extraMap, $this->buildContext($instance));
+
+        foreach ($items as $i => $item) {
+            $childData = $extraData;
+            $childData[$itemField] = $item;
+            $childData['_loop_index'] = $i;
+            $child = WorkflowInstance::create([
+                'workflow_id' => $target->id,
+                'workflow_version_id' => $version->id,
+                'started_by' => $instance->started_by,
+                'parent_step_execution_id' => $parentStep->id,
+                'status' => WorkflowInstance::STATUS_RUNNING,
+                'started_at' => now(),
+                'data' => $childData,
+            ]);
+            $this->run($child, $this->startKey($version));
+        }
+        $this->audit->log('workflow.loop.started', null, null, [
+            'parent_instance_id' => $instance->id,
+            'iterations' => count($items),
+            'target_workflow' => $target->name,
+        ], "For-each gestartet: {$target->name} ×".count($items));
+    }
+
+    /**
+     * Wird vom finishInstance()-Pfad aufgerufen wenn eine Child-Instance
+     * abgeschlossen ist. Schreibt output_mapping in die Parent-Daten und
+     * macht — sobald alle Children fertig sind — den parent-Step zu und
+     * setzt den Workflow fort.
+     */
+    public function finishChild(WorkflowInstance $child): void
+    {
+        $parentStep = WorkflowStepExecution::find($child->parent_step_execution_id);
+        if (! $parentStep) return;
+        $parent = $parentStep->instance;
+        if (! $parent) return;
+
+        $parentNode = $parent->version->definition['drawflow']['Home']['data'][$parentStep->step_key] ?? null;
+        if (! $parentNode) return;
+
+        // Output-Mapping nur bei subworkflow (loops aggregieren waere komplex).
+        if ($parentStep->step_type === 'subworkflow') {
+            $outMap = (array) data_get($parentNode, 'data.output_mapping', []);
+            if ($outMap) {
+                $childCtx = $this->buildContext($child);
+                $parentData = $parent->data ?? [];
+                foreach ($outMap as $entry) {
+                    $parentKey = $entry['target'] ?? $entry['key'] ?? null;
+                    $childExpr = $entry['source'] ?? $entry['value'] ?? null;
+                    if ($parentKey && $childExpr) {
+                        $parentData[$parentKey] = data_get($childCtx, $childExpr);
+                    }
+                }
+                $parent->data = $parentData;
+                $parent->save();
+            }
+        }
+
+        // Children-Counter erhoehen
+        $parentStep->increment('children_completed_count');
+        $parentStep->refresh();
+
+        $allDone = ($parentStep->children_completed_count ?? 0) >= ($parentStep->children_count ?? 0);
+        if (! $allDone) return;
+
+        // Alle fertig — parent-Step abschliessen, naechster Knoten.
+        $childFailed = $child->status !== WorkflowInstance::STATUS_COMPLETED;
+        $outputKey = 'output_1';
+        if ($parentStep->step_type === 'subworkflow' && $childFailed
+            && empty(data_get($parentNode, 'data.continue_on_failure', false))) {
+            $outputKey = 'output_2';
+        }
+
+        $parentStep->update([
+            'completed_at' => now(),
+            'decision' => $childFailed ? 'sub_failed' : 'sub_ok',
+        ]);
+        $next = $this->firstTarget($parentNode, $outputKey);
+        if ($next) {
+            $this->run($parent, $next);
+        } else {
+            $parent->update(['status' => WorkflowInstance::STATUS_COMPLETED, 'completed_at' => now()]);
+        }
+    }
+
+    private function failSubworkflow(WorkflowInstance $instance, array $node, string $reason): void
+    {
+        $step = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id,
+            'step_key' => (string) $node['id'],
+            'step_type' => 'subworkflow',
+            'assigned_at' => now(),
+            'completed_at' => now(),
+            'decision' => 'sub_failed',
+            'comment' => $reason,
+        ]);
+        $next = $this->firstTarget($node, 'output_2');
+        if ($next) $this->run($instance, $next);
+    }
+
+    /**
+     * Workert ein input_mapping-Array zu einem flachen Hash auf, der als
+     * data() der Child-Instance verwendet werden kann. Jeder Eintrag hat
+     * 'target' (Child-Schluessel) und 'source' (Pfad oder Literal).
+     */
+    private function mapFields(array $mapping, array $ctx): array
+    {
+        $out = [];
+        foreach ($mapping as $entry) {
+            $key = $entry['target'] ?? $entry['key'] ?? null;
+            $src = $entry['source'] ?? $entry['value'] ?? null;
+            if (! $key) continue;
+            // Wenn source-String mit "$." anfaengt: Pfad. Sonst Literal.
+            if (is_string($src) && str_starts_with($src, '$.')) {
+                $out[$key] = data_get($ctx, substr($src, 2));
+            } else {
+                $out[$key] = $src;
+            }
+        }
+        return $out;
+    }
+
+    private function startKey($version): ?string
+    {
+        $nodes = (array) data_get($version->definition, 'drawflow.Home.data', []);
+        foreach ($nodes as $key => $node) {
+            if (($node['class'] ?? null) === 'start') return (string) $key;
+        }
+        // Fallback: erster Knoten
+        return array_key_first($nodes);
+    }
+
     private function createWaitStep(WorkflowInstance $instance, array $node): void
     {
         $d = $node['data'] ?? [];

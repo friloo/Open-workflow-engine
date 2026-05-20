@@ -43,6 +43,13 @@ class WorkflowDesignerController extends Controller
                         'has_responsible' => (bool) collect($l->columns)->firstWhere('role', 'responsible'),
                         'has_escalation' => (bool) collect($l->columns)->firstWhere('role', 'escalation'),
                     ])->all(),
+                // Workflows-Liste fuer die Sub-Workflow- und Loop-Knoten.
+                // Den aktuellen Workflow filtern wir aus — sonst koennte
+                // jemand sich selbst aufrufen (Endlos-Rekursion).
+                'workflows' => \App\Models\Workflow::where('id', '!=', $workflow->id)
+                    ->where('status', \App\Models\Workflow::STATUS_ACTIVE)
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'trigger_type'])->all(),
             ],
             'urls' => [
                 'save' => route('workflows.designer.save', $workflow),

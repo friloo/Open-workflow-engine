@@ -149,6 +149,46 @@ const NODE_TEMPLATES = {
         }),
         outputClasses: () => ['weiter'],
     },
+    subworkflow: {
+        label: 'Sub-Workflow',
+        shortLabel: '⊂',
+        color: '#7c3aed',
+        category: 'Logik & Timing',
+        help: 'Startet einen anderen Workflow synchron — der aktuelle pausiert bis der Sub-Workflow fertig ist. Eingabe-/Ausgabe-Felder werden gemappt.',
+        inputs: 1,
+        outputs: 2,
+        defaults: () => ({
+            label: 'Sub-Workflow',
+            target_workflow_id: null,
+            // input_mapping: { 'child_field_key' => 'parent_field_key_or_expression' }
+            input_mapping: [],
+            // output_mapping: { 'parent_field' => 'child_field' }
+            output_mapping: [],
+            // Wenn der Sub-Workflow failed/cancelled: nimm output_2 (fehler) statt output_1 (ok).
+            continue_on_failure: false,
+        }),
+        outputClasses: () => ['ok', 'fehler'],
+    },
+    loop: {
+        label: 'For-each',
+        shortLabel: '⟳',
+        color: '#0d9488',
+        category: 'Logik & Timing',
+        help: 'Iteriert ueber ein Feld vom Typ Liste/Array. Pro Element wird ein Sub-Workflow gestartet; alle parallel. Der naechste Knoten startet erst wenn alle Iterationen fertig sind.',
+        inputs: 1,
+        outputs: 1,
+        defaults: () => ({
+            label: 'For-each',
+            source_field: 'items', // Pfad in instance.data oder doc.indexed_fields.*
+            target_workflow_id: null,
+            // Pro Iteration: jedes Element wird als '_item' an die Child-Instance gegeben;
+            // zusaetzliche Felder konfigurierbar.
+            item_field_name: '_item',
+            extra_input_mapping: [],
+            max_iterations: 100,
+        }),
+        outputClasses: () => ['weiter'],
+    },
     end: {
         label: 'Ende',
         shortLabel: 'E',

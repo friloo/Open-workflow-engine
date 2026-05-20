@@ -13,6 +13,7 @@ class WorkflowStepExecution extends Model
         'assigned_at', 'last_reminded_at', 'due_at', 'snoozed_until',
         'completed_at', 'completed_by',
         'decision', 'comment', 'data_snapshot', 'escalated_from_step_id',
+        'children_count', 'children_completed_count',
     ];
 
     protected $casts = [

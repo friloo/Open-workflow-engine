@@ -15,7 +15,7 @@ class WorkflowInstance extends Model
 
     protected $fillable = [
         'workflow_id', 'workflow_version_id', 'started_by',
-        'status', 'current_step_key', 'data',
+        'status', 'current_step_key', 'parent_step_execution_id', 'data',
         'started_at', 'completed_at',
     ];
 

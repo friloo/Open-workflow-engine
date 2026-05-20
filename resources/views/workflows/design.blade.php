@@ -774,6 +774,92 @@
                                     </div>
                                 </template>
 
+                                {{-- Sub-Workflow --}}
+                                <template x-if="selectedNode.type==='subworkflow'">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Ziel-Workflow</label>
+                                            <select x-model.number="selectedNode.data.target_workflow_id"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="">— Workflow waehlen —</option>
+                                                <template x-for="w in directory.workflows" :key="w.id">
+                                                    <option :value="w.id" x-text="w.name + ' (' + w.trigger_type + ')'"></option>
+                                                </template>
+                                            </select>
+                                            <p class="text-[11px] text-slate-500 mt-1">Der Sub-Workflow muss <em>aktiv</em> sein.</p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Eingabe-Mapping (Parent → Child)</label>
+                                            <p class="text-[11px] text-slate-500 mb-1">Schluessel = Feld in der Child-Instance. Wert = Platzhalter wie <code>$.kostenstelle</code> oder Literal.</p>
+                                            <template x-for="(m, mi) in selectedNode.data.input_mapping" :key="mi">
+                                                <div class="mb-1 flex items-center gap-1">
+                                                    <input type="text" x-model="m.target" placeholder="child_field" class="w-1/3 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <input type="text" x-model="m.source" placeholder="$.parent_feld oder Literal" class="flex-1 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <button type="button" @click="selectedNode.data.input_mapping.splice(mi,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                </div>
+                                            </template>
+                                            <button type="button" @click="selectedNode.data.input_mapping.push({target:'', source:''})" class="w-full rounded border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Mapping</button>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Ausgabe-Mapping (Child → Parent)</label>
+                                            <p class="text-[11px] text-slate-500 mb-1">Wird nach Child-Abschluss in die Parent-Daten geschrieben.</p>
+                                            <template x-for="(m, mi) in selectedNode.data.output_mapping" :key="mi">
+                                                <div class="mb-1 flex items-center gap-1">
+                                                    <input type="text" x-model="m.target" placeholder="parent_field" class="w-1/3 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <input type="text" x-model="m.source" placeholder="child_feld" class="flex-1 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <button type="button" @click="selectedNode.data.output_mapping.splice(mi,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                </div>
+                                            </template>
+                                            <button type="button" @click="selectedNode.data.output_mapping.push({target:'', source:''})" class="w-full rounded border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Mapping</button>
+                                        </div>
+
+                                        <label class="flex items-center gap-2 text-xs text-slate-700">
+                                            <input type="checkbox" x-model="selectedNode.data.continue_on_failure" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                            Bei Fehler trotzdem auf Ausgang OK weitermachen (sonst geht's auf Fehler).
+                                        </label>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgaenge: <strong>OK</strong> / <strong>Fehler</strong></p>
+                                    </div>
+                                </template>
+
+                                {{-- For-each-Loop --}}
+                                <template x-if="selectedNode.type==='loop'">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Quell-Feld (Liste)</label>
+                                            <input type="text" x-model="selectedNode.data.source_field" placeholder="z. B. items oder doc.indexed_fields.positions"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            <p class="text-[11px] text-slate-500 mt-1">Muss in der Instance auf einen Array zeigen. Pro Element wird ein Sub-Workflow gestartet.</p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Sub-Workflow pro Iteration</label>
+                                            <select x-model.number="selectedNode.data.target_workflow_id"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="">— Workflow waehlen —</option>
+                                                <template x-for="w in directory.workflows" :key="w.id">
+                                                    <option :value="w.id" x-text="w.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Element-Feldname</label>
+                                                <input type="text" x-model="selectedNode.data.item_field_name" placeholder="_item"
+                                                    class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Max. Iterationen</label>
+                                                <input type="number" x-model.number="selectedNode.data.max_iterations" min="1" max="1000"
+                                                    class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </div>
+                                        </div>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Alle Iterationen laufen <strong>parallel</strong>. Der Knoten geht erst weiter wenn alle fertig sind.</p>
+                                    </div>
+                                </template>
+
                                 <template x-if="selectedNode.type==='start'">
                                     <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Start-Knoten. Wird vom Workflow-Trigger automatisch ausgeloest.</p>
                                 </template>
