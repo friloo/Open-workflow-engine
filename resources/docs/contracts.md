@@ -62,6 +62,41 @@ Bearbeiten/Loeschen geht zusaetzlich nur mit der globalen
 `contracts.manage`-Permission UND einer der oben genannten
 Manage-Berechtigungen (`+M`).
 
+## Vertraege in Akten sortieren
+
+Ein Vertrag kann mehreren **[Akten](app:help.show?topic=cases)**
+zugeordnet werden — typische Anwendungsfaelle:
+
+- **Mietvertrag** → Akte „Immobilie Schillerstr. 12"
+- **Wartungsvertrag Heizung** → ebenfalls Akte „Immobilie Schillerstr. 12"
+- **Software-Lizenz Buchhaltung** → Akte „IT-Lizenzen 2026"
+- **Arbeitsvertrag Mueller** → Akte „Personalakte Mueller"
+
+So findest du in der Personalakte sofort alle Vertraege des
+Mitarbeiters, in der Immobilien-Akte alle Vertraege rund ums
+Objekt usw. — ohne dass der Vertrag aus dem Vertragsmanagement
+verschwindet.
+
+### Anhaengen von beiden Seiten moeglich
+
+| Wo | Wie |
+|----|-----|
+| Vom **Vertrag** aus | Detail-Seite → Karte „Akten" → Akte aus Dropdown waehlen → „Zu Akte heften" |
+| Von der **Akte** aus | Detail-Seite → Karte „Vertraege" → Vertrags-ID eintragen → „Anhaengen" |
+
+Beide Wege schreiben denselben Pivot-Eintrag. Loesen geht ebenso
+von beiden Seiten.
+
+### Rechte
+
+- **Anhaengen / loesen**: nur wer den Vertrag bearbeiten darf
+  (Admin, Owner, Manage-Rolle ueber Typ oder Vertrag)
+- **Sehen in der Akte**: jeder, der die Akte oeffnen darf;
+  die Akten-Liste der Vertraege filtert nicht zusaetzlich nach
+  Vertrags-Sichtbarkeit — wer eine Akte mit Vertraegen darin sehen
+  darf, sieht die Verlinkung. Inhalt des Vertrages (Eckdaten,
+  Anhaenge) bleibt aber durch die Vertrags-Permissions geschuetzt.
+
 ## Dokumente am Vertrag (PDFs, Anlagen)
 
 Auf der Detail-Seite eines Vertrages gibt's eine Karte

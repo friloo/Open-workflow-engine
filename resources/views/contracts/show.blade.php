@@ -75,6 +75,52 @@
                 </dl>
             </x-card>
 
+            <x-card title="Akten" description="Aktendeckel in denen dieser Vertrag enthalten ist.">
+                @if($canManage && $availableCases->isNotEmpty())
+                    <form method="POST" action="{{ route('contracts.cases.attach', $contract) }}" class="mb-3 flex flex-wrap items-end gap-2">
+                        @csrf
+                        <div class="flex-1 min-w-[220px]">
+                            <x-input-label for="document_case_id" value="Akte waehlen" />
+                            <select id="document_case_id" name="document_case_id" required
+                                    class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">— Akte auswaehlen —</option>
+                                @foreach($availableCases as $a)
+                                    <option value="{{ $a->id }}">{{ $a->name }}@if($a->reference) ({{ $a->reference }})@endif</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <x-secondary-button type="submit">Zu Akte heften</x-secondary-button>
+                    </form>
+                @elseif($canManage)
+                    <p class="text-xs text-slate-500 mb-3">Keine offenen Akten verfuegbar.
+                        <a href="{{ route('cases.create') }}" class="text-indigo-600 hover:text-indigo-500">Neue Akte anlegen</a>.</p>
+                @endif
+
+                @if($contract->cases->isEmpty())
+                    <p class="text-sm text-slate-500">Dieser Vertrag ist noch keiner Akte zugeordnet.</p>
+                @else
+                    <ul class="divide-y divide-slate-100">
+                        @foreach($contract->cases as $a)
+                            <li class="py-2 flex items-center justify-between gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('cases.show', $a) }}" class="font-medium text-slate-900 hover:text-indigo-600">{{ $a->name }}</a>
+                                    @if($a->reference)
+                                        <div class="text-xs text-slate-500"><code>{{ $a->reference }}</code></div>
+                                    @endif
+                                </div>
+                                @if($canManage)
+                                    <form method="POST" action="{{ route('contracts.cases.detach', [$contract, $a->id]) }}"
+                                          onsubmit="return confirm('Vertrag aus dieser Akte loesen?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="text-xs text-rose-600 hover:text-rose-500">Entfernen</button>
+                                    </form>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-card>
+
             <x-card title="Dokumente" description="Vertragsdatei, Anlagen, Schriftverkehr.">
                 @if($canManage)
                     <form method="POST" action="{{ route('attachments.store', ['type' => 'contract', 'id' => $contract->id]) }}"

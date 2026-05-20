@@ -93,10 +93,15 @@ class ContractController extends Controller
         if (! Contract::query()->visibleTo($user)->whereKey($contract->id)->exists()) {
             abort(403, 'Kein Zugriff auf diesen Vertrag.');
         }
-        $contract->load(['owner', 'creator', 'attachment', 'type', 'roles', 'attachments.uploader']);
+        $contract->load(['owner', 'creator', 'attachment', 'type', 'roles', 'attachments.uploader', 'cases']);
+        // Auswahl-Liste fuer "an Akte heften": nur offene Akten, ohne die bereits verknuepften
+        $availableCases = \App\Models\DocumentCase::whereNull('closed_at')
+            ->whereNotIn('id', $contract->cases->pluck('id'))
+            ->orderBy('name')->limit(200)->get(['id', 'name', 'reference']);
         return view('contracts.show', [
             'contract' => $contract,
             'canManage' => $contract->userCanManage($user),
+            'availableCases' => $availableCases,
         ]);
     }
 
@@ -173,5 +178,26 @@ class ContractController extends Controller
             $sync[(int) $row['id']] = ['can_manage' => ! empty($row['can_manage'])];
         }
         $contract->roles()->sync($sync);
+    }
+
+    /**
+     * Vom Vertrag aus eine Akte anhaengen — Gegenstueck zu
+     * DocumentCaseController::attachContract.
+     */
+    public function attachCase(Request $request, Contract $contract): RedirectResponse
+    {
+        if (! $contract->userCanManage($request->user())) abort(403);
+        $data = $request->validate(['document_case_id' => ['required', 'exists:document_cases,id']]);
+        $contract->cases()->syncWithoutDetaching([$data['document_case_id']]);
+        $this->audit->log('contract.case_attached', $contract, null, $data,
+            'Vertrag ' . $contract->name . ' an Akte geheftet', $request->user()->id);
+        return back()->with('status', 'Akte zugeordnet.');
+    }
+
+    public function detachCase(Request $request, Contract $contract, int $caseId): RedirectResponse
+    {
+        if (! $contract->userCanManage($request->user())) abort(403);
+        $contract->cases()->detach($caseId);
+        return back()->with('status', 'Akte entfernt.');
     }
 }

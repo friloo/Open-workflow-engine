@@ -306,6 +306,9 @@ Route::middleware(['auth', 'permission:contracts.view,contracts.manage'])->group
             'update' => 'permission:contracts.manage',
             'destroy' => 'permission:contracts.manage',
         ]);
+    // Akten-Verknuepfung vom Vertrag aus
+    Route::post('contracts/{contract}/cases', [\App\Http\Controllers\ContractController::class, 'attachCase'])->name('contracts.cases.attach');
+    Route::delete('contracts/{contract}/cases/{caseId}', [\App\Http\Controllers\ContractController::class, 'detachCase'])->name('contracts.cases.detach');
 });
 // Vertragsarten-Verwaltung — nur fuer Admins/Manage-Berechtigte
 Route::middleware(['auth', 'permission:contracts.manage'])->group(function () {

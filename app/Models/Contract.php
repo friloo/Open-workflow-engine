@@ -57,6 +57,20 @@ class Contract extends Model
             ->latest();
     }
 
+    /**
+     * Akten in denen dieser Vertrag liegt (Gegenrichtung zu
+     * DocumentCase::contracts).
+     */
+    public function cases(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            DocumentCase::class,
+            'case_contract',
+            'contract_id',
+            'document_case_id',
+        )->withTimestamps();
+    }
+
     public function type(): BelongsTo
     {
         return $this->belongsTo(ContractType::class, 'contract_type_id');
