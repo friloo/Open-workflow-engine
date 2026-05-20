@@ -4,6 +4,7 @@ use App\Http\Middleware\AuthenticateToken;
 use App\Http\Middleware\CheckTokenAbility;
 use App\Http\Middleware\EnsurePermission;
 use App\Http\Middleware\EnsureRole;
+use App\Http\Middleware\PerformanceAudit;
 use App\Http\Middleware\RedirectIfNotInstalled;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,7 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->web(append: [RedirectIfNotInstalled::class]);
+        $middleware->web(append: [RedirectIfNotInstalled::class, PerformanceAudit::class]);
+        $middleware->api(append: [PerformanceAudit::class]);
         $middleware->alias([
             'permission' => EnsurePermission::class,
             'role' => EnsureRole::class,

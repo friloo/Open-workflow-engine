@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Performance-Audit
+    |--------------------------------------------------------------------------
+    |
+    | Konfiguriert die PerformanceAudit-Middleware. Wenn eine Route die
+    | Threshold-Werte ueberschreitet, wandert ein Eintrag in den 'perf'-Log.
+    */
+    'perf_audit' => [
+        'threshold_ms' => (int) env('PERF_THRESHOLD_MS', 500),
+        'threshold_queries' => (int) env('PERF_THRESHOLD_QUERIES', 40),
+        'send_header' => (bool) env('APP_PERF_HEADER', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

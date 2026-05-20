@@ -65,6 +65,16 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Performance-Audit-Channel: separate Datei damit langsame Routen
+        // nicht im Hauptlog untergehen. Rotiert taeglich, behaelt 14 Tage.
+        'perf' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/perf.log'),
+            'level' => 'warning',
+            'days' => env('PERF_LOG_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
