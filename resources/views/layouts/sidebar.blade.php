@@ -53,9 +53,10 @@
         ],
         [
             'group' => 'Stammdaten',
-            'when' => $user?->hasAnyPermission(['lists.view','lists.manage','assets.view','assets.manage','documents.search']),
+            'when' => $user?->hasAnyPermission(['lists.view','lists.manage','assets.view','assets.manage','contracts.view','contracts.manage','documents.search']),
             'items' => [
                 ['name' => 'Listen', 'route' => 'lists.index', 'icon' => 'table', 'active' => request()->routeIs('lists.*'), 'when' => $user?->hasAnyPermission(['lists.view','lists.manage'])],
+                ['name' => 'Vertraege', 'route' => 'contracts.index', 'icon' => 'document', 'active' => request()->routeIs('contracts.*'), 'when' => $user?->hasAnyPermission(['contracts.view','contracts.manage'])],
                 ['name' => 'Assets', 'route' => 'assets.index', 'icon' => 'badge', 'active' => request()->routeIs('assets.*'), 'when' => $user?->hasAnyPermission(['assets.view','assets.manage'])],
                 ['name' => 'Dokumente', 'route' => 'documents.index', 'icon' => 'list', 'active' => request()->routeIs('documents.*'), 'when' => $user?->hasPermission('documents.search'), 'children' => $documentArchives, 'children_expanded' => request()->routeIs('documents.*')],
                 ['name' => 'Akten', 'route' => 'cases.index', 'icon' => 'document', 'active' => request()->routeIs('cases.*'), 'when' => $user?->hasPermission('documents.search')],

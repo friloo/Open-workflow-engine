@@ -53,6 +53,7 @@ class HelpController extends Controller
             'forms' => ['label' => 'Formulare', 'any' => ['forms.view', 'forms.manage']],
             'lists' => ['label' => 'Listen (Kostenstellen etc.)', 'any' => ['lists.view', 'lists.manage']],
             'assets' => ['label' => 'Assets (Fuehrerschein etc.)', 'any' => ['assets.view', 'assets.manage']],
+            'contracts' => ['label' => 'Vertragsmanagement', 'any' => ['contracts.view', 'contracts.manage']],
         ],
         'Dokumente' => [
             'documents' => ['label' => 'Dokumente (Versionen, OCR, Bulk)', 'any' => ['documents.search']],

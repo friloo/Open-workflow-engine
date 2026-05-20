@@ -30,6 +30,10 @@ class RolesAndPermissionsSeeder extends Seeder
             // Reports / KPIs
             ['slug' => 'reports.view', 'name' => 'Reports & KPIs ansehen', 'group' => 'Reports'],
 
+            // Vertragsmanagement
+            ['slug' => 'contracts.view', 'name' => 'Vertraege ansehen', 'group' => 'Vertraege'],
+            ['slug' => 'contracts.manage', 'name' => 'Vertraege pflegen', 'group' => 'Vertraege'],
+
             // Formulare
             ['slug' => 'forms.view', 'name' => 'Formulare ansehen', 'group' => 'Formulare'],
             ['slug' => 'forms.manage', 'name' => 'Formulare verwalten', 'group' => 'Formulare'],

@@ -282,6 +282,18 @@ Route::middleware(['auth', 'permission:reports.view'])->group(function () {
     Route::get('/reports', [\App\Http\Controllers\ReportsController::class, 'index'])->name('reports.index');
 });
 
+// Vertragsmanagement
+Route::middleware(['auth', 'permission:contracts.view,contracts.manage'])->group(function () {
+    Route::resource('contracts', \App\Http\Controllers\ContractController::class)
+        ->middleware([
+            'create' => 'permission:contracts.manage',
+            'store' => 'permission:contracts.manage',
+            'edit' => 'permission:contracts.manage',
+            'update' => 'permission:contracts.manage',
+            'destroy' => 'permission:contracts.manage',
+        ]);
+});
+
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)
 Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('index');

@@ -26,6 +26,12 @@ Schedule::command('workflow:run-schedules')
     ->withoutOverlapping()
     ->runInBackground();
 
+// Vertraege: Status-Sync + Kuendigungs-Reminder fuer Verantwortliche.
+Schedule::command('contracts:check-deadlines')
+    ->dailyAt('06:30')
+    ->withoutOverlapping()
+    ->runInBackground();
+
 // Asset-Wiedervorlage: taeglich faellige Assets in Workflows ausspielen.
 Schedule::command('asset:check-due')
     ->dailyAt('06:00')
