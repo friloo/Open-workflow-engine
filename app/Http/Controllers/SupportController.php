@@ -25,14 +25,16 @@ class SupportController extends Controller
         ]);
     }
 
-    public function send(Request $request): RedirectResponse
+    public function send(Request $request)
     {
         $cfg = Settings::group('support');
         if (empty($cfg['enabled'])) abort(404);
 
         $data = $request->validate([
             'subject' => ['required', 'string', 'max:200'],
-            'description' => ['required', 'string', 'max:5000'],
+            // Description darf jetzt laenger sein, da das Modal automatisch
+            // den aktuellen Page-Link anhaengt.
+            'description' => ['required', 'string', 'max:6000'],
         ]);
 
         $user = $request->user();
@@ -81,12 +83,20 @@ class SupportController extends Controller
         ], 'Support-Ticket aus '.$user->email, $user->id);
 
         if ($errors && ! $sentMail && ! $sentApi) {
-            return back()->withErrors(['support' => implode(' · ', $errors)])->withInput();
+            $msg = implode(' · ', $errors);
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json(['error' => $msg], 502);
+            }
+            return back()->withErrors(['support' => $msg])->withInput();
         }
 
         $status = 'Anfrage uebermittelt.';
         if ($sentMail) $status .= ' Mail an Support gesendet.';
         if ($sentApi)  $status .= ' Ticket im Ticketsystem angelegt.';
+
+        if ($request->wantsJson() || $request->expectsJson()) {
+            return response()->json(['status' => $status, 'mail' => $sentMail, 'api' => $sentApi]);
+        }
         return redirect()->route('support.show')->with('status', $status);
     }
 

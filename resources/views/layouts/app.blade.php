@@ -13,13 +13,16 @@
 </head>
 <body class="h-full font-sans antialiased bg-slate-50 text-slate-800">
 <div class="min-h-full"
-     x-data="{ sidebarOpen: false, globalSearchOpen: false, shortcutsOpen: false }"
+     x-data="{ sidebarOpen: false, globalSearchOpen: false, shortcutsOpen: false, supportOpen: false }"
      @keydown.window.ctrl.k.prevent="globalSearchOpen = true"
      @keydown.window.meta.k.prevent="globalSearchOpen = true"
      @keydown.window="if ($event.key === '?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) { shortcutsOpen = true; }">
     @auth
         @include('layouts.partials.global-search')
         @include('layouts.partials.shortcuts-help')
+        @if((bool) \App\Support\Settings::get('support.enabled', false))
+            @include('layouts.partials.support-modal')
+        @endif
     @endauth
     @include('layouts.sidebar')
 
