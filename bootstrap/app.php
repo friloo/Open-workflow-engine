@@ -27,6 +27,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'token.auth' => AuthenticateToken::class,
             'token.ability' => CheckTokenAbility::class,
         ]);
+
+        // SAML-Callback ist POST vom IdP — CSRF-Token kann der IdP nicht
+        // mitliefern. Stattdessen wird die Antwort vom IdP signiert und
+        // im SamlLoginController validiert.
+        $middleware->validateCsrfTokens(except: [
+            'auth/saml/callback',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

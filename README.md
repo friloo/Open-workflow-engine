@@ -257,6 +257,7 @@ bauen lassen:
 - 📨 **Incoming Webhooks** unter `POST /api/incoming/<token>`
 - 🌐 **HTTP-Knoten** mit Body-Templates, Response-Mapping, **KI-Assistent**
 - 🪟 **Microsoft 365** SSO + Benutzer-Sync (App-only Graph)
+- 🔐 **SSO weiter**: OpenID Connect (Keycloak/Authentik/Auth0/Okta), Google Workspace, SAML 2.0
 - 🔑 **JSON-API** unter `/api/v1` mit persoenlichen API-Tokens (Abilities!)
 - 📄 **PDF-Render-Knoten** (HTML → revisionssicheres Attachment)
 - ✅ **Genehmigung per Mail** ueber signierten Link (kein Login noetig)
@@ -754,6 +755,7 @@ Komplette Online-Hilfe in der App unter `/hilfe` (Topbar-Fragezeichen-Icon).
 - Webhooks (outgoing, mit HMAC)
 - Eingehende Webhooks (`/api/incoming/<token>`)
 - Microsoft 365 SSO + Benutzer-Sync
+- OIDC (Keycloak/Authentik/Auth0/Okta), Google Workspace, SAML 2.0
 - API-Tokens (persoenlich, Abilities, Ablauf)
 - Secrets-Vault (Tokens verschluesselt)
 
@@ -787,7 +789,7 @@ Was schon laeuft (Stand: 238 Tests gruen):
 ✅ **DMS-Kern**: OCR, Versionen, Felder-Schemas, Lookup-Anlernen, Postkorb, Tags, Akten, Sharing-Links mit Auto-Review
 ✅ **Doku-UI**: Split-View mit Pfeil-Navigation + Preview-Headern + Workflow-Quick-Start, Saved-Searches, Bulk-Operationen, Notizen + Stempel
 ✅ **Dateiformate**: PDF, Bilder, ZUGFeRD/XRechnung — plus Office (DOCX/XLSX/PPTX) via LibreOffice (optional)
-✅ **Integrationen**: IMAP-Eingang, Folder-Inbox, Webhooks (in + out), HTTP-Knoten, Microsoft 365 SSO, Microsoft Teams Notifications, DATEV-Export, KI-Import aus curl/OpenAPI
+✅ **Integrationen**: IMAP-Eingang, Folder-Inbox, Webhooks (in + out), HTTP-Knoten, Microsoft 365 SSO, OIDC (Keycloak/Authentik/Auth0/Okta), Google Workspace SSO, SAML 2.0, Microsoft Teams Notifications, DATEV-Export, KI-Import aus curl/OpenAPI
 ✅ **Skalierung optional**: Object-Storage (S3/MinIO/Wasabi), Queue-Worker mit OCR im Hintergrund, MeiliSearch fuer Volltext bei grossen Datenmengen — komplett ueber Admin-UI konfigurierbar
 ✅ **API**: REST mit Token-Auth fuer Tasks, Documents, Workflows, Workflow-Instances; OpenAPI/Swagger-Doku im Admin-UI
 ✅ **DSGVO**: Auskunft (Art. 15) + Anonymisierung (Art. 17) inkl. Audit-Trail
@@ -802,7 +804,7 @@ Was noch kommen koennte (Diskussion willkommen):
 🔐 PDF-Markup mit pixel-genauen Stempeln + QES-Integration
 📊 Workflow-Versions-Diff (visueller Vergleich)
 🌃 Dark Mode
-🔌 SAML / LDAP zusaetzlich zu M365-OAuth
+🔌 LDAP-Direktanbindung (heute: ueber OIDC-Bruecke moeglich)
 
 ---
 

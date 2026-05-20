@@ -20,6 +20,9 @@ class SystemSettingsController extends Controller
         // Uebersicht mit Status-Karten pro Sub-Bereich.
         $mail = Settings::group('mail');
         $m365 = Settings::group('auth.m365');
+        $oidc = Settings::group('auth.oidc');
+        $google = Settings::group('auth.google');
+        $saml = Settings::group('auth.saml');
         $ai = Settings::group('ai');
 
         return view('admin.settings.overview', [
@@ -27,6 +30,12 @@ class SystemSettingsController extends Controller
             'status' => [
                 'mail_configured' => ! empty($mail['host']) && ! empty($mail['from_address']),
                 'm365_enabled' => (bool) ($m365['enabled'] ?? false),
+                'sso_providers' => array_values(array_filter([
+                    ($m365['enabled'] ?? false) ? 'M365' : null,
+                    ($oidc['enabled'] ?? false) ? 'OIDC' : null,
+                    ($google['enabled'] ?? false) ? 'Google' : null,
+                    ($saml['enabled'] ?? false) ? 'SAML' : null,
+                ])),
                 'ai_configured' => ! empty($ai['provider']) && (! empty($ai['api_key']) || ($ai['provider'] ?? '') === 'ollama'),
                 'document_types_count' => count(\App\Support\DocumentTypes::all()),
                 'retention_rules_count' => count((array) Settings::get('attachments.retention', [])),
@@ -372,6 +381,7 @@ class SystemSettingsController extends Controller
             ['slug' => 'overview', 'route' => 'admin.settings.index', 'label' => 'Uebersicht', 'icon' => 'home'],
             ['slug' => 'mail', 'route' => 'admin.settings.mail', 'label' => 'Mail-Versand', 'icon' => 'cog', 'description' => 'SMTP fuer Benachrichtigungen.'],
             ['slug' => 'm365', 'route' => 'admin.settings.m365', 'label' => 'Microsoft 365', 'icon' => 'shield', 'description' => 'SSO + Benutzer-Sync.'],
+            ['slug' => 'sso', 'route' => 'admin.settings.sso', 'label' => 'SSO (OIDC/Google/SAML)', 'icon' => 'shield', 'description' => 'Weitere Identity-Provider.'],
             ['slug' => 'branding', 'route' => 'admin.settings.branding', 'label' => 'Branding', 'icon' => 'cog', 'description' => 'Name, Logo, Farben + Benutzerfelder.'],
             ['slug' => 'ai', 'route' => 'admin.settings.ai', 'label' => 'KI', 'icon' => 'cog', 'description' => 'OpenAI / DeepSeek / Ollama.'],
             ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente', 'icon' => 'document', 'description' => 'Archive, Retention, Rollen-Zuordnung.'],
@@ -648,6 +658,145 @@ class SystemSettingsController extends Controller
             'tenant_id' => 'common',
             'redirect_uri' => url('/auth/m365/callback'),
             'default_role' => 'employee',
+        ];
+    }
+
+    public function sso(): View
+    {
+        return view('admin.settings.sso', [
+            'oidc' => Settings::group('auth.oidc') + $this->oidcDefaults(),
+            'google' => Settings::group('auth.google') + $this->googleDefaults(),
+            'saml' => Settings::group('auth.saml') + $this->samlDefaults(),
+            'roles' => \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function updateSso(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            // OIDC
+            'oidc_enabled' => ['nullable', 'boolean'],
+            'oidc_issuer' => ['nullable', 'url', 'max:255'],
+            'oidc_client_id' => ['nullable', 'string', 'max:255'],
+            'oidc_client_secret' => ['nullable', 'string', 'max:512'],
+            'oidc_redirect' => ['nullable', 'url', 'max:255'],
+            'oidc_scopes' => ['nullable', 'string', 'max:255'],
+            'oidc_button_label' => ['nullable', 'string', 'max:64'],
+            'oidc_auto_provision' => ['nullable', 'boolean'],
+            'oidc_default_role' => ['nullable', 'string', 'max:64'],
+
+            // Google
+            'google_enabled' => ['nullable', 'boolean'],
+            'google_client_id' => ['nullable', 'string', 'max:255'],
+            'google_client_secret' => ['nullable', 'string', 'max:512'],
+            'google_redirect' => ['nullable', 'url', 'max:255'],
+            'google_hosted_domain' => ['nullable', 'string', 'max:255'],
+            'google_auto_provision' => ['nullable', 'boolean'],
+            'google_default_role' => ['nullable', 'string', 'max:64'],
+
+            // SAML
+            'saml_enabled' => ['nullable', 'boolean'],
+            'saml_idp_entity_id' => ['nullable', 'string', 'max:255'],
+            'saml_idp_sso_url' => ['nullable', 'url', 'max:255'],
+            'saml_idp_x509_cert' => ['nullable', 'string'],
+            'saml_sp_entity_id' => ['nullable', 'string', 'max:255'],
+            'saml_email_attribute' => ['nullable', 'string', 'max:128'],
+            'saml_name_attribute' => ['nullable', 'string', 'max:128'],
+            'saml_button_label' => ['nullable', 'string', 'max:64'],
+            'saml_auto_provision' => ['nullable', 'boolean'],
+            'saml_default_role' => ['nullable', 'string', 'max:64'],
+            'saml_want_assertions_signed' => ['nullable', 'boolean'],
+            'saml_want_messages_signed' => ['nullable', 'boolean'],
+        ]);
+
+        $userId = $request->user()->id;
+
+        // OIDC
+        Settings::set('auth.oidc.enabled', $request->boolean('oidc_enabled'), $userId);
+        Settings::set('auth.oidc.auto_provision', $request->boolean('oidc_auto_provision'), $userId);
+        foreach (['issuer', 'client_id', 'redirect', 'scopes', 'button_label', 'default_role'] as $k) {
+            Settings::set("auth.oidc.{$k}", $data["oidc_{$k}"] ?? null, $userId);
+        }
+        if (! empty($data['oidc_client_secret'])) {
+            Settings::set('auth.oidc.client_secret', $data['oidc_client_secret'], $userId);
+        }
+
+        // Google
+        Settings::set('auth.google.enabled', $request->boolean('google_enabled'), $userId);
+        Settings::set('auth.google.auto_provision', $request->boolean('google_auto_provision'), $userId);
+        foreach (['client_id', 'redirect', 'hosted_domain', 'default_role'] as $k) {
+            Settings::set("auth.google.{$k}", $data["google_{$k}"] ?? null, $userId);
+        }
+        if (! empty($data['google_client_secret'])) {
+            Settings::set('auth.google.client_secret', $data['google_client_secret'], $userId);
+        }
+
+        // SAML
+        Settings::set('auth.saml.enabled', $request->boolean('saml_enabled'), $userId);
+        Settings::set('auth.saml.auto_provision', $request->boolean('saml_auto_provision'), $userId);
+        Settings::set('auth.saml.want_assertions_signed', $request->boolean('saml_want_assertions_signed'), $userId);
+        Settings::set('auth.saml.want_messages_signed', $request->boolean('saml_want_messages_signed'), $userId);
+        foreach ([
+            'idp_entity_id', 'idp_sso_url', 'idp_x509_cert',
+            'sp_entity_id', 'email_attribute', 'name_attribute',
+            'button_label', 'default_role',
+        ] as $k) {
+            Settings::set("auth.saml.{$k}", $data["saml_{$k}"] ?? null, $userId);
+        }
+
+        $this->audit->log('settings.sso.updated', null, null, [
+            'oidc' => (bool) $request->boolean('oidc_enabled'),
+            'google' => (bool) $request->boolean('google_enabled'),
+            'saml' => (bool) $request->boolean('saml_enabled'),
+        ], 'SSO-Konfiguration aktualisiert', $userId);
+
+        return redirect()->route('admin.settings.sso')->with('status', 'SSO-Konfiguration gespeichert.');
+    }
+
+    private function oidcDefaults(): array
+    {
+        return [
+            'enabled' => false,
+            'auto_provision' => true,
+            'issuer' => '',
+            'client_id' => '',
+            'client_secret' => '',
+            'redirect' => url('/auth/oidc/callback'),
+            'scopes' => 'openid email profile',
+            'button_label' => 'Mit Single Sign-On anmelden',
+            'default_role' => 'employee',
+        ];
+    }
+
+    private function googleDefaults(): array
+    {
+        return [
+            'enabled' => false,
+            'auto_provision' => true,
+            'client_id' => '',
+            'client_secret' => '',
+            'redirect' => url('/auth/google/callback'),
+            'hosted_domain' => '',
+            'default_role' => 'employee',
+        ];
+    }
+
+    private function samlDefaults(): array
+    {
+        return [
+            'enabled' => false,
+            'auto_provision' => true,
+            'idp_entity_id' => '',
+            'idp_sso_url' => '',
+            'idp_x509_cert' => '',
+            'sp_entity_id' => url('/auth/saml/metadata'),
+            'email_attribute' => 'email',
+            'name_attribute' => 'displayName',
+            'button_label' => 'Mit SAML anmelden',
+            'default_role' => 'employee',
+            'want_assertions_signed' => false,
+            'want_messages_signed' => false,
         ];
     }
 }

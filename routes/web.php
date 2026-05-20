@@ -9,7 +9,10 @@ use App\Http\Controllers\Admin\UserImportController;
 use App\Http\Controllers\Admin\WebhookController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\Auth\GoogleLoginController;
 use App\Http\Controllers\Auth\MicrosoftLoginController;
+use App\Http\Controllers\Auth\OidcLoginController;
+use App\Http\Controllers\Auth\SamlLoginController;
 use App\Http\Controllers\Lists\LookupListController;
 use App\Http\Controllers\Lists\LookupListEntryController;
 use App\Http\Controllers\ProfileController;
@@ -55,6 +58,19 @@ Route::get('/formular/{slug}/danke', [FormController::class, 'thanksPublic'])->n
 Route::middleware('guest')->group(function () {
     Route::get('/auth/m365/redirect', [MicrosoftLoginController::class, 'redirect'])->name('auth.m365.redirect');
     Route::get('/auth/m365/callback', [MicrosoftLoginController::class, 'callback'])->name('auth.m365.callback');
+
+    // Generic OIDC (Keycloak/Authentik/Auth0/Okta/Zitadel/...)
+    Route::get('/auth/oidc/redirect', [OidcLoginController::class, 'redirect'])->name('auth.oidc.redirect');
+    Route::get('/auth/oidc/callback', [OidcLoginController::class, 'callback'])->name('auth.oidc.callback');
+
+    // Google Workspace SSO
+    Route::get('/auth/google/redirect', [GoogleLoginController::class, 'redirect'])->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [GoogleLoginController::class, 'callback'])->name('auth.google.callback');
+
+    // SAML 2.0 — callback ist POST vom IdP (CSRF-Ausnahme via bootstrap/app.php)
+    Route::get('/auth/saml/redirect', [SamlLoginController::class, 'redirect'])->name('auth.saml.redirect');
+    Route::post('/auth/saml/callback', [SamlLoginController::class, 'callback'])->name('auth.saml.callback');
+    Route::get('/auth/saml/metadata', [SamlLoginController::class, 'metadata'])->name('auth.saml.metadata');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -298,6 +314,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('settings', [SystemSettingsController::class, 'index'])->name('settings.index');
         Route::get('settings/mail', [SystemSettingsController::class, 'mail'])->name('settings.mail');
         Route::get('settings/m365', [SystemSettingsController::class, 'm365'])->name('settings.m365');
+        Route::get('settings/sso', [SystemSettingsController::class, 'sso'])->name('settings.sso');
+        Route::post('settings/sso', [SystemSettingsController::class, 'updateSso'])->name('settings.sso.update');
         Route::get('settings/ai', [SystemSettingsController::class, 'ai'])->name('settings.ai');
         Route::get('settings/branding', [SystemSettingsController::class, 'branding'])->name('settings.branding');
         Route::get('settings/documents', [SystemSettingsController::class, 'documents'])->name('settings.documents');

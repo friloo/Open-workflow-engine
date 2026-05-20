@@ -12,6 +12,7 @@
         "laravel/framework": "^11.31",
         "laravel/socialite": "^5.27",
         "laravel/tinker": "^2.9",
+        "onelogin/php-saml": "^4.3",
         "pragmarx/google2fa": "^9.0",
         "socialiteproviders/microsoft-azure": "^5.2",
         "webklex/laravel-imap": "^6.2"

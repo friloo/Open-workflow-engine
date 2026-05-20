@@ -11,8 +11,65 @@ class SettingsServiceProvider extends ServiceProvider
     {
         $this->applyMailConfig();
         $this->applyM365Config();
+        $this->applyOidcConfig();
+        $this->applyGoogleConfig();
+        $this->applySamlConfig();
         $this->applyBrandingConfig();
         $this->applyInfrastructureConfig();
+    }
+
+    private function applyOidcConfig(): void
+    {
+        $cfg = Settings::group('auth.oidc');
+        if ($cfg === []) return;
+
+        $current = config('services.oidc', []);
+        foreach (['issuer', 'client_id', 'client_secret', 'redirect', 'scopes', 'button_label', 'default_role'] as $k) {
+            if (array_key_exists($k, $cfg) && $cfg[$k] !== '' && $cfg[$k] !== null) {
+                $current[$k] = $cfg[$k];
+            }
+        }
+        $current['enabled'] = (bool) ($cfg['enabled'] ?? false);
+        $current['auto_provision'] = (bool) ($cfg['auto_provision'] ?? true);
+        config(['services.oidc' => $current]);
+    }
+
+    private function applyGoogleConfig(): void
+    {
+        $cfg = Settings::group('auth.google');
+        if ($cfg === []) return;
+
+        $current = config('services.google', []);
+        foreach (['client_id', 'client_secret', 'redirect', 'hosted_domain', 'default_role'] as $k) {
+            if (array_key_exists($k, $cfg) && $cfg[$k] !== '' && $cfg[$k] !== null) {
+                $current[$k] = $cfg[$k];
+            }
+        }
+        $current['enabled'] = (bool) ($cfg['enabled'] ?? false);
+        $current['auto_provision'] = (bool) ($cfg['auto_provision'] ?? true);
+        config(['services.google' => $current]);
+    }
+
+    private function applySamlConfig(): void
+    {
+        $cfg = Settings::group('auth.saml');
+        if ($cfg === []) return;
+
+        $current = config('services.saml', []);
+        foreach ([
+            'idp_entity_id', 'idp_sso_url', 'idp_x509_cert',
+            'sp_entity_id', 'email_attribute', 'name_attribute',
+            'button_label', 'default_role',
+        ] as $k) {
+            if (array_key_exists($k, $cfg) && $cfg[$k] !== '' && $cfg[$k] !== null) {
+                $current[$k] = $cfg[$k];
+            }
+        }
+        $current['enabled'] = (bool) ($cfg['enabled'] ?? false);
+        $current['auto_provision'] = (bool) ($cfg['auto_provision'] ?? true);
+        $current['want_assertions_signed'] = (bool) ($cfg['want_assertions_signed'] ?? false);
+        $current['want_messages_signed'] = (bool) ($cfg['want_messages_signed'] ?? false);
+        config(['services.saml' => $current]);
     }
 
     /**
