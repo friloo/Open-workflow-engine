@@ -62,7 +62,9 @@ class DocumentController extends Controller
         $totalDocs = array_sum($archiveCounts) + $unclassifiedCount;
 
         // Standard: nur die aktuelle Version pro Chain anzeigen.
-        $query = Attachment::with('attachable', 'uploader')
+        // tags + cases eager-laden, damit der Split-View-Preview-Header sie
+        // ohne Extra-Query pro Zeile rendern kann.
+        $query = Attachment::with('attachable', 'uploader', 'tags', 'cases')
             ->where('is_current_version', true)
             ->orderByDesc('id');
         $applyVisibility($query);
@@ -132,6 +134,10 @@ class DocumentController extends Controller
             'schema' => $schema,
             'fieldFilters' => $activeFieldFilters,
             'ocrAvailability' => $ocr->availability(),
+            // Aktive Workflows fuers 'Workflow starten'-Dropdown im
+            // Preview-Header. Permission-Check passiert serverseitig.
+            'availableWorkflows' => \App\Models\Workflow::where('status', \App\Models\Workflow::STATUS_ACTIVE)
+                ->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
