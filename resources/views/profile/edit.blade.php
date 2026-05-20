@@ -68,6 +68,66 @@
             </form>
         </x-card>
 
+        {{-- Web-Push: Browser-Notifications --}}
+        @php($pushReady = !! \App\Support\Settings::get('auth.push.vapid_public'))
+        <x-card title="Push-Benachrichtigungen" description="Werde direkt im Browser/Smartphone benachrichtigt, auch wenn OWE nicht offen ist.">
+            @if(! $pushReady)
+                <div class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    Push ist serverseitig noch nicht aktiviert. Der Administrator kann das per
+                    <code>php artisan push:generate-vapid</code> einrichten.
+                </div>
+            @else
+                <div x-data="{
+                        supported: false,
+                        subscribed: false,
+                        busy: false,
+                        msg: '',
+                        err: '',
+                        async refresh() {
+                            this.supported = window.OWEPush?.isSupported() === true;
+                            if (this.supported) this.subscribed = await window.OWEPush.isSubscribed();
+                        },
+                        async toggle() {
+                            this.busy = true; this.err = ''; this.msg = '';
+                            try {
+                                if (this.subscribed) {
+                                    await window.OWEPush.unsubscribe();
+                                    this.subscribed = false;
+                                    this.msg = 'Push deaktiviert.';
+                                } else {
+                                    await window.OWEPush.subscribe();
+                                    this.subscribed = true;
+                                    this.msg = 'Push aktiviert. Du bekommst ab jetzt Benachrichtigungen im Browser.';
+                                }
+                            } catch (e) {
+                                this.err = e.message || 'Fehler.';
+                            } finally { this.busy = false; }
+                        }
+                    }" x-init="refresh()" class="space-y-3">
+                    <div x-show="! supported" x-cloak class="text-sm text-rose-700">
+                        Dein Browser unterstuetzt keine Web-Push (z. B. iOS Safari ausserhalb des Home-Screens).
+                    </div>
+                    <div x-show="supported" x-cloak class="flex flex-wrap items-center gap-3">
+                        <button type="button" @click="toggle()" :disabled="busy"
+                            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
+                            x-text="subscribed ? 'Push deaktivieren' : 'Push aktivieren'"></button>
+                        <form method="POST" action="{{ route('push.test') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Test-Push schicken</button>
+                        </form>
+                        <span x-show="msg" x-text="msg" class="text-xs text-emerald-700"></span>
+                        <span x-show="err" x-text="err" class="text-xs text-rose-700"></span>
+                    </div>
+                    <p class="text-xs text-slate-500">
+                        Nach „Aktivieren" fragt der Browser einmal nach Erlaubnis. Solange das Geraet
+                        angemeldet ist, erhaeltst du fuer dieselben Events Push-Hinweise wie per Mail
+                        / Glocke (Aufgaben zugewiesen, Eskalationen etc.) — je nach deinen
+                        Benachrichtigungs-Einstellungen oben.
+                    </p>
+                </div>
+            @endif
+        </x-card>
+
         {{-- iCal-Feed: persoenlicher Kalender-Link --}}
         @php($icalToken = auth()->user()->ical_token)
         <x-card title="Kalender-Feed (iCal)" description="Aufgaben und Vertrags-Fristen in Outlook oder Apple Calendar abonnieren.">

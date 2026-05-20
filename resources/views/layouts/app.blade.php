@@ -4,6 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#4f46e5">
+    @auth
+        @php($vapidPublic = \App\Support\Settings::get('auth.push.vapid_public'))
+        @if($vapidPublic)
+            <meta name="vapid-public-key" content="{{ $vapidPublic }}">
+        @endif
+    @endauth
+    <link rel="manifest" href="/manifest.webmanifest">
     <title>{{ isset($title) ? $title.' · '.config('app.name') : config('app.name', 'Open Workflow Engine') }}</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
