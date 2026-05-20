@@ -41,4 +41,34 @@ class SmokeTest extends TestCase
 
         $this->actingAs($emp)->get(route('support.show'))->assertOk();
     }
+
+    public function test_documents_index_renders_with_split_layout(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        // Mindestens 1 Dokument anlegen — sonst greift der Empty-State,
+        // und der Split-Layout-Block wird gar nicht gerendert.
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $att = \App\Models\Attachment::create([
+            'disk' => 'local',
+            'path' => 'docs/test.pdf',
+            'original_name' => 'test.pdf',
+            'mime_type' => 'application/pdf',
+            'size' => 1024,
+            'content_hash' => str_repeat('a', 64),
+            'uploaded_by' => $admin->id,
+            'is_current_version' => true,
+            'version_chain_id' => \Illuminate\Support\Str::uuid(),
+            'version_number' => 1,
+        ]);
+
+        $resp = $this->actingAs($admin)->get(route('documents.index'));
+        $resp->assertOk();
+
+        $body = $resp->getContent();
+        $this->assertStringContainsString('documentsSplit(', $body, 'Alpine-Component-Aufruf fehlt');
+        $this->assertStringContainsString('Klick ein Dokument links an', $body, 'Preview-Placeholder fehlt');
+    }
 }
