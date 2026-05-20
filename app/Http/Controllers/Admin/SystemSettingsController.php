@@ -144,6 +144,150 @@ class SystemSettingsController extends Controller
         return back()->with('status', 'Test-Nachricht an Teams gesendet.');
     }
 
+    public function infrastructure(): View
+    {
+        $stored = Settings::group('infrastructure');
+        // Aktuelle Effektiv-Werte (DB-Overrides ueber env-Defaults gemerged
+        // — der Provider hat sie schon angewendet).
+        $effective = [
+            'attachments_disk' => config('filesystems.attachments_disk'),
+            's3_key' => $this->maskSecret(config('filesystems.disks.s3.key')),
+            's3_secret' => $this->maskSecret(config('filesystems.disks.s3.secret')),
+            's3_region' => config('filesystems.disks.s3.region'),
+            's3_bucket' => config('filesystems.disks.s3.bucket'),
+            's3_endpoint' => config('filesystems.disks.s3.endpoint'),
+            's3_url' => config('filesystems.disks.s3.url'),
+            's3_use_path_style' => (bool) config('filesystems.disks.s3.use_path_style_endpoint'),
+            'queue_connection' => config('queue.default'),
+            'queue_ocr' => (bool) config('app.queue_ocr'),
+            'search_driver' => config('search.driver'),
+            'meilisearch_host' => config('search.meilisearch.host'),
+            'meilisearch_key' => $this->maskSecret(config('search.meilisearch.key')),
+            'libreoffice_preview' => (bool) config('app.libreoffice_preview'),
+            'libreoffice_bin' => config('app.libreoffice_bin'),
+        ];
+
+        return view('admin.settings.infrastructure', [
+            'stored' => $stored,
+            'effective' => $effective,
+            'libreoffice_available' => \App\Services\OfficePreview::isAvailable(),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function updateInfrastructure(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'attachments_disk' => ['nullable', 'in:local,s3'],
+            's3_key' => ['nullable', 'string', 'max:128'],
+            's3_secret' => ['nullable', 'string', 'max:256'],
+            's3_region' => ['nullable', 'string', 'max:64'],
+            's3_bucket' => ['nullable', 'string', 'max:128'],
+            's3_endpoint' => ['nullable', 'url', 'max:512'],
+            's3_url' => ['nullable', 'string', 'max:512'],
+            's3_use_path_style' => ['nullable', 'in:0,1'],
+
+            'queue_connection' => ['nullable', 'in:sync,database,redis'],
+            'queue_ocr' => ['nullable', 'in:0,1'],
+
+            'search_driver' => ['nullable', 'in:database,meilisearch'],
+            'meilisearch_host' => ['nullable', 'url', 'max:512'],
+            'meilisearch_key' => ['nullable', 'string', 'max:256'],
+
+            'libreoffice_preview' => ['nullable', 'in:0,1'],
+            'libreoffice_bin' => ['nullable', 'string', 'max:512'],
+        ]);
+
+        // Geheimnisse mit '********' kennzeichnen NICHT speichern (sonst ueberschreibt
+        // der UI-Render das echte Secret wenn der User es nicht aendert).
+        foreach (['s3_secret', 's3_key', 'meilisearch_key'] as $secretKey) {
+            if (isset($data[$secretKey]) && str_starts_with((string) $data[$secretKey], '****')) {
+                unset($data[$secretKey]);
+            }
+        }
+
+        // Booleans / Checkboxen normalisieren
+        $data['queue_ocr'] = ! empty($data['queue_ocr']);
+        $data['s3_use_path_style'] = ! empty($data['s3_use_path_style']);
+        $data['libreoffice_preview'] = isset($data['libreoffice_preview']) ? (bool) $data['libreoffice_preview'] : true;
+
+        foreach ($data as $k => $v) {
+            // Empty-Strings entfernen ('use env' = nichts in DB), aber
+            // explizit gesetzte Booleans und Driver-Strings behalten.
+            if ($v === null || $v === '') {
+                // Nur entfernen wenn es ein optionaler String ist; Booleans (0/1) sollen bleiben.
+                if (! in_array($k, ['queue_ocr', 's3_use_path_style', 'libreoffice_preview'], true)) {
+                    \App\Models\Setting::where('key', "infrastructure.{$k}")->delete();
+                    continue;
+                }
+            }
+            Settings::set("infrastructure.{$k}", $v, $request->user()->id);
+        }
+
+        // Cache Config nicht hart neu laden — der Provider greift beim
+        // naechsten Request. Aber: Config-Cache MUSS geleert werden falls
+        // 'php artisan config:cache' lief.
+        try { \Illuminate\Support\Facades\Artisan::call('config:clear'); } catch (\Throwable) {}
+
+        $this->audit->log('settings.infrastructure.updated', null, null, [
+            'attachments_disk' => $data['attachments_disk'] ?? null,
+            'queue_connection' => $data['queue_connection'] ?? null,
+            'search_driver' => $data['search_driver'] ?? null,
+        ], 'Infrastruktur-Einstellungen aktualisiert', $request->user()->id);
+
+        return back()->with('status', 'Einstellungen gespeichert. Aenderungen greifen ab dem naechsten Request.');
+    }
+
+    /**
+     * Probiert die konfigurierten Verbindungen (S3 / MeiliSearch / Queue) und
+     * gibt JSON mit ok/error pro Komponente zurueck. Wird von der UI per
+     * fetch() angetriggert.
+     */
+    public function testInfrastructure(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $results = [];
+
+        // S3
+        try {
+            $disk = \Illuminate\Support\Facades\Storage::disk('s3');
+            $marker = '.owe-write-test-'.now()->timestamp;
+            $disk->put($marker, 'ok');
+            $exists = $disk->exists($marker);
+            $disk->delete($marker);
+            $results['s3'] = ['ok' => $exists, 'message' => $exists ? 'Schreiben + Lesen ok.' : 'Schreiben fehlgeschlagen.'];
+        } catch (\Throwable $e) {
+            $results['s3'] = ['ok' => false, 'message' => $e->getMessage()];
+        }
+
+        // MeiliSearch
+        $h = app(\App\Services\Search\DocumentSearch::class)->health();
+        $results['meilisearch'] = ['ok' => $h['ok'] ?? false, 'message' => $h['error'] ?? ($h['message'] ?? ($h['status'] ?? 'ok'))];
+
+        // Queue / Worker
+        $conn = config('queue.default');
+        if ($conn === 'sync') {
+            $results['queue'] = ['ok' => true, 'message' => 'sync (kein Worker noetig)'];
+        } else {
+            $pending = \Schema::hasTable('jobs') ? \DB::table('jobs')->count() : null;
+            $results['queue'] = ['ok' => true, 'message' => "Connection: {$conn}, Pending: ".($pending ?? '?')];
+        }
+
+        // LibreOffice
+        $loAvail = \App\Services\OfficePreview::isAvailable();
+        $results['libreoffice'] = ['ok' => $loAvail, 'message' => $loAvail ? 'Binary gefunden.' : 'Nicht installiert oder Pfad falsch.'];
+
+        return response()->json(['results' => $results]);
+    }
+
+    /** Maskiert Secrets fuer die Anzeige: 'sk-abcdef...' -> '****cdef'. */
+    private function maskSecret($value): string
+    {
+        if (! $value) return '';
+        $s = (string) $value;
+        if (strlen($s) <= 4) return '****';
+        return '****'.substr($s, -4);
+    }
+
     public function support(): View
     {
         return view('admin.settings.support', [
@@ -234,6 +378,7 @@ class SystemSettingsController extends Controller
             ['slug' => 'sharing', 'route' => 'admin.settings.sharing', 'label' => 'Sharing', 'icon' => 'cog', 'description' => 'Caps fuer externe Freigaben.'],
             ['slug' => 'support', 'route' => 'admin.settings.support', 'label' => 'IT-Support', 'icon' => 'cog', 'description' => 'Support-Formular fuer Benutzer (Mail oder Ticket-API).'],
             ['slug' => 'integrations', 'route' => 'admin.settings.integrations', 'label' => 'Integrationen', 'icon' => 'cog', 'description' => 'Microsoft Teams, weitere externe Connectors.'],
+            ['slug' => 'infrastructure', 'route' => 'admin.settings.infrastructure', 'label' => 'Infrastruktur', 'icon' => 'cog', 'description' => 'Storage, Queue, Such-Backend, Office-Vorschau.'],
         ];
     }
 

@@ -12,6 +12,69 @@ class SettingsServiceProvider extends ServiceProvider
         $this->applyMailConfig();
         $this->applyM365Config();
         $this->applyBrandingConfig();
+        $this->applyInfrastructureConfig();
+    }
+
+    /**
+     * Storage / Queue / Suche / Office-Vorschau aus der DB ueberschreiben.
+     * Default kommt weiter aus .env — die DB-Werte sind nur Overrides,
+     * sodass eine frische Installation ohne UI-Zugriff sofort funktioniert
+     * und das Admin-UI nur die Override-Schicht ist.
+     */
+    private function applyInfrastructureConfig(): void
+    {
+        $infra = Settings::group('infrastructure');
+        if ($infra === []) return;
+
+        // Storage-Disk fuer Attachments
+        if (! empty($infra['attachments_disk'])) {
+            config(['filesystems.attachments_disk' => $infra['attachments_disk']]);
+        }
+        // S3 / MinIO-Credentials (wenn welche gesetzt sind, ueberschreiben)
+        $s3 = config('filesystems.disks.s3', []);
+        foreach ([
+            's3_key' => 'key',
+            's3_secret' => 'secret',
+            's3_region' => 'region',
+            's3_bucket' => 'bucket',
+            's3_endpoint' => 'endpoint',
+            's3_url' => 'url',
+        ] as $key => $target) {
+            if (array_key_exists($key, $infra) && $infra[$key] !== '' && $infra[$key] !== null) {
+                $s3[$target] = $infra[$key];
+            }
+        }
+        if (! empty($infra['s3_use_path_style'])) {
+            $s3['use_path_style_endpoint'] = true;
+        }
+        config(['filesystems.disks.s3' => $s3]);
+
+        // Queue
+        if (! empty($infra['queue_connection'])) {
+            config(['queue.default' => $infra['queue_connection']]);
+        }
+        if (array_key_exists('queue_ocr', $infra)) {
+            config(['app.queue_ocr' => (bool) $infra['queue_ocr']]);
+        }
+
+        // Suche
+        if (! empty($infra['search_driver'])) {
+            config(['search.driver' => $infra['search_driver']]);
+        }
+        if (! empty($infra['meilisearch_host'])) {
+            config(['search.meilisearch.host' => $infra['meilisearch_host']]);
+        }
+        if (array_key_exists('meilisearch_key', $infra) && $infra['meilisearch_key'] !== '') {
+            config(['search.meilisearch.key' => $infra['meilisearch_key']]);
+        }
+
+        // Office-Vorschau
+        if (array_key_exists('libreoffice_preview', $infra)) {
+            config(['app.libreoffice_preview' => (bool) $infra['libreoffice_preview']]);
+        }
+        if (! empty($infra['libreoffice_bin'])) {
+            config(['app.libreoffice_bin' => $infra['libreoffice_bin']]);
+        }
     }
 
     private function applyBrandingConfig(): void

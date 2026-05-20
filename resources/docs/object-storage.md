@@ -37,7 +37,12 @@ in den Live-Server.)
 
 ## Konfiguration
 
-In der `.env`:
+Empfohlen: **[Admin → Einstellungen → Infrastruktur](app:admin.settings.infrastructure)**.
+Dort waehlst du den Disk (Lokal / S3) und traegst die Credentials ein.
+Aenderungen sind sofort aktiv, kein SSH-Zugriff noetig.
+
+Alternativ in der `.env` (gleicher Effekt, ueberschreibt aber nicht
+das UI):
 
 ```ini
 ATTACHMENTS_DISK=s3
@@ -52,9 +57,10 @@ AWS_ENDPOINT=https://s3.eu-central-1.wasabisys.com
 AWS_USE_PATH_STYLE_ENDPOINT=true
 ```
 
-Nach `php artisan config:clear` landen **alle neuen Uploads** im
-Object-Storage. Bestehende Dateien bleiben da wo sie sind — pro
-Anhang ist der Disk in der `disk`-Spalte gespeichert.
+> [!NOTE]
+> Werte aus dem UI haben Vorrang vor .env. Das UI traegt Overrides in
+> die Settings-Tabelle; die .env-Werte sind nur Defaults fuer eine
+> frische Installation ohne Admin-Zugriff.
 
 ## Bestehende Dateien migrieren
 

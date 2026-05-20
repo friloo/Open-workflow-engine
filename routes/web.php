@@ -304,6 +304,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('settings/integrations', [SystemSettingsController::class, 'integrations'])->name('settings.integrations');
         Route::post('settings/integrations', [SystemSettingsController::class, 'updateIntegrations'])->name('settings.integrations.update');
         Route::post('settings/integrations/test-teams', [SystemSettingsController::class, 'testTeams'])->name('settings.integrations.test_teams');
+        Route::get('settings/infrastructure', [SystemSettingsController::class, 'infrastructure'])->name('settings.infrastructure');
+        Route::post('settings/infrastructure', [SystemSettingsController::class, 'updateInfrastructure'])->name('settings.infrastructure.update');
+        Route::post('settings/infrastructure/test', [SystemSettingsController::class, 'testInfrastructure'])->name('settings.infrastructure.test');
         Route::post('settings/mail', [SystemSettingsController::class, 'updateMail'])->name('settings.mail.update');
         Route::post('settings/mail/test', [SystemSettingsController::class, 'sendTestMail'])->name('settings.mail.test');
         Route::post('settings/m365', [SystemSettingsController::class, 'updateM365'])->name('settings.m365.update');

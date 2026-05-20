@@ -11,6 +11,38 @@ class SmokeTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_admin_settings_infrastructure_renders(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)->get(route('admin.settings.infrastructure'))->assertOk();
+    }
+
+    public function test_admin_settings_infrastructure_save_persists_values(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)->post(route('admin.settings.infrastructure.update'), [
+            'attachments_disk' => 's3',
+            's3_region' => 'eu-central-1',
+            's3_bucket' => 'owe-test',
+            'queue_connection' => 'database',
+            'queue_ocr' => '1',
+            'search_driver' => 'meilisearch',
+            'meilisearch_host' => 'http://localhost:7700',
+            'libreoffice_preview' => '1',
+        ])->assertRedirect();
+
+        $this->assertSame('s3', \App\Support\Settings::get('infrastructure.attachments_disk'));
+        $this->assertSame('eu-central-1', \App\Support\Settings::get('infrastructure.s3_region'));
+        $this->assertTrue((bool) \App\Support\Settings::get('infrastructure.queue_ocr'));
+        $this->assertSame('meilisearch', \App\Support\Settings::get('infrastructure.search_driver'));
+    }
+
     public function test_admin_settings_support_renders(): void
     {
         $this->seed(RolesAndPermissionsSeeder::class);
