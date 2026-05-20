@@ -1,6 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">Meine Aufgaben</x-slot>
-    <x-slot name="subheader">Offene Workflow-Schritte, die auf deine Entscheidung warten.</x-slot>
+    <x-slot name="header">Mein Eingang</x-slot>
+    <x-slot name="subheader">Aufgaben, Posteingang und Wiedervorlagen an einem Ort.</x-slot>
+
+    <x-inbox-tabs :current="$filter === 'snoozed' ? 'snoozed' : 'tasks'" />
 
     @php
         $chips = [
@@ -48,6 +50,47 @@
                    class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
         </div>
     </form>
+
+    {{-- Saved Views: gespeicherte Filter-Kombinationen aus SavedSearchController --}}
+    <div class="mt-3 flex flex-wrap items-center gap-2 text-xs"
+         x-data="{ showSave: false, name: '' }">
+        @if($savedSearches->isNotEmpty())
+            <span class="text-slate-500">Gespeicherte Sichten:</span>
+            @foreach($savedSearches as $s)
+                @php
+                    $url = route('tasks.index', $s->params + ['saved' => $s->id]);
+                @endphp
+                <a href="{{ $url }}"
+                   class="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-indigo-700 border border-indigo-100 hover:bg-indigo-100">
+                    {{ $s->name }}
+                    <form method="POST" action="{{ route('saved_searches.destroy', $s) }}" class="inline"
+                          onclick="event.stopPropagation()"
+                          onsubmit="return confirm('Sicht {{ addslashes($s->name) }} loeschen?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="text-indigo-500 hover:text-rose-600">×</button>
+                    </form>
+                </a>
+            @endforeach
+        @endif
+
+        @if($filter !== 'all' || $q !== '')
+            <button type="button" @click="showSave = !showSave"
+                    class="rounded-full bg-white border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-50">
+                ★ Diese Sicht speichern
+            </button>
+            <form x-show="showSave" x-cloak method="POST" action="{{ route('saved_searches.store') }}"
+                  class="inline-flex items-center gap-2">
+                @csrf
+                <input type="hidden" name="scope" value="tasks">
+                <input type="hidden" name="params[filter]" value="{{ $filter }}">
+                <input type="hidden" name="params[q]" value="{{ $q }}">
+                <input type="text" name="name" x-model="name" required maxlength="64"
+                       placeholder='Name (z. B. „Meine Eskalationen")'
+                       class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <button type="submit" class="rounded-lg bg-indigo-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500">Speichern</button>
+            </form>
+        @endif
+    </div>
 
     <x-card>
         @if($open->isEmpty())

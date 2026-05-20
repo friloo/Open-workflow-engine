@@ -8,18 +8,27 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /**
- * Speichert benutzerspezifische Filter-Kombinationen ('Saved Searches'),
- * aktuell nur fuer die Dokumenten-Liste (scope='documents'). Die Liste
- * der gespeicherten Suchen pro User taucht in der Doku-Liste als Chips
- * auf — Klick wendet die Filter wieder an.
+ * Speichert benutzerspezifische Filter-Kombinationen ('Saved Searches')
+ * pro Scope:
+ *  - scope=documents   : params q, type, status, fields (siehe Doku-Liste)
+ *  - scope=tasks       : params q, filter (siehe Aufgaben-Liste)
+ *
+ * Die Liste der gespeicherten Suchen pro User taucht in der jeweiligen
+ * Liste als Chips auf — Klick wendet die Filter wieder an.
  */
 class SavedSearchController extends Controller
 {
+    /** @var array<string, string[]> */
+    private const ALLOWED_PARAMS = [
+        'documents' => ['q', 'type', 'status', 'fields'],
+        'tasks' => ['q', 'filter'],
+    ];
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:128'],
-            'scope' => ['required', 'in:documents'],
+            'scope' => ['required', 'in:documents,tasks'],
             'params' => ['required', 'array'],
         ]);
 
@@ -34,7 +43,7 @@ class SavedSearchController extends Controller
             'user_id' => $request->user()->id,
             'scope' => $data['scope'],
             'name' => $data['name'],
-            'params' => $this->cleanParams($data['params']),
+            'params' => $this->cleanParams($data['scope'], $data['params']),
             'sort_order' => $existing,
         ]);
 
@@ -50,14 +59,14 @@ class SavedSearchController extends Controller
     }
 
     /**
-     * Filtert alles weg, was nicht zum Standard-Filter-Set gehoert —
+     * Filtert alles weg, was nicht zum Standard-Filter-Set des Scopes gehoert —
      * verhindert dass jemand zufaellig sensible Daten in params parkt.
      */
-    private function cleanParams(array $params): array
+    private function cleanParams(string $scope, array $params): array
     {
-        $allowed = ['q', 'type', 'status', 'fields'];
+        $allowed = self::ALLOWED_PARAMS[$scope] ?? [];
         $out = array_intersect_key($params, array_flip($allowed));
-        // 'fields' darf nur skalare oder from/to-Paare enthalten.
+        // 'fields' (nur documents) darf nur skalare oder from/to-Paare enthalten.
         if (isset($out['fields']) && is_array($out['fields'])) {
             $clean = [];
             foreach ($out['fields'] as $key => $val) {

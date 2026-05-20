@@ -274,6 +274,9 @@ Route::middleware(['auth'])->prefix('freigaben')->name('shares.')->group(functio
     Route::post('{share}/revoke', [\App\Http\Controllers\ShareLinkController::class, 'revoke'])->name('revoke');
 });
 
+// Unified Inbox-Entry — leitet auf die Aufgaben-Hauptansicht weiter
+Route::middleware(['auth'])->get('/inbox', fn () => redirect()->route('tasks.index'))->name('inbox');
+
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)
 Route::middleware(['auth'])->prefix('tasks')->name('tasks.')->group(function () {
     Route::get('/', [TaskController::class, 'index'])->name('index');

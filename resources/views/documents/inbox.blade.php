@@ -1,6 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">Postkorb</x-slot>
-    <x-slot name="subheader">Dokumente ohne Workflow-Zuordnung — z. B. via E-Mail eingegangen. Erkannte Felder helfen bei der weiteren Verarbeitung.</x-slot>
+    <x-slot name="header">Mein Eingang</x-slot>
+    <x-slot name="subheader">Aufgaben, Posteingang und Wiedervorlagen an einem Ort.</x-slot>
+
+    <x-inbox-tabs current="postkorb" />
 
     <x-card>
         @if($documents->isEmpty())

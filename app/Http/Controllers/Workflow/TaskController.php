@@ -100,7 +100,13 @@ class TaskController extends Controller
             ->orderByDesc('completed_at')
             ->limit(5)->get();
 
-        return view('tasks.index', compact('open', 'myRecent', 'counts', 'filter', 'q'));
+        $savedSearches = Schema::hasTable('saved_searches')
+            ? \App\Models\SavedSearch::where('user_id', $user->id)
+                ->where('scope', 'tasks')
+                ->orderBy('sort_order')->orderBy('id')->get()
+            : collect();
+
+        return view('tasks.index', compact('open', 'myRecent', 'counts', 'filter', 'q', 'savedSearches'));
     }
 
     public function show(WorkflowStepExecution $step, Request $request): View

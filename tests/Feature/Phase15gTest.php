@@ -192,7 +192,7 @@ class Phase15gTest extends TestCase
 
         $this->actingAs($admin)->get(route('documents.inbox'))
             ->assertOk()
-            ->assertSee('Postkorb')
+            ->assertSee('Posteingang')
             ->assertSee('r.pdf');
     }
 
