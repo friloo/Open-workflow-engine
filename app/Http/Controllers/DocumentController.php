@@ -512,6 +512,8 @@ class DocumentController extends Controller
         if (! $request->user()->hasPermission('documents.search')) abort(403);
         $request->validate(['file' => ['required', 'file', 'max:15360']]);
         try {
+            // 'neue Version' ist eine explizite Aktion; Cross-Chain-Hash-Treffer
+            // sind hier sehr unwahrscheinlich und sollen nicht blocken.
             $new = $this->storage->store(
                 $request->file('file'),
                 $attachment->attachable,
@@ -519,6 +521,7 @@ class DocumentController extends Controller
                 $request->user()->id,
                 $attachment->document_type,
                 $attachment,
+                true,
             );
         } catch (\Throwable $e) {
             return back()->withErrors(['file' => $e->getMessage()]);
@@ -547,19 +550,33 @@ class DocumentController extends Controller
             'document_type' => ['nullable', 'string', 'max:64'],
             'label' => ['nullable', 'string', 'max:128'],
         ]);
-        $ok = 0; $errors = [];
+        $ok = 0; $skipped = 0; $errors = [];
         foreach ($request->file('files') as $file) {
             try {
                 $this->storage->store($file, null, $data['label'] ?? null, $request->user()->id, $data['document_type'] ?? null);
                 $ok++;
+            } catch (\App\Exceptions\DuplicateAttachmentException $e) {
+                // Duplikat — silent skippen, im Status-Bericht zaehlen.
+                $skipped++;
+                $errors[] = $file->getClientOriginalName().': bereits vorhanden seit '
+                    .$e->original->created_at->format('d.m.Y H:i')
+                    .' (#'.$e->original->id.').';
             } catch (\Throwable $e) {
                 $errors[] = $file->getClientOriginalName().': '.$e->getMessage();
             }
         }
         $this->audit->log('documents.bulk_uploaded', null, null, [
-            'imported' => $ok, 'errors' => count($errors), 'type' => $data['document_type'] ?? null,
-        ], "Bulk-Upload: {$ok} Dateien", $request->user()->id);
-        return redirect()->route('documents.index')->with('status', "Hochgeladen: {$ok} Dateien.".(count($errors) ? ' '.count($errors).' Fehler.' : ''))
+            'imported' => $ok, 'skipped_duplicates' => $skipped,
+            'errors' => count($errors) - $skipped,
+            'type' => $data['document_type'] ?? null,
+        ], "Bulk-Upload: {$ok} Dateien" . ($skipped ? ", {$skipped} Duplikat(e) uebersprungen" : ''),
+        $request->user()->id);
+
+        $status = "Hochgeladen: {$ok} Dateien.";
+        if ($skipped) $status .= " {$skipped} Duplikat(e) uebersprungen.";
+        $realErrors = count($errors) - $skipped;
+        if ($realErrors > 0) $status .= " {$realErrors} Fehler.";
+        return redirect()->route('documents.index')->with('status', $status)
             ->with('uploadErrors', $errors);
     }
 }

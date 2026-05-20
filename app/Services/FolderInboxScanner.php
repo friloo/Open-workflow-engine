@@ -112,11 +112,20 @@ class FolderInboxScanner
             }
         }
 
-        $att = $this->storage->storeBytes(
-            $bytes, $name, $mime,
-            $instance ?: null,
-            null, $inbox->created_by, $inbox->document_type,
-        );
+        try {
+            $att = $this->storage->storeBytes(
+                $bytes, $name, $mime,
+                $instance ?: null,
+                null, $inbox->created_by, $inbox->document_type,
+            );
+        } catch (\App\Exceptions\DuplicateAttachmentException $e) {
+            // Scan-Ordner liefert manchmal dasselbe File mehrfach (z. B. weil
+            // der Scanner re-tried). Duplikat ignorieren — Original-Eintrag steht.
+            \Illuminate\Support\Facades\Log::info('Folder-Inbox: Duplikat uebersprungen', [
+                'inbox' => $inbox->name, 'file' => $name, 'original_id' => $e->original->id,
+            ]);
+            return;
+        }
 
         if ($instance) {
             // Wenn Workflow gestartet, doc.* im Kontext setzen

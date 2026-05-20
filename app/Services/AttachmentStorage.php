@@ -27,7 +27,21 @@ class AttachmentStorage
         private readonly FieldExtractor $fields,
     ) {}
 
-    public function store(UploadedFile $file, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, ?Attachment $newVersionOf = null): Attachment
+    /**
+     * Sucht ein bestehendes Attachment mit demselben SHA-256-Inhalt.
+     * Optional: eine version_chain ausschliessen (z. B. wenn explizit
+     * eine neue Version derselben Datei hochgeladen wird).
+     */
+    public function findDuplicate(string $hash, ?string $excludeChainId = null): ?Attachment
+    {
+        $q = Attachment::query()
+            ->where('content_hash', $hash)
+            ->orderBy('id'); // aeltestes zuerst — das Original
+        if ($excludeChainId) $q->where('version_chain_id', '!=', $excludeChainId);
+        return $q->with('uploader')->first();
+    }
+
+    public function store(UploadedFile $file, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, ?Attachment $newVersionOf = null, bool $allowDuplicate = false): Attachment
     {
         if ($file->getSize() > self::MAX_BYTES) {
             throw new \RuntimeException('Datei zu gross (max. 15 MB).');
@@ -41,6 +55,15 @@ class AttachmentStorage
         $hash = hash_file('sha256', $file->getRealPath());
         if ($hash === false) {
             throw new \RuntimeException('Hash der Datei konnte nicht berechnet werden.');
+        }
+
+        // Duplikat-Pruefung: gleicher Hash bereits irgendwo? Bei einer neuen
+        // Version derselben Datei (gleiche Chain) erlauben wir es bewusst.
+        if (! $allowDuplicate) {
+            $dup = $this->findDuplicate($hash, $newVersionOf?->version_chain_id);
+            if ($dup) {
+                throw new \App\Exceptions\DuplicateAttachmentException($dup);
+            }
         }
 
         $dir = 'attachments/'.now()->format('Y/m');
@@ -127,7 +150,7 @@ class AttachmentStorage
      * Speichert rohen Byte-String als Attachment. Wird vom PDF-Render-Knoten
      * benutzt, der das PDF im Workflow erzeugt und revisionssicher anhaengt.
      */
-    public function storeBytes(string $bytes, string $filename, string $mime, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null): Attachment
+    public function storeBytes(string $bytes, string $filename, string $mime, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, bool $allowDuplicate = false): Attachment
     {
         if (strlen($bytes) > self::MAX_BYTES) {
             throw new \RuntimeException('Datei zu gross (max. 15 MB).');
@@ -137,6 +160,13 @@ class AttachmentStorage
         }
 
         $hash = hash('sha256', $bytes);
+
+        if (! $allowDuplicate) {
+            $dup = $this->findDuplicate($hash);
+            if ($dup) {
+                throw new \App\Exceptions\DuplicateAttachmentException($dup);
+            }
+        }
         $ext = Str::lower(pathinfo($filename, PATHINFO_EXTENSION) ?: 'bin');
         $dir = 'attachments/'.now()->format('Y/m');
         $name = Str::ulid().'.'.$ext;

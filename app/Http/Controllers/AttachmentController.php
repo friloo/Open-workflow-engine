@@ -38,7 +38,14 @@ class AttachmentController extends Controller
                 $request->input('label'),
                 $request->user()->id,
                 $request->input('document_type'),
+                null,
+                (bool) $request->boolean('force'),
             );
+        } catch (\App\Exceptions\DuplicateAttachmentException $e) {
+            return back()->withErrors([
+                'file' => $e->getMessage().' Original: '.route('documents.show', $e->original).'. '
+                    .'Trotzdem hochladen? Setze beim erneuten Senden das Feld "force=1".',
+            ]);
         } catch (\Throwable $e) {
             return back()->withErrors(['file' => $e->getMessage()]);
         }
