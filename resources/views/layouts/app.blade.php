@@ -50,5 +50,6 @@
     </div>
     <x-toast />
 </div>
+@stack('scripts')
 </body>
 </html>

@@ -136,20 +136,24 @@
 
             <div class="space-y-6">
                 @php($attachments = $instance->attachments)
-            @if($attachments->isNotEmpty())
-                <x-card title="Beigefuegte Dateien">
-                    <ul class="divide-y divide-slate-100">
-                        @foreach($attachments as $a)
-                            <li class="py-2 flex items-center justify-between gap-2 text-sm">
-                                <div class="min-w-0">
-                                    <a href="{{ route('attachments.download', $a) }}" class="font-medium text-indigo-600 hover:text-indigo-500 truncate block" target="_blank">{{ $a->original_name }}</a>
-                                    <div class="text-xs text-slate-500">{{ $a->label }}{{ $a->label ? ' · ' : '' }}{{ $a->sizeFormatted() }} · {{ $a->mime_type }}</div>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                </x-card>
-            @endif
+                <x-dropzone :upload-url="route('attachments.store', ['type'=>'instance','id'=>$instance->id])" label="Datei an diesen Vorgang anhaengen">
+                    <x-card title="Beigefuegte Dateien" description="Datei ins Fenster ziehen, um sie an diesen Vorgang anzuhaengen.">
+                        @if($attachments->isEmpty())
+                            <p class="text-sm text-slate-500">Noch keine Dateien — zieh einfach welche hier hinein.</p>
+                        @else
+                            <ul class="divide-y divide-slate-100">
+                                @foreach($attachments as $a)
+                                    <li class="py-2 flex items-center justify-between gap-2 text-sm">
+                                        <div class="min-w-0">
+                                            <a href="{{ route('attachments.download', $a) }}" class="font-medium text-indigo-600 hover:text-indigo-500 truncate block" target="_blank">{{ $a->original_name }}</a>
+                                            <div class="text-xs text-slate-500">{{ $a->label }}{{ $a->label ? ' · ' : '' }}{{ $a->sizeFormatted() }} · {{ $a->mime_type }}</div>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </x-card>
+                </x-dropzone>
 
             <x-card title="Antragsdaten">
                     @php($schema = $instance->version?->form_schema ?? [])

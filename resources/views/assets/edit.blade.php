@@ -83,9 +83,10 @@
 
     <div class="space-y-6">
         @if(! $isNew)
-            <x-card title="Dateien" description="Scans und Belege (z. B. Fuehrerschein-Foto).">
+            <x-dropzone :upload-url="route('attachments.store', ['type'=>'asset','id'=>$asset->id])" label="Datei zum Asset hinzufuegen">
+            <x-card title="Dateien" description="Scans und Belege (z. B. Fuehrerschein-Foto). Datei einfach hier reinziehen.">
                 @if($asset->attachments->isEmpty())
-                    <x-empty-state icon="document" title="Noch keine Dateien" description="Lade unten einen Scan oder ein Foto zu diesem Asset hoch." />
+                    <x-empty-state icon="document" title="Noch keine Dateien" description="Datei ins Fenster ziehen oder unten ueber den Button hochladen." />
                 @else
                     <ul class="divide-y divide-slate-100">
                         @foreach($asset->attachments as $a)
@@ -126,6 +127,7 @@
                     </form>
                 @endif
             </x-card>
+            </x-dropzone>
         @endif
     </div>
     </div>

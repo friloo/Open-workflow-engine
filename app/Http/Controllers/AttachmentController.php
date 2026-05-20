@@ -105,12 +105,17 @@ class AttachmentController extends Controller
             return;
         }
         if ($attachable instanceof WorkflowInstance) {
-            // Initiator oder Workflow-Designer / Admin
-            if ($attachable->started_by !== $user->id
-                && ! $user->hasAnyPermission(['workflows.design'])) {
-                abort(403);
-            }
-            return;
+            // Initiator, Workflow-Designer, oder aktueller/frueherer Assignee
+            // eines Steps auf dieser Instanz duerfen Dateien anhaengen.
+            if ($attachable->started_by === $user->id) return;
+            if ($user->hasAnyPermission(['workflows.design'])) return;
+            $isAssignee = WorkflowStepExecution::where('workflow_instance_id', $attachable->id)
+                ->where(function ($q) use ($user) {
+                    $q->where('assigned_to_user_id', $user->id)
+                      ->orWhereIn('assigned_to_role_id', $user->roles->pluck('id'));
+                })->exists();
+            if ($isAssignee) return;
+            abort(403);
         }
         if ($attachable instanceof FormSubmission) {
             if (! $user->hasPermission('forms.manage')) abort(403);

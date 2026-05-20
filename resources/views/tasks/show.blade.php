@@ -12,6 +12,7 @@
         <div class="lg:col-span-2 space-y-6">
             @php($attachments = $instance->attachments)
             @php($previewables = $attachments->filter(fn ($a) => $a->isPdf() || $a->isImage())->values())
+            <x-dropzone :upload-url="route('attachments.store', ['type'=>'instance','id'=>$instance->id])" label="Datei zur Aufgabe hinzufuegen">
             @if($attachments->isNotEmpty())
                 {{-- Auf Desktop: grosse Preview mit Tabs zum Wechseln. Auf Mobile:
                      einfache Datei-Liste zum Antippen / Download. --}}
@@ -107,7 +108,12 @@
                         @endforeach
                     </ul>
                 </div>
+            @else
+                <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-600">
+                    Keine Dateien an dieser Aufgabe. <strong>Datei reinziehen</strong>, um eine anzuhaengen.
+                </div>
             @endif
+            </x-dropzone>
 
             <x-card title="Antragsdaten">
                 @php($schema = $instance->version?->form_schema ?? [])
