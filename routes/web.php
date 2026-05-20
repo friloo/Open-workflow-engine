@@ -265,6 +265,12 @@ Route::middleware(['auth', 'permission:documents.search'])->group(function () {
         ->parameters(['akten' => 'case'])
         ->names('cases');
     Route::post('/akten/{case}/close', [\App\Http\Controllers\DocumentCaseController::class, 'close'])->name('cases.close');
+    Route::post('/akten/{case}/workflows', [\App\Http\Controllers\DocumentCaseController::class, 'attachWorkflowInstance'])->name('cases.workflows.attach');
+    Route::delete('/akten/{case}/workflows/{workflowInstanceId}', [\App\Http\Controllers\DocumentCaseController::class, 'detachWorkflowInstance'])->name('cases.workflows.detach');
+    Route::post('/akten/{case}/contracts', [\App\Http\Controllers\DocumentCaseController::class, 'attachContract'])->name('cases.contracts.attach');
+    Route::delete('/akten/{case}/contracts/{contractId}', [\App\Http\Controllers\DocumentCaseController::class, 'detachContract'])->name('cases.contracts.detach');
+    Route::post('/akten/{case}/notes', [\App\Http\Controllers\DocumentCaseController::class, 'addNote'])->name('cases.notes.add');
+    Route::delete('/akten/{case}/notes/{noteId}', [\App\Http\Controllers\DocumentCaseController::class, 'deleteNote'])->name('cases.notes.delete');
 });
 
 // Sharing-Links verwalten
