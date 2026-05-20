@@ -172,7 +172,7 @@
             'id' => $d->id,
             'name' => $d->original_name,
             'documentType' => $d->document_type,
-            'previewable' => $d->isPdf() || $d->isImage(),
+            'previewable' => $d->hasBrowserPreview(),
             'previewUrl' => route('documents.preview', $d),
             'detailUrl' => route('documents.show', $d),
             'startWorkflowUrl' => route('documents.start_workflow', $d),

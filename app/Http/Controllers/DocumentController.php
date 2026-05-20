@@ -490,11 +490,25 @@ class DocumentController extends Controller
      * Inline-Preview: setzt Content-Disposition: inline statt attachment,
      * so dass der Browser PDF/Bild direkt anzeigt.
      */
-    public function preview(Attachment $attachment, Request $request): StreamedResponse
+    public function preview(Attachment $attachment, Request $request)
     {
         if (! $attachment->visibleTo($request->user())) abort(403);
         $disk = Storage::disk($attachment->disk);
         if (! $disk->exists($attachment->path)) abort(404);
+
+        // Office-Dateien on-the-fly nach PDF konvertieren (cached).
+        // Nur wenn LibreOffice verfuegbar ist; sonst Default-Streaming.
+        if ($attachment->isOffice() && \App\Services\OfficePreview::isAvailable()) {
+            $pdfPath = app(\App\Services\OfficePreview::class)->convertToPdf($attachment);
+            if ($pdfPath) {
+                return response()->file($pdfPath, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="'.addslashes(pathinfo($attachment->original_name, PATHINFO_FILENAME)).'.pdf"',
+                    'X-Content-Type-Options' => 'nosniff',
+                    'X-Preview-Source' => 'libreoffice',
+                ]);
+            }
+        }
 
         return $disk->response($attachment->path, $attachment->original_name, [
             'Content-Type' => $attachment->mime_type ?: 'application/octet-stream',

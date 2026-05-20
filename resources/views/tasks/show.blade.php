@@ -69,7 +69,7 @@
                                         <a href="{{ route('attachments.download', $a) }}" target="_blank" class="text-indigo-600 hover:text-indigo-500">Im Tab</a>
                                     </div>
                                 </div>
-                                @if($a->isPdf())
+                                @if($a->isPdf() || ($a->isOffice() && \App\Services\OfficePreview::isAvailable()))
                                     <iframe src="{{ route('documents.preview', $a) }}#toolbar=1"
                                         class="w-full h-[65vh] bg-white" title="{{ $a->original_name }}"></iframe>
                                 @elseif($a->isImage())

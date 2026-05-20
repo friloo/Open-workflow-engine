@@ -102,6 +102,18 @@ class Attachment extends Model
         return $this->mime_type === 'application/pdf';
     }
 
+    public function isOffice(): bool
+    {
+        return \App\Services\OfficePreview::isOfficeAttachment($this);
+    }
+
+    /** Preview-fähig im Browser (PDF, Bild, oder Office via LibreOffice). */
+    public function hasBrowserPreview(): bool
+    {
+        if ($this->isPdf() || $this->isImage()) return true;
+        return $this->isOffice() && \App\Services\OfficePreview::isAvailable();
+    }
+
     /**
      * Darf $user dieses Dokument im Detail / Preview ansehen?
      *

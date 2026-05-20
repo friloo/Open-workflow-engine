@@ -36,6 +36,13 @@ return [
     // != 'sync' (database / redis).
     'queue_ocr' => (bool) env('QUEUE_OCR', false),
 
+    // LibreOffice-Office-Vorschau. Schaltet sich automatisch ein, wenn
+    // das libreoffice-Binary auf dem Server gefunden wird; per LIBREOFFICE_PREVIEW=false
+    // explizit aus. LIBREOFFICE_BIN ueberschreibt die Auto-Suche im PATH.
+    'libreoffice_preview' => (bool) env('LIBREOFFICE_PREVIEW', true),
+    'libreoffice_bin' => env('LIBREOFFICE_BIN'),
+
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
