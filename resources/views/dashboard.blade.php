@@ -93,6 +93,55 @@
         @endif
     </div>
 
+    {{-- Persoenliche Statistik (letzte 30 Tage) — nur wenn User was entschieden hat --}}
+    @if($myStats)
+        <x-card title="Meine Aktivitaet · letzte 30 Tage" description="Was du seit {{ $myStats['since']->format('d.m.') }} entschieden hast.">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <div class="text-3xl font-semibold text-slate-900">{{ $myStats['total'] }}</div>
+                    <div class="text-xs text-slate-500 mt-1">Entscheidungen insgesamt</div>
+                    <div class="mt-3 flex flex-wrap gap-1.5 text-xs">
+                        @if($myStats['approved'])
+                            <span class="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-emerald-700 font-medium">{{ $myStats['approved'] }} genehmigt</span>
+                        @endif
+                        @if($myStats['rejected'])
+                            <span class="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-rose-700 font-medium">{{ $myStats['rejected'] }} abgelehnt</span>
+                        @endif
+                        @if($myStats['forwarded'])
+                            <span class="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-amber-700 font-medium">{{ $myStats['forwarded'] }} weitergeleitet</span>
+                        @endif
+                    </div>
+                </div>
+                <div>
+                    @php
+                        $m = $myStats['avg_minutes'];
+                        if ($m < 60) { $avgLabel = $m.' min'; }
+                        elseif ($m < 24*60) { $avgLabel = round($m/60, 1).' h'; }
+                        else { $avgLabel = round($m/(24*60), 1).' d'; }
+                    @endphp
+                    <div class="text-3xl font-semibold text-slate-900">{{ $avgLabel }}</div>
+                    <div class="text-xs text-slate-500 mt-1">Durchschnittliche Bearbeitungszeit</div>
+                    <div class="text-[11px] text-slate-400 mt-3">von „eingegangen" bis „entschieden"</div>
+                </div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Top-Workflows</div>
+                    @if(empty($myStats['top_workflows']))
+                        <p class="text-sm text-slate-500">—</p>
+                    @else
+                        <ul class="space-y-1.5 text-sm">
+                            @foreach($myStats['top_workflows'] as $w)
+                                <li class="flex items-baseline justify-between gap-2">
+                                    <span class="text-slate-700 truncate">{{ $w['name'] }}</span>
+                                    <span class="text-xs text-slate-500">{{ $w['count'] }}×</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            </div>
+        </x-card>
+    @endif
+
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <x-card title="Meine offenen Aufgaben" description="Direkt zugewiesen oder via Rolle. Sortiert nach Frist.">
             @if($myOpenTasks->isEmpty())

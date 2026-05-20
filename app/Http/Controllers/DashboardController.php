@@ -76,6 +76,10 @@ class DashboardController extends Controller
             $onboarding = $this->buildOnboarding($user);
         }
 
+        // Persoenliche Statistik fuer jeden User mit completed Steps in den
+        // letzten 30 Tagen — sonst weglassen.
+        $myStats = $this->buildPersonalStats($user);
+
         return view('dashboard', [
             'myOpenCount' => $myOpenCount,
             'myOverdueCount' => $myOverdueCount,
@@ -85,7 +89,65 @@ class DashboardController extends Controller
             'delegatedTo' => $delegatedTo,
             'adminInfo' => $adminInfo,
             'onboarding' => $onboarding,
+            'myStats' => $myStats,
         ]);
+    }
+
+    /**
+     * Persoenliche Mini-Statistik der letzten 30 Tage: was hat dieser User
+     * abgeschlossen, wie schnell, in welchen Workflows.
+     *
+     * Liefert null, wenn der User in dem Zeitraum nichts entschieden hat —
+     * dann wird die Karte am Dashboard gar nicht angezeigt.
+     */
+    private function buildPersonalStats(User $user): ?array
+    {
+        $since = now()->subDays(30);
+        $base = WorkflowStepExecution::query()
+            ->where('completed_by', $user->id)
+            ->where('completed_at', '>=', $since);
+
+        $total = (clone $base)->count();
+        if ($total === 0) return null;
+
+        $byDecision = (clone $base)
+            ->selectRaw('decision, count(*) as c')
+            ->groupBy('decision')
+            ->pluck('c', 'decision')->all();
+
+        // Durchschnittliche Bearbeitungszeit in Minuten
+        // (datediff variant pro DB-Treiber waere robuster, aber wir lesen
+        // einfach und rechnen in PHP — Datensaetze sind klein).
+        $rows = (clone $base)
+            ->whereNotNull('assigned_at')
+            ->whereNotNull('completed_at')
+            ->get(['assigned_at', 'completed_at']);
+        $avgMinutes = 0;
+        if ($rows->count() > 0) {
+            $sum = $rows->sum(fn ($r) => $r->assigned_at->diffInMinutes($r->completed_at));
+            $avgMinutes = (int) round($sum / $rows->count());
+        }
+
+        // Top-Workflows
+        $topWorkflows = (clone $base)
+            ->with('instance.workflow:id,name')
+            ->get(['workflow_instance_id'])
+            ->groupBy(fn ($s) => $s->instance->workflow?->name ?: '—')
+            ->map(fn ($items, $name) => ['name' => $name, 'count' => $items->count()])
+            ->sortByDesc('count')
+            ->take(3)
+            ->values()
+            ->all();
+
+        return [
+            'since' => $since,
+            'total' => $total,
+            'approved' => (int) ($byDecision['approved'] ?? 0),
+            'rejected' => (int) ($byDecision['rejected'] ?? 0),
+            'forwarded' => (int) ($byDecision['forwarded'] ?? 0),
+            'avg_minutes' => $avgMinutes,
+            'top_workflows' => $topWorkflows,
+        ];
     }
 
     /**
