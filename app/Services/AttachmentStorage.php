@@ -32,6 +32,23 @@ class AttachmentStorage
      * Optional: eine version_chain ausschliessen (z. B. wenn explizit
      * eine neue Version derselben Datei hochgeladen wird).
      */
+    /**
+     * Welcher Disk fuer neue Anhaenge benutzt wird. Konfiguriert ueber
+     * config/filesystems.php 'attachments_disk' bzw. ATTACHMENTS_DISK.
+     * Default: 'local'. Wer S3 / MinIO / Wasabi nutzen will, setzt
+     * ATTACHMENTS_DISK=s3.
+     *
+     * Bestehende Attachments behalten ihre 'disk'-Spalte — sie werden
+     * vom alten Disk gelesen, neue landen auf dem neuen. So ist der
+     * Wechsel ohne sofortige Migration moeglich; alte Dateien laesst
+     * man entweder liegen oder migriert sie via
+     *   php artisan attachments:migrate-disk <ziel-disk>
+     */
+    public function disk(): string
+    {
+        return config('filesystems.attachments_disk', 'local');
+    }
+
     public function findDuplicate(string $hash, ?string $excludeChainId = null): ?Attachment
     {
         $q = Attachment::query()
@@ -68,7 +85,8 @@ class AttachmentStorage
 
         $dir = 'attachments/'.now()->format('Y/m');
         $name = Str::ulid().'.'.Str::lower($file->getClientOriginalExtension() ?: 'bin');
-        $path = $file->storeAs($dir, $name, 'local');
+        $disk = $this->disk();
+        $path = $file->storeAs($dir, $name, $disk);
         if (! $path) {
             throw new \RuntimeException('Datei konnte nicht gespeichert werden.');
         }
@@ -89,7 +107,7 @@ class AttachmentStorage
             'attachable_type' => $attachable?->getMorphClass(),
             'attachable_id' => $attachable?->getKey(),
             'original_name' => Str::limit($file->getClientOriginalName(), 250, ''),
-            'disk' => 'local',
+            'disk' => $disk,
             'path' => $path,
             'mime_type' => $mime,
             'size' => $file->getSize(),
@@ -167,11 +185,13 @@ class AttachmentStorage
                 throw new \App\Exceptions\DuplicateAttachmentException($dup);
             }
         }
+
+        $disk = $this->disk();
         $ext = Str::lower(pathinfo($filename, PATHINFO_EXTENSION) ?: 'bin');
         $dir = 'attachments/'.now()->format('Y/m');
         $name = Str::ulid().'.'.$ext;
         $path = $dir.'/'.$name;
-        if (! Storage::disk('local')->put($path, $bytes)) {
+        if (! Storage::disk($disk)->put($path, $bytes)) {
             throw new \RuntimeException('Datei konnte nicht gespeichert werden.');
         }
 
@@ -181,7 +201,7 @@ class AttachmentStorage
             'attachable_type' => $attachable?->getMorphClass(),
             'attachable_id' => $attachable?->getKey(),
             'original_name' => Str::limit($filename, 250, ''),
-            'disk' => 'local',
+            'disk' => $disk,
             'path' => $path,
             'mime_type' => $mime,
             'size' => strlen($bytes),
