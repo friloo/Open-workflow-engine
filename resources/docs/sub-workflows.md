@@ -134,12 +134,64 @@ Audit-Log dokumentiert:
 - `workflow.subworkflow.started` mit Parent- und Child-Instance-ID
 - `workflow.loop.started` mit Iterations-Anzahl
 
+## Loop + Aggregator: Resultate falten
+
+Ab sofort kann der **For-each-Knoten** pro Iteration einen Wert
+einsammeln, den der **Aggregator-Knoten** dann zu einem einzigen
+Resultat faltet:
+
+Im For-each-Settings:
+
+- `collect_field` = Pfad in der Child-Instance, z. B. `ergebnis_betrag`
+- `collect_into`  = Ziel-Liste in der Parent-Instance, default `_loop_results`
+
+Nach jeder Iteration wird der Wert ans Ende der Liste gehaengt.
+Wenn alle Iterationen fertig sind, kommt der Aggregator-Knoten dran:
+
+| Operation | Wirkung |
+|---|---|
+| `sum` | Summe aller numerischen Werte |
+| `avg` | Durchschnitt |
+| `count` | Anzahl Elemente |
+| `min` / `max` | Kleinster / groesster Wert |
+| `concat` | Komma-Liste (Separator konfigurierbar) |
+| `distinct` | Eindeutige Werte als Array |
+
+Beispiel-Workflow „Spesenabrechnung":
+
+```
+Start
+ → For-each: positions
+     · collect_field = betrag
+     · Sub-Workflow: Genehmigung pro Position
+ → Aggregator: source=_loop_results, op=sum, target=gesamtsumme
+ → Bedingung: gesamtsumme > 1000 ?
+     · ja  → Approval Geschaeftsfuehrung
+     · nein → Approval Abteilungsleiter
+ → Ende
+```
+
+## Switch-Knoten: Multi-Branch ohne Condition-Kaskaden
+
+Statt 5x Condition hintereinander („wenn KS=IT, sonst wenn KS=MK, ...")
+gibt's jetzt einen `switch_node`-Knoten:
+
+- `expression` = Pfad in instance.data (z. B. `kostenstelle`)
+- `cases` = Liste mit `{label, value}`-Eintraegen
+- Pro Case ein Ausgang plus ein **Default**-Ausgang am Ende
+
+Erster Match gewinnt. Numerischer Vergleich wenn beide Seiten Zahlen,
+sonst String-Vergleich.
+
+Im Designer per Drag-and-Drop sortierbar. Vorteil ggue. mehreren
+Condition-Knoten: viel kompakter und kein Versuch, einen Fluss durch
+mehrere Knoten manuell durchzuhalten.
+
 ## Was du heute *nicht* machen kannst (geplant)
 
 - **Sequentielle Loops**: aktuell sind For-each-Iterationen immer
   parallel. Wer streng sequentiell will (z. B. weil jede Iteration auf
   dem Ergebnis der vorherigen aufbaut), baut das via Set-Feld-Knoten +
   Condition-Knoten von Hand.
-- **Loop-Aggregation**: kein eingebautes „Sum/Avg ueber alle Children".
 - **Tiefer als 2 Ebenen**: technisch moeglich, aber visuell schwer
   nachzuvollziehen. Limit per Best-Practice statt Hard-Limit.

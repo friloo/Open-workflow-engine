@@ -44,6 +44,7 @@ class HelpController extends Controller
             'ai' => ['label' => 'KI im Designer', 'any' => ['workflows.design']],
             'stats' => ['label' => 'Workflow-Statistik', 'any' => ['workflows.design', 'workflows.view']],
             'delegation' => 'Vertretungsregelung',
+            'notifications' => 'Benachrichtigungen anpassen',
             'placeholders' => ['label' => 'Platzhalter-Referenz', 'any' => ['workflows.design']],
         ],
         'Daten & Formulare' => [

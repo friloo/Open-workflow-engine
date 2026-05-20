@@ -27,6 +27,11 @@ zusammen mehr ergeben:
   ohne sich anzumelden.
 - **[Vertretungsregelung](app:help.show?topic=delegation)** — pro Benutzer
   konfigurierbar, fuer Urlaub.
+- **[Sub-Workflows & Loops](app:help.show?topic=sub-workflows)** — komplexe
+  Prozesse aus wiederverwendbaren Bausteinen. Plus Switch-Knoten und
+  Aggregator-Knoten fuer Multi-Branch-Routing und Listen-Faltung.
+- **[Benachrichtigungen anpassen](app:help.show?topic=notifications)** —
+  pro Event und Kanal selber entscheiden, was du wann bekommst.
 
 ### Dokumente verwalten
 
@@ -81,6 +86,22 @@ zusammen mehr ergeben:
   der UI, signiert, atomar.
 - **[Backup & Restore](app:help.show?topic=backup)** — taegliche
   ZIP-Sicherung, Restore via CLI.
+- **[GoBD-Konformitaet](app:help.show?topic=gobd)** — Verfahrens-
+  dokumentation, was deckt OWE technisch ab, was muss der Betreiber
+  selbst tun, WP-Pruefung.
+- **[DSGVO-Anfragen](app:help.show?topic=dsgvo)** — Auskunft + Anonymisierung
+  ueber Admin-UI mit Audit-Trail.
+
+### Skalierung & Performance
+
+- **[Object-Storage](app:help.show?topic=object-storage)** — S3 / MinIO /
+  Wasabi als Anhang-Storage. Pflicht bei Multi-Server-Setups.
+- **[Queue-Worker](app:help.show?topic=queue-worker)** — OCR + schwere
+  Verarbeitung im Hintergrund statt synchron im Upload-Request.
+- **[Volltext-Suche skalieren](app:help.show?topic=search-meilisearch)** —
+  MeiliSearch fuer fuzzy + sub-10ms-Suche bei 100k+ Dokumenten.
+- **[Office-Vorschau](app:help.show?topic=office-preview)** — DOCX / XLSX /
+  PPTX im Browser anzeigen via LibreOffice.
 
 ## Wo fange ich an?
 

@@ -17,7 +17,7 @@ Eingehende Rechnung per Mail → Kostenstelle automatisch erkannt → richtige P
 
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white&style=flat-square)]()
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white&style=flat-square)]()
-[![Tests](https://img.shields.io/badge/Tests-190%20passing-10B981?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-238%20passing-10B981?style=flat-square)]()
 [![Self-hosted](https://img.shields.io/badge/Self--hosted-✓-0EA5E9?style=flat-square)]()
 [![DSGVO](https://img.shields.io/badge/DSGVO-by%20design-7C3AED?style=flat-square)]()
 [![Revisionssicher](https://img.shields.io/badge/Revisionssicher-SHA--256-F59E0B?style=flat-square)]()
@@ -779,22 +779,30 @@ und damit auch ausserhalb der App lesbar.
 
 ## 🗺️ Roadmap
 
-Was schon laeuft (Stand: 190 Tests gruen):
+Was schon laeuft (Stand: 238 Tests gruen):
 
-✅ Workflow-Engine, Designer, Versionierung, Vorlagen, Simulation, Statistik
-✅ Approval-Mechaniken (Eskalation, Vertretung, Quorum, Mail-Approval)
-✅ Light-DMS (OCR, Versionen, Schemas, Lookup-Anlernen, Postkorb)
-✅ IMAP-Eingang, Webhooks (in + out), HTTP-Knoten, PDF-Knoten, API
-✅ M365 SSO, KI optional, Secrets-Vault, Sharing-Links
-✅ Web-Installer, UI-Update, Backup/Restore, Audit-Hashkette, 2FA, Health
+✅ **Workflow-Engine** mit Drag-Drop-Designer, Versionen, Simulation, Statistik
+✅ **Knotenpalette** Start/Ende, Approval (mit Quorum + Zusatzfeldern + Auto-Schema), Bedingung, Switch, Aggregator, Notify, HTTP, PDF, Wait, Set-Field, Sub-Workflow, For-each-Loop
+✅ **Approval-Power**: Eskalation, Vertretung, Quorum (all / n-of-m / single), Mail-Approval, konfigurierbare Zusatzfelder beim Genehmigen
+✅ **DMS-Kern**: OCR, Versionen, Felder-Schemas, Lookup-Anlernen, Postkorb, Tags, Akten, Sharing-Links mit Auto-Review
+✅ **Doku-UI**: Split-View mit Pfeil-Navigation + Preview-Headern + Workflow-Quick-Start, Saved-Searches, Bulk-Operationen, Notizen + Stempel
+✅ **Dateiformate**: PDF, Bilder, ZUGFeRD/XRechnung — plus Office (DOCX/XLSX/PPTX) via LibreOffice (optional)
+✅ **Integrationen**: IMAP-Eingang, Folder-Inbox, Webhooks (in + out), HTTP-Knoten, Microsoft 365 SSO, Microsoft Teams Notifications, DATEV-Export, KI-Import aus curl/OpenAPI
+✅ **Skalierung optional**: Object-Storage (S3/MinIO/Wasabi), Queue-Worker mit OCR im Hintergrund, MeiliSearch fuer Volltext bei grossen Datenmengen — komplett ueber Admin-UI konfigurierbar
+✅ **API**: REST mit Token-Auth fuer Tasks, Documents, Workflows, Workflow-Instances; OpenAPI/Swagger-Doku im Admin-UI
+✅ **DSGVO**: Auskunft (Art. 15) + Anonymisierung (Art. 17) inkl. Audit-Trail
+✅ **Compliance**: Audit-Hashkette, GoBD-Verfahrensdokumentations-Geruest, Retention-Regeln
+✅ **Benachrichtigungen**: pro User Event x Channel Matrix (Mail / In-App), IT-Support-Modal mit Auto-URL
+✅ **Betrieb**: Web-Installer, UI-Update, Backup/Restore, 2FA, Health, Performance-Audit, Queue-Status
 
 Was noch kommen koennte (Diskussion willkommen):
 
 🌐 i18n / mehrsprachige Oberflaeche (heute: Deutsch)
-📱 Mobile PWA mit Push-Notifications
-🔍 Audit-Log-Suche mit Filtern (User, Event-Typ, Zeitraum)
+📱 Mobile PWA mit Web-Push-Notifications
+🔐 PDF-Markup mit pixel-genauen Stempeln + QES-Integration
 📊 Workflow-Versions-Diff (visueller Vergleich)
 🌃 Dark Mode
+🔌 SAML / LDAP zusaetzlich zu M365-OAuth
 
 ---
 
@@ -821,8 +829,8 @@ php artisan test
 ```
 
 ```
-Tests:    190 passed (595 assertions)
-Duration: ~8 Sekunden
+Tests:    238 passed (747 assertions)
+Duration: ~10 Sekunden
 ```
 
 SQLite `:memory:` in `phpunit.xml` · `RefreshDatabase` pro Test ·
