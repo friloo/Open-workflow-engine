@@ -169,6 +169,41 @@ const NODE_TEMPLATES = {
         }),
         outputClasses: () => ['ok', 'fehler'],
     },
+    switch_node: {
+        label: 'Switch',
+        shortLabel: '⤨',
+        color: '#f59e0b',
+        category: 'Entscheidung',
+        help: 'Routet auf einen passenden Ausgang je nach Wert eines Feldes. Plus immer einem Default-Ausgang fuer den Fall dass kein Case matched.',
+        inputs: 1,
+        outputs: 2, // 1 case + default; waechst dynamisch
+        defaults: () => ({
+            label: 'Switch',
+            expression: 'kostenstelle',
+            cases: [{ label: 'Fall 1', value: '' }],
+        }),
+        outputClasses: (data) => [
+            ...(data.cases || []).map((_, i) => `case_${i + 1}`),
+            'default',
+        ],
+    },
+    aggregator: {
+        label: 'Aggregator',
+        shortLabel: 'Σ',
+        color: '#10b981',
+        category: 'Daten',
+        help: 'Aggregiert eine Liste (z. B. Resultate eines For-each-Loops) zu einem einzelnen Wert: Summe, Durchschnitt, Anzahl, Min, Max oder Komma-Liste.',
+        inputs: 1,
+        outputs: 1,
+        defaults: () => ({
+            label: 'Aggregator',
+            source_field: '_loop_results',
+            operation: 'sum',
+            target_field: 'aggregated',
+            separator: ', ',
+        }),
+        outputClasses: () => ['weiter'],
+    },
     loop: {
         label: 'For-each',
         shortLabel: '⟳',
@@ -179,13 +214,17 @@ const NODE_TEMPLATES = {
         outputs: 1,
         defaults: () => ({
             label: 'For-each',
-            source_field: 'items', // Pfad in instance.data oder doc.indexed_fields.*
+            source_field: 'items',
             target_workflow_id: null,
-            // Pro Iteration: jedes Element wird als '_item' an die Child-Instance gegeben;
-            // zusaetzliche Felder konfigurierbar.
             item_field_name: '_item',
             extra_input_mapping: [],
             max_iterations: 100,
+            // Optional: nach jeder Child-Completion einen Wert aus den
+            // Child-Daten in eine Liste in der Parent-Instance sammeln,
+            // die der Aggregator-Knoten dann zusammenfasst.
+            //   collect_field='ergebnis_betrag' → instance.data._loop_results = [12.50, 34.00, ...]
+            collect_field: '',
+            collect_into: '_loop_results',
         }),
         outputClasses: () => ['weiter'],
     },

@@ -857,6 +857,96 @@
                                             </div>
                                         </div>
                                         <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Alle Iterationen laufen <strong>parallel</strong>. Der Knoten geht erst weiter wenn alle fertig sind.</p>
+
+                                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
+                                            <div>
+                                                <h4 class="text-xs font-semibold text-slate-700">Ergebnisse einsammeln (optional)</h4>
+                                                <p class="text-[11px] text-slate-500">
+                                                    Wenn ein Aggregator-Knoten nach diesem Loop kommt: hier den Pfad zu einem Wert in der Child-Instance angeben, der nach jeder Iteration in eine Liste in der Parent-Instance fliesst.
+                                                </p>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600">Quellfeld in Child</label>
+                                                    <input type="text" x-model="selectedNode.data.collect_field" placeholder="z. B. betrag oder ergebnis"
+                                                        class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600">Zielliste in Parent</label>
+                                                    <input type="text" x-model="selectedNode.data.collect_into" placeholder="_loop_results"
+                                                        class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- Switch-Knoten --}}
+                                <template x-if="selectedNode.type==='switch_node'">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Ausdruck / Feld-Pfad</label>
+                                            <input type="text" x-model="selectedNode.data.expression" placeholder="z. B. kostenstelle oder doc.indexed_fields.lieferant"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            <p class="text-[11px] text-slate-500 mt-1">Wird gegen die Cases verglichen (numerisch wenn beide Zahlen, sonst String).</p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Cases</label>
+                                            <p class="text-[11px] text-slate-500 mb-2">Erster Match gewinnt. Wenn keiner matched → Default-Ausgang.</p>
+                                            <div class="space-y-1.5"
+                                                 x-sort:config="{ animation: 150, handle: '.drag-handle' }"
+                                                 x-sort="selectedNode.data.cases.splice($event.newIndex, 0, selectedNode.data.cases.splice($event.oldIndex, 1)[0])">
+                                                <template x-for="(c, ci) in selectedNode.data.cases" :key="ci">
+                                                    <div class="grid grid-cols-12 gap-1 items-center rounded-md border border-slate-200 bg-white p-1.5" x-sort:item="ci">
+                                                        <span class="drag-handle col-span-1 cursor-grab select-none text-xs text-slate-400 text-center">⋮⋮</span>
+                                                        <input type="text" x-model="c.label" placeholder="Label" class="col-span-4 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                        <span class="col-span-1 text-xs text-slate-400 text-center">=</span>
+                                                        <input type="text" x-model="c.value" placeholder="Wert" class="col-span-5 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                        <button type="button" @click="selectedNode.data.cases.splice(ci,1)" class="col-span-1 text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <button type="button" @click="selectedNode.data.cases.push({label:'Fall '+(selectedNode.data.cases.length+1), value:''})" class="mt-1 w-full rounded border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Case</button>
+                                        </div>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgaenge: pro Case einer + <strong>Default</strong> am Ende.</p>
+                                    </div>
+                                </template>
+
+                                {{-- Aggregator-Knoten --}}
+                                <template x-if="selectedNode.type==='aggregator'">
+                                    <div class="space-y-3">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Quellfeld (Liste)</label>
+                                                <input type="text" x-model="selectedNode.data.source_field" placeholder="_loop_results"
+                                                    class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Operation</label>
+                                                <select x-model="selectedNode.data.operation" class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <option value="sum">Summe</option>
+                                                    <option value="avg">Durchschnitt</option>
+                                                    <option value="min">Minimum</option>
+                                                    <option value="max">Maximum</option>
+                                                    <option value="count">Anzahl Elemente</option>
+                                                    <option value="concat">Komma-Liste</option>
+                                                    <option value="distinct">Eindeutige Werte (Array)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Zielfeld</label>
+                                            <input type="text" x-model="selectedNode.data.target_field" placeholder="aggregated"
+                                                class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            <p class="text-[11px] text-slate-500 mt-1">Resultat wird in <code>instance.data.{target_field}</code> geschrieben.</p>
+                                        </div>
+                                        <template x-if="selectedNode.data.operation === 'concat'">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Trennzeichen</label>
+                                                <input type="text" x-model="selectedNode.data.separator" placeholder=", "
+                                                    class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
 

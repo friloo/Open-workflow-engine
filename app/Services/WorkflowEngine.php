@@ -163,6 +163,26 @@ class WorkflowEngine
                 // Pausiert bis alle Child-Instances completed.
                 return;
 
+            case 'switch_node':
+                $branchIdx = $this->evaluateSwitch($node['data'] ?? [], $this->buildContext($instance));
+                $cases = $node['data']['cases'] ?? [];
+                $outputKey = $branchIdx !== null
+                    ? 'output_'.($branchIdx + 1)
+                    : 'output_'.(count($cases) + 1); // default = letzter Ausgang
+                $next = $this->firstTarget($node, $outputKey);
+                if ($next) {
+                    $this->run($instance, $next, $depth + 1);
+                } else {
+                    $instance->update(['status' => WorkflowInstance::STATUS_COMPLETED, 'completed_at' => now()]);
+                }
+                break;
+
+            case 'aggregator':
+                $this->runAggregator($instance, $node);
+                $next = $this->firstTarget($node, 'output_1');
+                if ($next) $this->run($instance, $next, $depth + 1);
+                break;
+
             case 'set_field':
                 $this->setFieldsNode($instance, $node);
                 $next = $this->firstTarget($node, 'output_1');
@@ -887,7 +907,7 @@ class WorkflowEngine
         $parentNode = $parent->version->definition['drawflow']['Home']['data'][$parentStep->step_key] ?? null;
         if (! $parentNode) return;
 
-        // Output-Mapping nur bei subworkflow (loops aggregieren waere komplex).
+        // Output-Mapping nur bei subworkflow.
         if ($parentStep->step_type === 'subworkflow') {
             $outMap = (array) data_get($parentNode, 'data.output_mapping', []);
             if ($outMap) {
@@ -902,6 +922,21 @@ class WorkflowEngine
                 }
                 $parent->data = $parentData;
                 $parent->save();
+            }
+        }
+
+        // Loop-Collect: pro Child einen Wert in die Sammler-Liste schreiben,
+        // damit der Aggregator-Knoten danach was zum Aggregieren hat.
+        if ($parentStep->step_type === 'loop') {
+            $collectFrom = (string) data_get($parentNode, 'data.collect_field', '');
+            $collectInto = (string) (data_get($parentNode, 'data.collect_into', '_loop_results') ?: '_loop_results');
+            if ($collectFrom !== '') {
+                $value = data_get($child->data ?? [], $collectFrom);
+                $parentData = $parent->data ?? [];
+                $bucket = (array) ($parentData[$collectInto] ?? []);
+                $bucket[] = $value;
+                $parentData[$collectInto] = $bucket;
+                $parent->update(['data' => $parentData]);
             }
         }
 
@@ -977,6 +1012,70 @@ class WorkflowEngine
         }
         // Fallback: erster Knoten
         return array_key_first($nodes);
+    }
+
+    /**
+     * Switch-Knoten: liefert den Index des passenden Case (0-basiert) oder
+     * null fuer den Default-Ausgang.
+     */
+    private function evaluateSwitch(array $data, array $ctx): ?int
+    {
+        $expr = (string) ($data['expression'] ?? '');
+        if ($expr === '') return null;
+        $value = data_get($ctx, $expr);
+        $cases = (array) ($data['cases'] ?? []);
+        foreach ($cases as $i => $case) {
+            $candidate = $case['value'] ?? null;
+            // Wenn beide numerisch: numerischer Vergleich. Sonst String.
+            if (is_numeric($value) && is_numeric($candidate)) {
+                if ((float) $value === (float) $candidate) return $i;
+            } else {
+                if ((string) $value === (string) $candidate) return $i;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Aggregator: liest eine Liste aus instance.data, faltet sie zu einem
+     * einzelnen Wert und schreibt ihn in das Ziel-Feld.
+     */
+    private function runAggregator(WorkflowInstance $instance, array $node): void
+    {
+        $data = $node['data'] ?? [];
+        $source = (string) ($data['source_field'] ?? '');
+        $op = (string) ($data['operation'] ?? 'sum');
+        $target = (string) ($data['target_field'] ?? 'aggregated');
+        if ($source === '' || $target === '') return;
+
+        $list = data_get($instance->data ?? [], $source, []);
+        if (! is_array($list)) $list = [];
+
+        $numerics = array_values(array_filter(array_map(function ($v) {
+            if (is_array($v)) return null;
+            $s = is_string($v) ? str_replace([',', ' '], ['.', ''], $v) : $v;
+            return is_numeric($s) ? (float) $s : null;
+        }, $list), fn ($v) => $v !== null));
+
+        $result = match ($op) {
+            'sum'      => round(array_sum($numerics), 4),
+            'avg'      => count($numerics) > 0 ? round(array_sum($numerics) / count($numerics), 4) : 0,
+            'min'      => count($numerics) > 0 ? min($numerics) : null,
+            'max'      => count($numerics) > 0 ? max($numerics) : null,
+            'count'    => count($list),
+            'concat'   => implode((string) ($data['separator'] ?? ', '), array_map('strval', $list)),
+            'distinct' => array_values(array_unique(array_map('strval', $list))),
+            default    => null,
+        };
+
+        $payload = $instance->data ?? [];
+        $payload[$target] = $result;
+        $instance->update(['data' => $payload]);
+
+        $this->audit->log('workflow.aggregator', $instance, null, [
+            'source' => $source, 'op' => $op, 'target' => $target,
+            'input_count' => count($list), 'result' => is_array($result) ? '[…]' : $result,
+        ], "Aggregator {$op} auf {$source}: ".(is_scalar($result) ? $result : 'list'));
     }
 
     private function createWaitStep(WorkflowInstance $instance, array $node): void
