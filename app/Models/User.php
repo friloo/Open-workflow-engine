@@ -32,6 +32,7 @@ class User extends Authenticatable
         'google_subject',
         'saml_nameid',
         'ldap_dn',
+        'ical_token',
         'department',
         'job_title',
         'phone',

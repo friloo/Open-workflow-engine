@@ -30,6 +30,9 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
+// iCal-Feed (Token-basiert, kein Login)
+Route::get('/ical/{token}.ics', [\App\Http\Controllers\IcalController::class, 'feed'])->name('ical.feed');
+
 // Public Share-Links
 // Genehmigung per Mail (signierter Link, kein Login noetig).
 Route::get('/mail-approval/{step}/{user}', [\App\Http\Controllers\MailApprovalController::class, 'show'])->name('mail-approval.show');
@@ -81,6 +84,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/delegation', [\App\Http\Controllers\DelegationController::class, 'update'])->name('profile.delegation.update');
     Route::delete('/profile/delegation', [\App\Http\Controllers\DelegationController::class, 'clear'])->name('profile.delegation.clear');
     Route::post('/profile/notifications', [\App\Http\Controllers\ProfileController::class, 'updateNotificationPreferences'])->name('profile.notifications.update');
+    Route::post('/profile/ical/rotate', [\App\Http\Controllers\IcalController::class, 'rotate'])->name('profile.ical.rotate');
+    Route::post('/profile/ical/revoke', [\App\Http\Controllers\IcalController::class, 'revoke'])->name('profile.ical.revoke');
 
     // 2FA-Verwaltung pro Benutzer (opt-in)
     Route::get('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'show'])->name('two-factor.show');

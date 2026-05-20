@@ -67,5 +67,40 @@
                 </div>
             </form>
         </x-card>
+
+        {{-- iCal-Feed: persoenlicher Kalender-Link --}}
+        @php($icalToken = auth()->user()->ical_token)
+        <x-card title="Kalender-Feed (iCal)" description="Aufgaben und Vertrags-Fristen in Outlook oder Apple Calendar abonnieren.">
+            @if($icalToken)
+                @php($feedUrl = url('/ical/'.$icalToken.'.ics'))
+                <p class="text-sm text-slate-700 mb-2">Dein Feed-Link (niemandem weitergeben, ist wie ein Passwort):</p>
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="text" readonly value="{{ $feedUrl }}"
+                           onclick="this.select()"
+                           class="flex-1 min-w-[20rem] rounded-lg border-slate-300 bg-slate-50 text-xs font-mono shadow-sm">
+                    <form method="POST" action="{{ route('profile.ical.rotate') }}" class="inline"
+                          onsubmit="return confirm('Token neu erzeugen? Der alte Link wird sofort ungueltig.')">
+                        @csrf
+                        <button class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Neu erzeugen</button>
+                    </form>
+                    <form method="POST" action="{{ route('profile.ical.revoke') }}" class="inline"
+                          onsubmit="return confirm('Feed deaktivieren?')">
+                        @csrf
+                        <button class="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50">Deaktivieren</button>
+                    </form>
+                </div>
+                <ul class="mt-3 text-xs text-slate-500 space-y-0.5 list-disc ms-5">
+                    <li>Outlook: <em>Datei → Kontoeinstellungen → Internet-Kalender → Neu</em>, URL einfuegen.</li>
+                    <li>Apple Calendar: <em>Datei → Neues Kalenderabo</em>, URL einfuegen.</li>
+                    <li>Google Calendar: <em>Andere Kalender → Per URL hinzufuegen</em>.</li>
+                </ul>
+            @else
+                <p class="text-sm text-slate-700">Aktiviere den Feed, um alle offenen Aufgaben mit Faelligkeit und deine Vertrags-Fristen automatisch in deinen Kalender zu spielen.</p>
+                <form method="POST" action="{{ route('profile.ical.rotate') }}" class="mt-3">
+                    @csrf
+                    <x-primary-button>iCal-Feed aktivieren</x-primary-button>
+                </form>
+            @endif
+        </x-card>
     </div>
 </x-app-layout>
