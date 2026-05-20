@@ -89,6 +89,7 @@
                 ['name' => 'Systemeinstellungen', 'route' => 'admin.settings.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.settings.*'), 'when' => $user?->hasPermission('system.settings')],
                 ['name' => 'Dokument-Schemas', 'route' => 'admin.document_schemas.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.document_schemas.*'), 'when' => $user?->hasPermission('system.settings')],
                 ['name' => 'API-Dokumentation', 'route' => 'admin.api_docs.index', 'icon' => 'document', 'active' => request()->routeIs('admin.api_docs.*'), 'when' => $user?->hasPermission('system.settings')],
+                ['name' => 'DATEV-Export', 'route' => 'admin.datev.index', 'icon' => 'document', 'active' => request()->routeIs('admin.datev.*'), 'when' => $user?->hasPermission('system.settings')],
                 ['name' => 'System-Health', 'route' => 'admin.health.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.health.*'), 'when' => $user?->hasPermission('system.health')],
                 ['name' => 'Performance', 'route' => 'admin.perf.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.perf.*'), 'when' => $user?->hasPermission('system.health')],
                 ['name' => 'Queue-Worker', 'route' => 'admin.queue.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.queue.*'), 'when' => $user?->hasPermission('system.health')],

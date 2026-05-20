@@ -379,6 +379,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('queue', [\App\Http\Controllers\Admin\QueueController::class, 'index'])->name('queue.index');
     });
 
+    Route::middleware('permission:system.settings')->group(function () {
+        Route::get('datev', [\App\Http\Controllers\Admin\DatevController::class, 'index'])->name('datev.index');
+        Route::post('datev/config', [\App\Http\Controllers\Admin\DatevController::class, 'updateConfig'])->name('datev.config.update');
+        Route::post('datev/export', [\App\Http\Controllers\Admin\DatevController::class, 'export'])->name('datev.export');
+    });
+
     Route::middleware('permission:system.backup')->group(function () {
         Route::get('backups', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('backups.index');
         Route::post('backups', [\App\Http\Controllers\Admin\BackupController::class, 'store'])->name('backups.store');

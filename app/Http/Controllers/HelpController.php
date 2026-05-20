@@ -58,6 +58,7 @@ class HelpController extends Controller
             'search-meilisearch' => ['label' => 'Volltext-Suche skalieren (MeiliSearch)', 'any' => ['system.settings']],
             'document-schemas' => ['label' => 'Felder-Schemas pro Dokumenttyp', 'any' => ['system.settings']],
             'zugferd' => ['label' => 'ZUGFeRD / XRechnung', 'any' => ['documents.search']],
+            'datev' => ['label' => 'DATEV-Export', 'any' => ['system.settings']],
             'inbox-routing' => ['label' => 'Postkorb + Lookup-Routing', 'any' => ['documents.search']],
             'sharing' => ['label' => 'Sharing-Links', 'any' => ['documents.search']],
             'retention' => ['label' => 'Aufbewahrungsregeln', 'any' => ['system.settings']],
