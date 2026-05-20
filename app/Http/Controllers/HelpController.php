@@ -71,6 +71,7 @@ class HelpController extends Controller
             'incoming-webhooks' => ['label' => 'Eingehende Webhooks', 'any' => ['incoming_webhooks.manage']],
             'secrets' => ['label' => 'Secrets-Vault', 'any' => ['secrets.manage']],
             'm365' => ['label' => 'Microsoft 365', 'any' => ['system.settings']],
+            'teams' => ['label' => 'Microsoft Teams (Notifications)', 'any' => ['system.settings']],
             'api-tokens' => 'API-Tokens',
         ],
         'Sicherheit & Betrieb' => [

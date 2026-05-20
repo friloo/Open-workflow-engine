@@ -1131,6 +1131,15 @@ class WorkflowEngine
 
     private function notifyAssignee(WorkflowStepExecution $step): void
     {
+        // Teams-Channel benachrichtigen (nur einmal pro Step, nicht
+        // pro Empfaenger — gleicher Channel hoert eh alle Member).
+        $teams = app(\App\Services\TeamsNotifier::class);
+        $node = data_get($step->instance->version->definition, "drawflow.Home.data.{$step->step_key}");
+        $teamsUrl = (string) (data_get($node, 'data.teams_webhook_url') ?? \App\Support\Settings::get('integrations.teams_webhook_url', ''));
+        if ($teamsUrl !== '' && data_get($node, 'data.notify_teams', true)) {
+            $teams->sendTaskNotification($step, $teamsUrl);
+        }
+
         $recipients = $this->stepRecipients($step);
         $workflow = $step->instance?->workflow;
         foreach ($recipients as $user) {

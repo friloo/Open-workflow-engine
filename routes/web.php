@@ -301,6 +301,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('settings/sharing', [SystemSettingsController::class, 'sharing'])->name('settings.sharing');
         Route::get('settings/support', [SystemSettingsController::class, 'support'])->name('settings.support');
         Route::post('settings/support', [SystemSettingsController::class, 'updateSupport'])->name('settings.support.update');
+        Route::get('settings/integrations', [SystemSettingsController::class, 'integrations'])->name('settings.integrations');
+        Route::post('settings/integrations', [SystemSettingsController::class, 'updateIntegrations'])->name('settings.integrations.update');
+        Route::post('settings/integrations/test-teams', [SystemSettingsController::class, 'testTeams'])->name('settings.integrations.test_teams');
         Route::post('settings/mail', [SystemSettingsController::class, 'updateMail'])->name('settings.mail.update');
         Route::post('settings/mail/test', [SystemSettingsController::class, 'sendTestMail'])->name('settings.mail.test');
         Route::post('settings/m365', [SystemSettingsController::class, 'updateM365'])->name('settings.m365.update');

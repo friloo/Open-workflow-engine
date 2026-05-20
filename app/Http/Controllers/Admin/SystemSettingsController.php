@@ -97,6 +97,53 @@ class SystemSettingsController extends Controller
         ]);
     }
 
+    public function integrations(): View
+    {
+        return view('admin.settings.integrations', [
+            'integrations' => Settings::group('integrations'),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function updateIntegrations(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'teams_webhook_url' => ['nullable', 'url', 'max:1024'],
+        ]);
+
+        Settings::set('integrations.teams_webhook_url', $data['teams_webhook_url'] ?? '', $request->user()->id);
+        $this->audit->log('settings.integrations.updated', null, null, [
+            'teams_configured' => ! empty($data['teams_webhook_url']),
+        ], 'Integrationen aktualisiert', $request->user()->id);
+
+        return back()->with('status', 'Integrationen gespeichert.');
+    }
+
+    public function testTeams(Request $request, \App\Services\TeamsNotifier $teams): RedirectResponse
+    {
+        $url = (string) Settings::get('integrations.teams_webhook_url', '');
+        if (! $url) return back()->withErrors(['teams' => 'Keine Teams-URL konfiguriert.']);
+
+        // Eine Dummy-Adaptive-Card schicken
+        $payload = [
+            '@type' => 'MessageCard',
+            '@context' => 'https://schema.org/extensions',
+            'summary' => 'OWE Test',
+            'themeColor' => '6366f1',
+            'title' => 'OWE Test-Nachricht',
+            'text' => 'Wenn du das siehst, klappt die Teams-Anbindung.',
+        ];
+        try {
+            $r = \Illuminate\Support\Facades\Http::timeout(10)->post($url, $payload);
+            if (! $r->successful()) {
+                return back()->withErrors(['teams' => 'Teams antwortete HTTP '.$r->status()]);
+            }
+        } catch (\Throwable $e) {
+            return back()->withErrors(['teams' => $e->getMessage()]);
+        }
+        return back()->with('status', 'Test-Nachricht an Teams gesendet.');
+    }
+
     public function support(): View
     {
         return view('admin.settings.support', [
@@ -186,6 +233,7 @@ class SystemSettingsController extends Controller
             ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente', 'icon' => 'document', 'description' => 'Archive, Retention, Rollen-Zuordnung.'],
             ['slug' => 'sharing', 'route' => 'admin.settings.sharing', 'label' => 'Sharing', 'icon' => 'cog', 'description' => 'Caps fuer externe Freigaben.'],
             ['slug' => 'support', 'route' => 'admin.settings.support', 'label' => 'IT-Support', 'icon' => 'cog', 'description' => 'Support-Formular fuer Benutzer (Mail oder Ticket-API).'],
+            ['slug' => 'integrations', 'route' => 'admin.settings.integrations', 'label' => 'Integrationen', 'icon' => 'cog', 'description' => 'Microsoft Teams, weitere externe Connectors.'],
         ];
     }
 
