@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contract extends Model
@@ -43,6 +44,17 @@ class Contract extends Model
     public function attachment(): BelongsTo
     {
         return $this->belongsTo(Attachment::class);
+    }
+
+    /**
+     * Mehrere Dateien koennen am Vertrag haengen (Vertrags-PDF, Anlagen,
+     * AGB, Schriftverkehr). Aktuelle Versionen oben.
+     */
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')
+            ->where('is_current_version', true)
+            ->latest();
     }
 
     public function type(): BelongsTo

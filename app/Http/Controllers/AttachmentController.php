@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\Attachment;
+use App\Models\Contract;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Models\WorkflowInstance;
@@ -93,6 +94,7 @@ class AttachmentController extends Controller
             'asset' => Asset::findOrFail($id),
             'form-submission' => FormSubmission::findOrFail($id),
             'instance' => WorkflowInstance::findOrFail($id),
+            'contract' => Contract::findOrFail($id),
             default => abort(404),
         };
     }
@@ -119,6 +121,11 @@ class AttachmentController extends Controller
         }
         if ($attachable instanceof FormSubmission) {
             if (! $user->hasPermission('forms.manage')) abort(403);
+            return;
+        }
+        if ($attachable instanceof Contract) {
+            // Wer den Vertrag bearbeiten darf, darf auch Anhaenge hochladen
+            if (! $attachable->userCanManage($user)) abort(403);
             return;
         }
         abort(403);
@@ -148,6 +155,11 @@ class AttachmentController extends Controller
         }
         if ($att instanceof FormSubmission) {
             if ($user->hasPermission('forms.view')) return;
+        }
+        if ($att instanceof Contract) {
+            // Wer den Vertrag sehen darf, darf auch dessen Anhaenge laden
+            $visible = Contract::query()->visibleTo($user)->whereKey($att->id)->exists();
+            if ($visible) return;
         }
         abort(403);
     }

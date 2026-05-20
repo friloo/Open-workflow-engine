@@ -243,8 +243,13 @@ bauen lassen:
 - 🧪 **Trockenlauf** vor Aktivierung mit Testdaten
 - 📦 **3 Cookbook-Vorlagen** zum Import: Rechnung · Urlaub · Bestellung
 - 🤖 **KI-Designer-Assistent** (OpenAI/DeepSeek/Ollama) — optional
-- 📊 **Statistik**: Durchlaufzeiten · Engpaesse · Throughput
+- 📊 **Reports**: Durchlaufzeiten · SLA-Verletzungen · Bottleneck-Knoten · Top-Empfaenger
 - 🗳️ **Genehmigung per Mail** ueber signierten Link (kein Login noetig)
+- 🖋️ **Auto-PDF-Stempel** ("Genehmigt von X am Y") direkt in die Vertragsdatei
+- 📑 **Vertragsmanagement** mit Vertragsarten, granularer ACL, Frist-Reminder, PDF-Anhaengen
+- 🗂️ **E-Akten** buendeln Dokumente + Vorgaenge + Vertraege + Notizen
+- 📱 **PWA + Web-Push** — Genehmigen unterwegs
+- 📅 **iCal-Feed** pro User — Aufgaben + Vertrags-Fristen im Outlook/Apple Calendar
 
 </td>
 </tr>
@@ -781,27 +786,31 @@ und damit auch ausserhalb der App lesbar.
 
 ## 🗺️ Roadmap
 
-Was schon laeuft (Stand: 238 Tests gruen):
+Was schon laeuft (Stand: 303 Tests gruen):
 
 ✅ **Workflow-Engine** mit Drag-Drop-Designer, Versionen, Simulation, Statistik
-✅ **Knotenpalette** Start/Ende, Approval (mit Quorum + Zusatzfeldern + Auto-Schema), Bedingung, Switch, Aggregator, Notify, HTTP, PDF, Wait, Set-Field, Sub-Workflow, For-each-Loop
-✅ **Approval-Power**: Eskalation, Vertretung, Quorum (all / n-of-m / single), Mail-Approval, konfigurierbare Zusatzfelder beim Genehmigen
+✅ **Knotenpalette** Start/Ende, Approval (mit Quorum + Zusatzfeldern + Auto-Schema + Auto-Stempel), Bedingung, Switch, Aggregator, Notify, HTTP, PDF, Wait, Set-Field, Sub-Workflow, For-each-Loop
+✅ **Approval-Power**: Eskalation, Vertretung, Quorum (all / n-of-m / single), Mail-Approval, konfigurierbare Zusatzfelder beim Genehmigen, **Auto-PDF-Stempel** auf der Vertragsdatei
 ✅ **DMS-Kern**: OCR, Versionen, Felder-Schemas, Lookup-Anlernen, Postkorb, Tags, Akten, Sharing-Links mit Auto-Review
-✅ **Doku-UI**: Split-View mit Pfeil-Navigation + Preview-Headern + Workflow-Quick-Start, Saved-Searches, Bulk-Operationen, Notizen + Stempel
+✅ **E-Akten**: Aktendeckel buendeln Dokumente + Workflow-Vorgaenge + Vertraege + Notizen an einem Ort
+✅ **Vertragsmanagement**: Vertragsarten mit eigenen Berechtigungen, pro-Vertrag-ACL, Fristen-Auto-Reminder, PDF-Anhaenge am Vertrag
+✅ **Doku-UI**: Split-View mit Pfeil-Navigation + Preview-Headern + Workflow-Quick-Start, Saved-Searches (auch fuer Tasks), Bulk-Operationen, Notizen + Stempel
+✅ **Mein Eingang**: vereinheitlichte Inbox mit Tabs Aufgaben / Posteingang / Wiedervorlagen + Topbar-Badge
+✅ **Reports & KPIs**: Durchlaufzeiten pro Workflow, SLA-Verletzungen, Top-Verzoegerer-Knoten, Top-Empfaenger, Volumen-Trend
 ✅ **Dateiformate**: PDF, Bilder, ZUGFeRD/XRechnung — plus Office (DOCX/XLSX/PPTX) via LibreOffice (optional)
 ✅ **Integrationen**: IMAP-Eingang, Folder-Inbox, Webhooks (in + out), HTTP-Knoten, Microsoft 365 SSO, OIDC (Keycloak/Authentik/Auth0/Okta), Google Workspace SSO, SAML 2.0, LDAP/Active-Directory, Microsoft Teams Notifications, DATEV-Export, KI-Import aus curl/OpenAPI
+✅ **Mobile / Kalender**: PWA mit Web-Push, iCal-Feed pro User (Outlook/Apple Calendar/Google)
 ✅ **Skalierung optional**: Object-Storage (S3/MinIO/Wasabi), Queue-Worker mit OCR im Hintergrund, MeiliSearch fuer Volltext bei grossen Datenmengen — komplett ueber Admin-UI konfigurierbar
 ✅ **API**: REST mit Token-Auth fuer Tasks, Documents, Workflows, Workflow-Instances; OpenAPI/Swagger-Doku im Admin-UI
 ✅ **DSGVO**: Auskunft (Art. 15) + Anonymisierung (Art. 17) inkl. Audit-Trail
-✅ **Compliance**: Audit-Hashkette, GoBD-Verfahrensdokumentations-Geruest, Retention-Regeln
-✅ **Benachrichtigungen**: pro User Event x Channel Matrix (Mail / In-App), IT-Support-Modal mit Auto-URL
+✅ **Compliance**: Audit-Hashkette, GoBD-Verfahrensdokumentations-Geruest, Retention-Regeln, immutable Versions
+✅ **Benachrichtigungen**: pro User Event x Channel Matrix (Mail / In-App / Push), Kontext-Hilfe-Icons, Keyboard-Shortcuts (g+t/g+d/g+w/g+h/?), IT-Support-Modal
 ✅ **Betrieb**: Web-Installer, UI-Update, Backup/Restore, 2FA, Health, Performance-Audit, Queue-Status
 
 Was noch kommen koennte (Diskussion willkommen):
 
 🌐 i18n / mehrsprachige Oberflaeche (heute: Deutsch)
-📱 Mobile PWA mit Web-Push-Notifications
-🔐 PDF-Markup mit pixel-genauen Stempeln + QES-Integration
+🔐 QES-Integration (qualifizierte elektronische Signatur)
 📊 Workflow-Versions-Diff (visueller Vergleich)
 🌃 Dark Mode
 

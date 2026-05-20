@@ -74,6 +74,57 @@
                     </div>
                 </dl>
             </x-card>
+
+            <x-card title="Dokumente" description="Vertragsdatei, Anlagen, Schriftverkehr.">
+                @if($canManage)
+                    <form method="POST" action="{{ route('attachments.store', ['type' => 'contract', 'id' => $contract->id]) }}"
+                          enctype="multipart/form-data" class="mb-4 flex flex-wrap items-end gap-2">
+                        @csrf
+                        <div class="flex-1 min-w-[200px]">
+                            <x-input-label for="file" value="Datei (PDF / DOCX / Bild, max. 15 MB)" />
+                            <input id="file" type="file" name="file" required
+                                   accept="application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                   class="block w-full text-sm text-slate-700">
+                            <x-input-error :messages="$errors->get('file')" />
+                        </div>
+                        <div class="flex-1 min-w-[180px]">
+                            <x-input-label for="label" value="Beschriftung (optional)" />
+                            <x-text-input id="label" name="label" placeholder="z. B. Hauptvertrag, Anlage 1, AGB" maxlength="128" />
+                        </div>
+                        <x-secondary-button type="submit">Hochladen</x-secondary-button>
+                    </form>
+                @endif
+
+                @if($contract->attachments->isEmpty())
+                    <p class="text-sm text-slate-500">
+                        Noch keine Dokumente angehaengt.
+                        @if($canManage)Lade die Vertrags-PDF + Anlagen hier hoch — sie werden revisionssicher gespeichert (SHA-256-Hash, OCR-Volltext).@endif
+                    </p>
+                @else
+                    <ul class="divide-y divide-slate-100">
+                        @foreach($contract->attachments as $a)
+                            <li class="py-2 flex items-center justify-between gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <a href="{{ route('attachments.download', $a) }}"
+                                       class="font-medium text-slate-900 hover:text-indigo-600 truncate block">
+                                        {{ $a->label ?: $a->original_name }}
+                                    </a>
+                                    <div class="text-xs text-slate-500">
+                                        {{ $a->original_name }} · {{ number_format($a->size / 1024, 0, ',', '.') }} kB
+                                        · {{ strtoupper(explode('/', $a->mime_type)[1] ?? $a->mime_type) }}
+                                        · {{ $a->created_at?->format('d.m.Y') }}
+                                        @if($a->uploader) · von {{ $a->uploader->name }} @endif
+                                    </div>
+                                </div>
+                                <a href="{{ route('attachments.download', $a) }}"
+                                   class="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                                    Download
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </x-card>
         </div>
 
         <div class="space-y-4">

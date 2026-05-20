@@ -62,6 +62,29 @@ Bearbeiten/Loeschen geht zusaetzlich nur mit der globalen
 `contracts.manage`-Permission UND einer der oben genannten
 Manage-Berechtigungen (`+M`).
 
+## Dokumente am Vertrag (PDFs, Anlagen)
+
+Auf der Detail-Seite eines Vertrages gibt's eine Karte
+**„Dokumente"**: dort kannst du die Vertrags-PDF, Anlagen, AGB,
+Schriftverkehr und beliebige weitere Dateien hochladen. Erlaubte
+Formate: PDF, DOCX, XLSX, PNG, JPG. Max. 15 MB pro Datei.
+
+Hochgeladene Dateien werden:
+
+- **Revisionssicher gespeichert** mit SHA-256-Hash (Aenderung
+  unmoeglich, Soft-Delete erhalten die Datei in der Historie)
+- **OCR-indexiert**, falls Volltext-Suche aktiv ist — die
+  globale Schnellsuche findet dann Inhalte aus Vertraegen
+- **Im Audit-Log** mit Hash + Hoch-Lader vermerkt
+  (`attachment.uploaded`)
+
+Wer darf was?
+
+- **Sehen + Download**: jeder, der den Vertrag selbst sehen darf
+  (siehe Berechtigungen oben)
+- **Hochladen + Loeschen**: nur wer den Vertrag bearbeiten darf
+  (Admin, Owner, Rolle mit `+M` am Typ oder am Vertrag)
+
 ## Felder
 
 | Feld | Bedeutung |

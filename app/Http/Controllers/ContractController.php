@@ -93,7 +93,7 @@ class ContractController extends Controller
         if (! Contract::query()->visibleTo($user)->whereKey($contract->id)->exists()) {
             abort(403, 'Kein Zugriff auf diesen Vertrag.');
         }
-        $contract->load(['owner', 'creator', 'attachment', 'type', 'roles']);
+        $contract->load(['owner', 'creator', 'attachment', 'type', 'roles', 'attachments.uploader']);
         return view('contracts.show', [
             'contract' => $contract,
             'canManage' => $contract->userCanManage($user),
