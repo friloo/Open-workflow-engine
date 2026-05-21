@@ -17,7 +17,7 @@
             { title: '4. Dokumenttypen', body: 'Definiere die Archive (Rechnung, Vertrag, ...). Sie sind die Basis fuer Berechtigungen + Schemas + Retention.', link: '{{ route('admin.settings.documents') }}', linkLabel: 'Dokumente einrichten →' },
             { title: '5. Erster Workflow', body: 'Bau deinen ersten Workflow im Designer — oder importiere eine der drei Cookbook-Vorlagen.', link: '{{ route('workflows.index') }}', linkLabel: 'Workflows →' },
             { title: '6. Reports & Audit', body: 'Wenn Daten reinkommen, findest du KPIs unter Reports und den Berechtigungs-Report unter Administration.', link: '{{ route('reports.index') }}', linkLabel: 'Reports anschauen →' },
-            { title: 'Fertig!', body: 'Du kannst die Tour jederzeit erneut aufrufen, indem du in der Hilfe nach „Erste Schritte" suchst.' },
+            { title: 'Fertig!', body: 'Du kannst die Tour jederzeit erneut aufrufen, indem du in der Hilfe nach Erste Schritte suchst.' },
         ],
         async dismiss(complete = false) {
             const url = complete ? '{{ route('onboarding.complete') }}' : '{{ route('onboarding.dismiss') }}';
