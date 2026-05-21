@@ -261,6 +261,12 @@ class WorkflowEngine
             } catch (\Throwable $e) {
                 Log::warning('approval stamping crashed', ['step_id' => $step->id, 'error' => $e->getMessage()]);
             }
+            // Auto-E-Signatur: signature_level aus Doku-Typ + Node-Override
+            try {
+                app(SignatureService::class)->maybeSignForStep($step, $decision);
+            } catch (\Throwable $e) {
+                Log::warning('approval signing crashed', ['step_id' => $step->id, 'error' => $e->getMessage()]);
+            }
         }
 
         $outputKey = match ($decision) {

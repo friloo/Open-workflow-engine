@@ -496,6 +496,35 @@
                                                 </div>
                                             </template>
                                         </div>
+
+                                        {{-- E-Signatur-Override pro Approval-Knoten --}}
+                                        <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">E-Signatur bei finaler Entscheidung</label>
+                                            <p class="text-xs text-slate-500 mb-2">
+                                                Bei <em>Genehmigt</em> werden die PDF-Anhänge des Vorgangs automatisch
+                                                mit dem gewählten Level signiert. <strong>„Aus Dokumenttyp übernehmen"</strong>
+                                                nutzt das in den Admin-Einstellungen pro Dokumenttyp hinterlegte Level.
+                                                Override hebt das Level nur an — Downgrades werden serverseitig ignoriert.
+                                            </p>
+                                            <select x-model="selectedNode.data.signature_level_override"
+                                                    class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="inherit">Aus Dokumenttyp übernehmen (Default)</option>
+                                                <option value="ses">SES erzwingen (Stempel + Hash + Audit)</option>
+                                                <option value="aes">AES erzwingen (kryptographisches PKCS#7)</option>
+                                                <option value="qes">QES erzwingen (externer Provider)</option>
+                                                <option value="none">Keine Signatur (auch wenn Dokumenttyp eine fordert — riskant)</option>
+                                            </select>
+                                            <template x-if="selectedNode.data.signature_level_override !== 'inherit' && selectedNode.data.signature_level_override !== 'none'">
+                                                <div class="mt-2">
+                                                    <label class="block text-xs text-slate-600 mb-1">Wann signieren?</label>
+                                                    <select x-model="selectedNode.data.signature_on"
+                                                            class="block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                        <option value="approved">Nur bei Genehmigung</option>
+                                                        <option value="both">Bei jeder finalen Entscheidung</option>
+                                                    </select>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </template>
 

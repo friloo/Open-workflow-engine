@@ -113,6 +113,60 @@ class SignatureService
             ->get();
     }
 
+    /**
+     * Wird nach Step-Abschluss aufgerufen. Signiert die aktuellen PDF-
+     * Anhaenge der Workflow-Instance falls der Approval-Knoten ein
+     * Signatur-Level fordert (oder der Doku-Typ es vorschreibt).
+     *
+     * @return int Anzahl signierter Attachments
+     */
+    public function maybeSignForStep(\App\Models\WorkflowStepExecution $step, string $decision): int
+    {
+        $instance = $step->instance()->firstOrFail();
+        $version = $instance->version()->firstOrFail();
+        $node = $version->definition['drawflow']['Home']['data'][$step->step_key] ?? null;
+        if (! $node || ($node['class'] ?? null) !== 'approval') return 0;
+
+        $override = (string) data_get($node, 'data.signature_level_override', 'inherit');
+        $signOn = (string) data_get($node, 'data.signature_on', 'approved');
+
+        // 'none' = ausdruecklich kein Signing erzwingen — auch wenn der
+        // Doku-Typ es fordert. Audit-relevant aber bewusst erlaubt.
+        if ($override === 'none') return 0;
+        if ($signOn !== 'both' && $signOn !== $decision) return 0;
+
+        $signer = $step->completed_by ? \App\Models\User::find($step->completed_by) : null;
+        if (! $signer) return 0;
+
+        $pdfs = Attachment::query()
+            ->where('attachable_type', $instance->getMorphClass())
+            ->where('attachable_id', $instance->id)
+            ->where('is_current_version', true)
+            ->where('mime_type', 'application/pdf')
+            ->get();
+        if ($pdfs->isEmpty()) return 0;
+
+        $effectiveOverride = $override === 'inherit' ? null : $override;
+        $count = 0;
+        foreach ($pdfs as $pdf) {
+            $level = $this->resolveLevel($pdf->document_type, $effectiveOverride);
+            if ($level === 'none') continue;
+            try {
+                $this->sign($pdf, $signer, $level, [
+                    'step' => $step,
+                    'reason' => "Auto-Signatur durch Workflow-Approval '{$step->step_key}' ({$decision})",
+                    'twofa_verified' => $signer->hasTwoFactorEnabled(),
+                ]);
+                $count++;
+            } catch (\Throwable $e) {
+                \Log::warning('approval sign failed', [
+                    'attachment_id' => $pdf->id, 'level' => $level, 'error' => $e->getMessage(),
+                ]);
+            }
+        }
+        return $count;
+    }
+
     /** Verifizieren: stimmt der Doku-Hash zum Sign-Zeitpunkt mit der gespeicherten Signatur überein? */
     public function verify(Signature $sig): array
     {

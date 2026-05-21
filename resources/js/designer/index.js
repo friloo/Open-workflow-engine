@@ -44,6 +44,11 @@ const NODE_TEMPLATES = {
             // Stempel-Feature: gestempeltes PDF als neue Version anlegen
             stamp_pdf: false,
             stamp_pdf_only_on: 'approved',
+            // E-Signatur: ueberschreibt Default-Level aus Dokumenttyp.
+            // 'inherit' = uebernehmen, sonst SES/AES/QES erzwingen.
+            // Downgrades werden serverseitig ignoriert (nur Upgrades aktiv).
+            signature_level_override: 'inherit',
+            signature_on: 'approved',
         }),
         outputClasses: (data) => data.allow_forward
             ? ['genehmigt', 'abgelehnt', 'weitergeleitet']
