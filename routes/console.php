@@ -32,6 +32,12 @@ Schedule::command('contracts:check-deadlines')
     ->withoutOverlapping()
     ->runInBackground();
 
+// Vertraege: Quartals-Review (1. Jan, 1. Apr, 1. Jul, 1. Okt).
+Schedule::command('contracts:quarterly-review')
+    ->cron('0 8 1 1,4,7,10 *')
+    ->withoutOverlapping()
+    ->runInBackground();
+
 // Asset-Wiedervorlage: taeglich faellige Assets in Workflows ausspielen.
 Schedule::command('asset:check-due')
     ->dailyAt('06:00')
