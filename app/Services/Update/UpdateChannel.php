@@ -3,7 +3,7 @@
 namespace App\Services\Update;
 
 /**
- * Wert-Objekt fuer den Update-Channel. Pro Channel ein anderes Repo
+ * Wert-Objekt für den Update-Channel. Pro Channel ein anderes Repo
  * im Proxy. Defaults siehe UpdateChannelFactory.
  */
 final class UpdateChannel

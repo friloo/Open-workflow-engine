@@ -18,7 +18,7 @@ class ShareReviewMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: '[Freigabe-Pruefung] '.($this->share->attachment?->original_name ?: 'Dokument'));
+        return new Envelope(subject: '[Freigabe-Prüfung] '.($this->share->attachment?->original_name ?: 'Dokument'));
     }
 
     public function content(): Content

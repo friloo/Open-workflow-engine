@@ -30,10 +30,10 @@
                                     <option value="{{ $wf->id }}" @selected(old('workflow_id', $form->workflow_id) == $wf->id)>{{ $wf->name }}</option>
                                 @endforeach
                             </select>
-                            <p class="mt-1 text-xs text-slate-500">Bei Abgabe wird der gewaehlte aktive Workflow gestartet.</p>
+                            <p class="mt-1 text-xs text-slate-500">Bei Abgabe wird der gewählte aktive Workflow gestartet.</p>
                         </div>
                         <div>
-                            <x-input-label for="public_slug" value="Oeffentlicher Pfad (URL-Slug)" />
+                            <x-input-label for="public_slug" value="Öffentlicher Pfad (URL-Slug)" />
                             <x-text-input id="public_slug" name="public_slug" value="{{ old('public_slug', $form->public_slug) }}" placeholder="z. B. urlaubsantrag" />
                             <x-input-error :messages="$errors->get('public_slug')" />
                             @if($form->is_public && $form->public_slug)
@@ -44,7 +44,7 @@
                             <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                                 <input type="hidden" name="is_public" value="0">
                                 <input type="checkbox" name="is_public" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked(old('is_public', $form->is_public))>
-                                Oeffentlich erreichbar (kein Login noetig)
+                                Öffentlich erreichbar (kein Login nötig)
                             </label>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                             </div>
                         </template>
                         <button type="button" @click="fields.push({label: 'Feld ' + (fields.length+1), key: 'feld_' + (fields.length+1), type: 'text', required: false, options: [], _optionsText: ''})"
-                            class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Feld hinzufuegen</button>
+                            class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Feld hinzufügen</button>
                     </div>
                 </x-card>
 
@@ -134,7 +134,7 @@
                                     <template x-if="['text','number','date'].includes(f.type)"><input :type="f.type" disabled class="block w-full rounded-lg border-slate-200 bg-slate-50 text-sm"></template>
                                     <template x-if="f.type==='select'">
                                         <select disabled class="block w-full rounded-lg border-slate-200 bg-slate-50 text-sm">
-                                            <option>— bitte waehlen —</option>
+                                            <option>— bitte wählen —</option>
                                             <template x-for="o in (f.options||[])"><option x-text="o"></option></template>
                                         </select>
                                     </template>

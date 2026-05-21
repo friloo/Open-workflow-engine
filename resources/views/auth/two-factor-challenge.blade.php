@@ -17,7 +17,7 @@
             <x-text-input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" autofocus placeholder="123 456" class="font-mono text-lg" />
         </div>
         <div class="pt-2">
-            <x-primary-button class="w-full justify-center">Bestaetigen</x-primary-button>
+            <x-primary-button class="w-full justify-center">Bestätigen</x-primary-button>
         </div>
     </form>
 
@@ -26,7 +26,7 @@
         <form method="POST" action="{{ route('two-factor.challenge') }}" class="mt-3 space-y-3">
             @csrf
             <x-text-input name="recovery_code" placeholder="XXXXX-XXXXX" class="font-mono w-full" autocomplete="off" />
-            <x-primary-button class="w-full justify-center">Recovery-Code einloesen</x-primary-button>
+            <x-primary-button class="w-full justify-center">Recovery-Code einlösen</x-primary-button>
         </form>
     </details>
 </x-guest-layout>

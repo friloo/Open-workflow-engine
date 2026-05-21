@@ -23,7 +23,7 @@
                     <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                         <th class="py-2 pr-4">Name</th>
                         <th class="py-2 pr-4">Spalten</th>
-                        <th class="py-2 pr-4">Eintraege</th>
+                        <th class="py-2 pr-4">Einträge</th>
                         <th class="py-2"></th>
                     </tr></thead>
                     <tbody class="divide-y divide-slate-100">
@@ -50,9 +50,9 @@
                                 <td class="py-3 text-right space-x-3">
                                     <a href="{{ route('lists.edit', $l) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
                                     @if(auth()->user()->hasPermission('lists.manage'))
-                                        <form method="POST" action="{{ route('lists.destroy', $l) }}" class="inline" onsubmit="return confirm('Liste wirklich loeschen?')">
+                                        <form method="POST" action="{{ route('lists.destroy', $l) }}" class="inline" onsubmit="return confirm('Liste wirklich löschen?')">
                                             @csrf @method('DELETE')
-                                            <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                            <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                         </form>
                                     @endif
                                 </td>

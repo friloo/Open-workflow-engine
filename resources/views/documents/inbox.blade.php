@@ -7,7 +7,7 @@
     <x-card>
         @if($documents->isEmpty())
             <x-empty-state icon="document" title="Postkorb leer"
-                description="Hier landen Dokumente, die noch keinem Workflow zugeordnet wurden — etwa Anhaenge aus IMAP-Postfaechern ohne Workflow-Auto-Start." />
+                description="Hier landen Dokumente, die noch keinem Workflow zugeordnet wurden — etwa Anhänge aus IMAP-Postfächern ohne Workflow-Auto-Start." />
         @else
             <form method="POST" action="{{ route('documents.inbox.bulk_start') }}" x-data="{ selected: [] }">
                 @csrf
@@ -18,18 +18,18 @@
                             <input type="checkbox"
                                 @change="selected = $event.target.checked ? Array.from(document.querySelectorAll('input[name=&quot;attachment_ids[]&quot;]')).map(c => { c.checked = true; return Number(c.value); }) : (document.querySelectorAll('input[name=&quot;attachment_ids[]&quot;]').forEach(c => c.checked = false), [])"
                                 class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                            <span class="text-slate-700">Alle auswaehlen</span>
+                            <span class="text-slate-700">Alle auswählen</span>
                         </label>
-                        <span class="text-xs text-slate-500" x-text="selected.length === 0 ? 'nichts ausgewaehlt' : selected.length + ' Dokument(e) ausgewaehlt'"></span>
+                        <span class="text-xs text-slate-500" x-text="selected.length === 0 ? 'nichts ausgewählt' : selected.length + ' Dokument(e) ausgewählt'"></span>
                     </div>
                     <div class="flex items-center gap-2">
                         <select name="workflow_id" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                            <option value="">Workflow waehlen…</option>
+                            <option value="">Workflow wählen…</option>
                             @foreach($workflows as $w)
                                 <option value="{{ $w->id }}">{{ $w->name }}</option>
                             @endforeach
                         </select>
-                        <x-primary-button x-bind:disabled="selected.length === 0" onclick="return confirm('Workflow fuer ausgewaehlte Dokumente starten?')">Fuer ausgewaehlte starten</x-primary-button>
+                        <x-primary-button x-bind:disabled="selected.length === 0" onclick="return confirm('Workflow für ausgewählte Dokumente starten?')">Für ausgewählte starten</x-primary-button>
                     </div>
                 </div>
 
@@ -71,6 +71,6 @@
     </x-card>
 
     <div class="text-xs text-slate-500 mt-3">
-        Tipp: erkannte Felder stehen im Workflow als <code>@{{ doc.indexed_fields.&lt;feld&gt; }}</code> zur Verfuegung — auch in Bedingungs-Knoten und im Lookup-Empfaenger.
+        Tipp: erkannte Felder stehen im Workflow als <code>@{{ doc.indexed_fields.&lt;feld&gt; }}</code> zur Verfügung — auch in Bedingungs-Knoten und im Lookup-Empfänger.
     </div>
 </x-app-layout>

@@ -32,8 +32,8 @@ class SupportController extends Controller
 
         $data = $request->validate([
             'subject' => ['required', 'string', 'max:200'],
-            // Description darf jetzt laenger sein, da das Modal automatisch
-            // den aktuellen Page-Link anhaengt.
+            // Description darf jetzt länger sein, da das Modal automatisch
+            // den aktuellen Page-Link anhängt.
             'description' => ['required', 'string', 'max:6000'],
         ]);
 
@@ -90,7 +90,7 @@ class SupportController extends Controller
             return back()->withErrors(['support' => $msg])->withInput();
         }
 
-        $status = 'Anfrage uebermittelt.';
+        $status = 'Anfrage übermittelt.';
         if ($sentMail) $status .= ' Mail an Support gesendet.';
         if ($sentApi)  $status .= ' Ticket im Ticketsystem angelegt.';
 
@@ -126,7 +126,7 @@ class SupportController extends Controller
     /**
      * Schickt das gerenderte Body-Template als HTTP-Request an das
      * konfigurierte Ticketsystem. Platzhalter im Template werden mit
-     * den Context-Werten gefuellt.
+     * den Context-Werten gefüllt.
      */
     private function sendApi(array $cfg, array $ctx): void
     {
@@ -163,9 +163,9 @@ class SupportController extends Controller
     }
 
     /**
-     * Escaped die fuer JSON gefaehrlichen Zeichen. Templates sind
-     * typisch JSON, also rohe " oder Newlines im User-Input wuerden den
-     * Body ungueltig machen.
+     * Escaped die für JSON gefaehrlichen Zeichen. Templates sind
+     * typisch JSON, also rohe " oder Newlines im User-Input würden den
+     * Body ungültig machen.
      */
     private function jsonSafe(string $v): string
     {

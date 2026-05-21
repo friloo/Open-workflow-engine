@@ -18,13 +18,13 @@ use ZipArchive;
  * - Belege liegen als PDFs im Unterordner 'belege/' im ZIP
  *
  * Mapping Indexfeld -> DATEV-Spalte ist konfigurierbar via Settings
- * (key 'datev.field_map'). Default-Mapping deckt die ueblichen
+ * (key 'datev.field_map'). Default-Mapping deckt die üblichen
  * Rechnungs-Felder ab (betrag, datum, rechnungsnummer, kostenstelle).
  *
  * Wichtige Hinweise:
  * - Spalten sind im Standard-DATEV-Buchungsstapel-Format (Semikolon-
  *   getrennt, Zahlen mit Komma-Dezimal, Datum dd.mm.yyyy).
- * - Sachkonto / Gegenkonto / BU-Schluessel kommen aus der Konfig oder
+ * - Sachkonto / Gegenkonto / BU-Schlüssel kommen aus der Konfig oder
  *   sind hart auf Defaults (70000 Kreditoren / 4400 Aufwand / leer BU).
  * - Wer ein 'EXTF'-Header braucht (Stammdaten-Block in Zeile 1) muss
  *   das im Export-Tool nachruesten; die Daten-Spalten sind passend.
@@ -54,7 +54,7 @@ class DatevExporter
 
         $belege = $query->orderBy('created_at')->get();
         if ($belege->isEmpty()) {
-            throw new \RuntimeException('Keine Belege im gewaehlten Zeitraum / Doku-Typ gefunden.');
+            throw new \RuntimeException('Keine Belege im gewählten Zeitraum / Doku-Typ gefunden.');
         }
 
         $tmpZip = tempnam(sys_get_temp_dir(), 'datev_').'.zip';
@@ -75,7 +75,7 @@ class DatevExporter
                 $ext = pathinfo($att->original_name, PATHINFO_EXTENSION) ?: 'pdf';
                 $zip->addFromString("belege/{$no}_{$att->id}.{$ext}", $bytes);
             } catch (\Throwable) {
-                // Beleg nicht lesbar — ueberspringen
+                // Beleg nicht lesbar — überspringen
             }
         }
 
@@ -101,7 +101,7 @@ class DatevExporter
      * 6. WKZ Basis-Umsatz
      * 7. Konto
      * 8. Gegenkonto
-     * 9. BU-Schluessel
+     * 9. BU-Schlüssel
      * 10. Belegdatum
      * 11. Belegfeld 1 (Rechnungsnummer)
      * 12. Belegfeld 2 (Lieferanten-USt-ID)
@@ -122,7 +122,7 @@ class DatevExporter
 
         $header = [
             'Umsatz', 'Soll/Haben', 'WKZ Umsatz', 'Kurs', 'Basis-Umsatz', 'WKZ Basis',
-            'Konto', 'Gegenkonto', 'BU-Schluessel', 'Belegdatum',
+            'Konto', 'Gegenkonto', 'BU-Schlüssel', 'Belegdatum',
             'Belegfeld 1', 'Belegfeld 2', 'Skonto', 'Buchungstext', 'Postensperre',
             'KOST1', 'KOST-Menge', 'EU-USt-IdNr',
         ];
@@ -165,7 +165,7 @@ class DatevExporter
             $lines[] = implode(';', array_map([$this, 'quote'], $row));
         }
 
-        // BOM fuer Excel-Kompatibilitaet (DATEV-Import will UTF-8 mit BOM)
+        // BOM für Excel-Kompatibilität (DATEV-Import will UTF-8 mit BOM)
         return "\xEF\xBB\xBF".implode("\r\n", $lines)."\r\n";
     }
 
@@ -188,10 +188,10 @@ Inhalt:
 
 Hinweis:
   Die Spalten sind im standard-DATEV-Buchungsstapel-Format. Vor dem
-  DATEV-Import ggf. ein passendes EXTF-Header anhaengen oder den
-  Stapel im DATEV-Unternehmen-Online ueber den Beleg-Import einlesen.
+  DATEV-Import ggf. ein passendes EXTF-Header anhängen oder den
+  Stapel im DATEV-Unternehmen-Online über den Beleg-Import einlesen.
 
-  Konten + BU-Schluessel werden aus den OWE-Settings genommen
+  Konten + BU-Schlüssel werden aus den OWE-Settings genommen
   (Settings-Key 'datev.config'). Aktuell gesetzt:
 TXT;
     }

@@ -17,7 +17,7 @@ class SystemSettingsController extends Controller
 
     public function index(): View
     {
-        // Uebersicht mit Status-Karten pro Sub-Bereich.
+        // Übersicht mit Status-Karten pro Sub-Bereich.
         $mail = Settings::group('mail');
         $m365 = Settings::group('auth.m365');
         $oidc = Settings::group('auth.oidc');
@@ -53,7 +53,7 @@ class SystemSettingsController extends Controller
 
     /**
      * Konsolidierte Kommunikations-Seite: Mail-Versand + IT-Support + Teams
-     * (frueher drei separate Tabs).
+     * (früher drei separate Tabs).
      */
     public function communication(): View
     {
@@ -187,7 +187,7 @@ class SystemSettingsController extends Controller
     public function infrastructure(): View
     {
         $stored = Settings::group('infrastructure');
-        // Aktuelle Effektiv-Werte (DB-Overrides ueber env-Defaults gemerged
+        // Aktuelle Effektiv-Werte (DB-Overrides über env-Defaults gemerged
         // — der Provider hat sie schon angewendet).
         $effective = [
             'attachments_disk' => config('filesystems.attachments_disk'),
@@ -238,8 +238,8 @@ class SystemSettingsController extends Controller
             'libreoffice_bin' => ['nullable', 'string', 'max:512'],
         ]);
 
-        // Geheimnisse mit '********' kennzeichnen NICHT speichern (sonst ueberschreibt
-        // der UI-Render das echte Secret wenn der User es nicht aendert).
+        // Geheimnisse mit '********' kennzeichnen NICHT speichern (sonst überschreibt
+        // der UI-Render das echte Secret wenn der User es nicht ändert).
         foreach (['s3_secret', 's3_key', 'meilisearch_key'] as $secretKey) {
             if (isset($data[$secretKey]) && str_starts_with((string) $data[$secretKey], '****')) {
                 unset($data[$secretKey]);
@@ -265,7 +265,7 @@ class SystemSettingsController extends Controller
         }
 
         // Cache Config nicht hart neu laden — der Provider greift beim
-        // naechsten Request. Aber: Config-Cache MUSS geleert werden falls
+        // nächsten Request. Aber: Config-Cache MUSS geleert werden falls
         // 'php artisan config:cache' lief.
         try { \Illuminate\Support\Facades\Artisan::call('config:clear'); } catch (\Throwable) {}
 
@@ -275,12 +275,12 @@ class SystemSettingsController extends Controller
             'search_driver' => $data['search_driver'] ?? null,
         ], 'Infrastruktur-Einstellungen aktualisiert', $request->user()->id);
 
-        return back()->with('status', 'Einstellungen gespeichert. Aenderungen greifen ab dem naechsten Request.');
+        return back()->with('status', 'Einstellungen gespeichert. Änderungen greifen ab dem nächsten Request.');
     }
 
     /**
      * Probiert die konfigurierten Verbindungen (S3 / MeiliSearch / Queue) und
-     * gibt JSON mit ok/error pro Komponente zurueck. Wird von der UI per
+     * gibt JSON mit ok/error pro Komponente zurück. Wird von der UI per
      * fetch() angetriggert.
      */
     public function testInfrastructure(Request $request): \Illuminate\Http\JsonResponse
@@ -306,7 +306,7 @@ class SystemSettingsController extends Controller
         // Queue / Worker
         $conn = config('queue.default');
         if ($conn === 'sync') {
-            $results['queue'] = ['ok' => true, 'message' => 'sync (kein Worker noetig)'];
+            $results['queue'] = ['ok' => true, 'message' => 'sync (kein Worker nötig)'];
         } else {
             $pending = \Schema::hasTable('jobs') ? \DB::table('jobs')->count() : null;
             $results['queue'] = ['ok' => true, 'message' => "Connection: {$conn}, Pending: ".($pending ?? '?')];
@@ -319,7 +319,7 @@ class SystemSettingsController extends Controller
         return response()->json(['results' => $results]);
     }
 
-    /** Maskiert Secrets fuer die Anzeige: 'sk-abcdef...' -> '****cdef'. */
+    /** Maskiert Secrets für die Anzeige: 'sk-abcdef...' -> '****cdef'. */
     private function maskSecret($value): string
     {
         if (! $value) return '';
@@ -409,7 +409,7 @@ class SystemSettingsController extends Controller
     private function sectionDescriptors(): array
     {
         return [
-            ['slug' => 'overview', 'route' => 'admin.settings.index', 'label' => 'Uebersicht', 'icon' => 'home'],
+            ['slug' => 'overview', 'route' => 'admin.settings.index', 'label' => 'Übersicht', 'icon' => 'home'],
             ['slug' => 'sso', 'route' => 'admin.settings.sso', 'label' => 'Anmeldung & SSO', 'icon' => 'shield', 'description' => 'M365, OIDC, Google, SAML, LDAP/AD.'],
             ['slug' => 'communication', 'route' => 'admin.settings.communication', 'label' => 'Kommunikation', 'icon' => 'cog', 'description' => 'Mail-Versand, IT-Support, Teams.'],
             ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente & Sharing', 'icon' => 'document', 'description' => 'Archive, Aufbewahrung, Rollen, externe Freigabe-Caps.'],
@@ -722,7 +722,7 @@ class SystemSettingsController extends Controller
         $this->audit->log(
             $result['ok'] ? 'settings.ldap.test_ok' : 'settings.ldap.test_failed',
             null, null, ['username' => $data['test_username']],
-            $result['ok'] ? "LDAP-Test OK fuer {$result['email']}" : ('LDAP-Test fehlgeschlagen: '.($result['error'] ?? 'unbekannt')),
+            $result['ok'] ? "LDAP-Test OK für {$result['email']}" : ('LDAP-Test fehlgeschlagen: '.($result['error'] ?? 'unbekannt')),
             $request->user()->id,
         );
 

@@ -80,8 +80,8 @@ class IncomingWebhookController extends Controller
         $name = $incomingWebhook->name;
         $incomingWebhook->delete();
         $this->audit->log('incoming_webhook.deleted', null, ['name' => $name], null,
-            "Incoming-Webhook {$name} geloescht");
-        return redirect()->route('admin.incoming-webhooks.index')->with('status', 'Webhook geloescht.');
+            "Incoming-Webhook {$name} gelöscht");
+        return redirect()->route('admin.incoming-webhooks.index')->with('status', 'Webhook gelöscht.');
     }
 
     public function rotateToken(IncomingWebhook $incomingWebhook): RedirectResponse

@@ -3,10 +3,10 @@
         Vertragsarten
         <x-help-hint topic="contracts" label="Anleitung Vertragsarten" />
     </x-slot>
-    <x-slot name="subheader">Pro Vertragsart: Default-Frist + welche Rollen Vertraege dieses Typs sehen/bearbeiten duerfen.</x-slot>
+    <x-slot name="subheader">Pro Vertragsart: Default-Frist + welche Rollen Verträge dieses Typs sehen/bearbeiten dürfen.</x-slot>
 
     <x-breadcrumbs :items="[
-        ['title' => 'Vertraege', 'url' => route('contracts.index')],
+        ['title' => 'Verträge', 'url' => route('contracts.index')],
         ['title' => 'Vertragsarten'],
     ]" />
 
@@ -17,7 +17,7 @@
     <x-card>
         @if($types->isEmpty())
             <x-empty-state icon="document" title="Noch keine Vertragsarten"
-                description="Definiere Vertragsarten (Mietvertrag, Wartung, Software-Lizenz ...) und steuere, welche Rollen welche Arten sehen duerfen.">
+                description="Definiere Vertragsarten (Mietvertrag, Wartung, Software-Lizenz ...) und steuere, welche Rollen welche Arten sehen dürfen.">
                 <a href="{{ route('contract-types.create') }}"><x-primary-button type="button">Erste Vertragsart</x-primary-button></a>
             </x-empty-state>
         @else
@@ -27,7 +27,7 @@
                         <th class="py-2 pr-4">Name</th>
                         <th class="py-2 pr-4">Default-Frist</th>
                         <th class="py-2 pr-4">Berechtigte Rollen</th>
-                        <th class="py-2 pr-4">Vertraege</th>
+                        <th class="py-2 pr-4">Verträge</th>
                         <th class="py-2"></th>
                     </tr>
                 </thead>
@@ -60,9 +60,9 @@
                             <td class="py-3 pr-4 text-right whitespace-nowrap">
                                 <a href="{{ route('contract-types.edit', $t) }}" class="text-sm text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
                                 <form method="POST" action="{{ route('contract-types.destroy', $t) }}" class="inline ms-2"
-                                      onsubmit="return confirm('Vertragsart loeschen? Geht nur, wenn keine Vertraege dieser Art existieren.')">
+                                      onsubmit="return confirm('Vertragsart löschen? Geht nur, wenn keine Verträge dieser Art existieren.')">
                                     @csrf @method('DELETE')
-                                    <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                    <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                 </form>
                             </td>
                         </tr>

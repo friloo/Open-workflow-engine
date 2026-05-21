@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Assets</x-slot>
-    <x-slot name="subheader">Fuehrerscheine, Unterweisungen, Zertifikate — jeweils mit Ablaufdatum und zugehoerigem Workflow.</x-slot>
+    <x-slot name="subheader">Führerscheine, Unterweisungen, Zertifikate — jeweils mit Ablaufdatum und zugehörigem Workflow.</x-slot>
 
     <div class="mb-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <form method="GET" class="flex gap-2">
@@ -49,7 +49,7 @@
                         <th class="py-2 pr-4">Asset</th>
                         <th class="py-2 pr-4">Typ</th>
                         <th class="py-2 pr-4">Inhaber</th>
-                        <th class="py-2 pr-4">Gueltig bis</th>
+                        <th class="py-2 pr-4">Gültig bis</th>
                         <th class="py-2 pr-4">Vorlauf</th>
                         <th class="py-2 pr-4">Workflow</th>
                         <th class="py-2 pr-4">Status</th>

@@ -10,12 +10,12 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Liefert KPI-Daten fuer das Reports-Dashboard:
+ * Liefert KPI-Daten für das Reports-Dashboard:
  * - Workflow-Durchlaufzeiten (Median + Mittel)
- * - SLA-Verletzungen (Tasks die ihr due_at ueberschritten haben)
- * - Top-Verzoegerer-Knoten (welcher Knoten haelt am meisten auf)
+ * - SLA-Verletzungen (Tasks die ihr due_at überschritten haben)
+ * - Top-Verzögerer-Knoten (welcher Knoten hält am meisten auf)
  * - Volumen-Trends (Instanzen pro Tag/Woche/Monat)
- * - Top-Empfaenger (offene Aufgaben pro User / Rolle)
+ * - Top-Empfänger (offene Aufgaben pro User / Rolle)
  *
  * Alle Methoden akzeptieren ein optionales Zeitfenster (Carbon-Datum
  * "ab"). Default: letzte 30 Tage.
@@ -80,7 +80,7 @@ class ReportsService
     }
 
     /**
-     * SLA-Verletzungen: aktuell offene Steps die ihr due_at ueberschritten
+     * SLA-Verletzungen: aktuell offene Steps die ihr due_at überschritten
      * haben. Pro Workflow zaehlen.
      *
      * @return Collection<int, array{workflow_id:int, name:string, overdue:int}>
@@ -105,7 +105,7 @@ class ReportsService
     }
 
     /**
-     * Welcher Knoten in welchem Workflow blockiert am laengsten?
+     * Welcher Knoten in welchem Workflow blockiert am längsten?
      * Misst Aufgaben-Bearbeitungszeit (completed_at - assigned_at) im
      * Zeitfenster.
      *
@@ -174,7 +174,7 @@ class ReportsService
     }
 
     /**
-     * Volumen pro Tag im Zeitfenster — fuer ein einfaches Line-Chart.
+     * Volumen pro Tag im Zeitfenster — für ein einfaches Line-Chart.
      *
      * @return Collection<int, array{date:string, started:int, completed:int}>
      */

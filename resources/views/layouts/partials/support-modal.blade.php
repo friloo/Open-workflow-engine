@@ -5,8 +5,8 @@
 {{-- Support-Modal: in app-layout x-data steckt $supportOpen.
      Bei Klick auf das Lifebuoy-Icon im Topbar gehts auf.
      Beim Submit wird die aktuelle URL automatisch unten an die
-     Description angehaengt. Submit per fetch — bei Erfolg zeigt
-     das Modal eine kurze Bestaetigung und schliesst nach 1.5s. --}}
+     Description angehängt. Submit per fetch — bei Erfolg zeigt
+     das Modal eine kurze Bestätigung und schliesst nach 1.5s. --}}
 <div x-show="supportOpen"
      x-transition.opacity
      class="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -62,7 +62,7 @@
         <form @submit.prevent="submit()" class="px-4 py-4 space-y-3">
             <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
                 Du sendest als <strong>{{ auth()->user()->name }}</strong>
-                ({{ auth()->user()->email }}). Die aktuelle URL wird automatisch angehaengt,
+                ({{ auth()->user()->email }}). Die aktuelle URL wird automatisch angehängt,
                 damit das IT-Team direkt sieht, wo du bist.
             </div>
 
@@ -76,9 +76,9 @@
             <div>
                 <label for="support_description" class="block text-xs font-medium text-slate-600 mb-1">Was ist passiert?</label>
                 <textarea id="support_description" x-model="description" rows="6" required
-                    placeholder="Beschreib so genau wie moeglich, was du gemacht hast und was nicht funktioniert. Schritte zum Reproduzieren, Fehlermeldungen, was du erwartet hattest."
+                    placeholder="Beschreib so genau wie möglich, was du gemacht hast und was nicht funktioniert. Schritte zum Reproduzieren, Fehlermeldungen, was du erwartet hattest."
                     class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
-                <p class="mt-1 text-[11px] text-slate-500">Die URL <code class="bg-slate-100 px-1 rounded" x-text="window.location.pathname"></code> wird ans Ende angehaengt.</p>
+                <p class="mt-1 text-[11px] text-slate-500">Die URL <code class="bg-slate-100 px-1 rounded" x-text="window.location.pathname"></code> wird ans Ende angehängt.</p>
             </div>
 
             <div x-show="error" x-cloak class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" x-text="error"></div>

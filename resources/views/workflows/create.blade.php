@@ -7,7 +7,7 @@
             @include('workflows._form')
             <div class="mt-8 flex justify-end gap-3">
                 <a href="{{ route('workflows.index') }}"><x-secondary-button type="button">Abbrechen</x-secondary-button></a>
-                <x-primary-button>Anlegen &amp; Designer oeffnen</x-primary-button>
+                <x-primary-button>Anlegen &amp; Designer öffnen</x-primary-button>
             </div>
         </form>
     </x-card>

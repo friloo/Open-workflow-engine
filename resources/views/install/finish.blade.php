@@ -13,12 +13,12 @@
         <strong>Installation abgeschlossen.</strong> Der Installer ist ab sofort gesperrt.
     </div>
 
-    <h2>Naechste Schritte</h2>
+    <h2>Nächste Schritte</h2>
     <ol style="font-size:14px; line-height:1.7; color:#334155;">
         <li><a class="link" href="{{ route('login') }}">Anmelden</a> mit dem eben erstellten Admin-Account.</li>
         <li>SMTP-Daten unter <em>Verwaltung → Systemeinstellungen → Mail</em> hinterlegen + Test-Mail.</li>
         <li>(Optional) Microsoft 365 SSO einrichten.</li>
-        <li>(Optional) KI fuer Workflow-Designer-Assistenz.</li>
+        <li>(Optional) KI für Workflow-Designer-Assistenz.</li>
         <li>Cron-Eintrag setzen — ein einziger reicht:
             <code style="display:block; margin-top:4px;">* * * * * cd {{ base_path() }} && php artisan schedule:run &gt;&gt; /dev/null 2&gt;&amp;1</code>
         </li>

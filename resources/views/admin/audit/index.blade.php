@@ -19,7 +19,7 @@
                 ⬇ PDF-Export (letzte 30 Tage)
             </a>
             @if(auth()->user()->hasPermission('audit.verify'))
-                <a href="{{ route('admin.audit.verify') }}"><x-primary-button type="button">Integritaetskette pruefen</x-primary-button></a>
+                <a href="{{ route('admin.audit.verify') }}"><x-primary-button type="button">Integritätskette prüfen</x-primary-button></a>
             @endif
         </div>
     </div>
@@ -52,7 +52,7 @@
                             <td class="py-3 text-xs font-mono text-slate-500" title="{{ $e->hash }}">{{ \Illuminate\Support\Str::limit($e->hash, 12, '…') }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="py-6 text-center text-slate-500">Keine Eintraege.</td></tr>
+                        <tr><td colspan="6" class="py-6 text-center text-slate-500">Keine Einträge.</td></tr>
                     @endforelse
                 </tbody>
             </table>

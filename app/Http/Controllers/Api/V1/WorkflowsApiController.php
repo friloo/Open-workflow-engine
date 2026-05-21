@@ -23,7 +23,7 @@ class WorkflowsApiController extends Controller
         return response()->json(['data' => $items]);
     }
 
-    /** GET /api/v1/workflow-instances — eigene Vorgaenge. */
+    /** GET /api/v1/workflow-instances — eigene Vorgänge. */
     public function instances(Request $request): JsonResponse
     {
         $user = $request->user();

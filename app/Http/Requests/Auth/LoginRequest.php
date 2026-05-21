@@ -95,7 +95,7 @@ class LoginRequest extends FormRequest
 
         if (! $user->is_active) {
             app(AuditLogger::class)->log('auth.ldap.blocked', $user, null, null,
-                "LDAP-Login fuer inaktiven Account {$user->email}", $user->id);
+                "LDAP-Login für inaktiven Account {$user->email}", $user->id);
             throw ValidationException::withMessages(['email' => 'Dieses Konto ist deaktiviert.']);
         }
 

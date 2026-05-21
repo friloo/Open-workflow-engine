@@ -15,9 +15,9 @@ use Symfony\Component\Process\Process;
  * unter dem SHA-256-Hash des Originals abgelegt. Zweite Anfrage:
  * sofortiger Cache-Hit.
  *
- * Wenn libreoffice nicht installiert ist → null. Caller faellt
- * auf eine Hinweis-Seite zurueck. Das System bleibt ohne LibreOffice
- * voll funktionsfaehig — nur Office-Files koennen dann nicht inline
+ * Wenn libreoffice nicht installiert ist → null. Caller fällt
+ * auf eine Hinweis-Seite zurück. Das System bleibt ohne LibreOffice
+ * voll funktionsfähig — nur Office-Files koennen dann nicht inline
  * angezeigt werden.
  */
 class OfficePreview
@@ -45,7 +45,7 @@ class OfficePreview
 
     /**
      * Liefert true wenn LibreOffice auf dem Server gefunden wurde.
-     * Cached fuer die Dauer des Requests.
+     * Cached für die Dauer des Requests.
      */
     public static function isAvailable(): bool
     {
@@ -61,7 +61,7 @@ class OfficePreview
 
     /**
      * Liefert den Pfad zum konvertierten PDF (im Cache). Null wenn
-     * Conversion fehlschlaegt oder LibreOffice fehlt.
+     * Conversion fehlschlägt oder LibreOffice fehlt.
      */
     public function convertToPdf(Attachment $att): ?string
     {
@@ -105,7 +105,7 @@ class OfficePreview
         } catch (\Throwable) {
             return null;
         } finally {
-            // Temp wegraeumen
+            // Temp wegräumen
             if (is_dir($tmpDir)) {
                 foreach (glob($tmpDir.'/*') as $f) @unlink($f);
                 @rmdir($tmpDir);

@@ -7,7 +7,7 @@
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'documents'])
 
-    <x-card title="Dokumenttypen / Archive" description="Klassen fuer hochgeladene Dateien (z. B. Rechnung, Vertrag, Fuehrerschein). Jeder Typ wird zu einem Archiv in der Dokumentenliste.">
+    <x-card title="Dokumenttypen / Archive" description="Klassen für hochgeladene Dateien (z. B. Rechnung, Vertrag, Führerschein). Jeder Typ wird zu einem Archiv in der Dokumentenliste.">
         <form method="POST" action="{{ route('admin.settings.document_types.update') }}"
               x-data='@json(["types" => $documentTypes ?: []])'>
             @csrf
@@ -75,7 +75,7 @@
         @endif
     </x-card>
 
-    <x-card title="Aufbewahrungsregeln pro Dokumenttyp" description="Pro Dokumenttyp eine Mindestlaufzeit und eine Aktion nach Ablauf. Wird taeglich um 03:15 ausgewertet.">
+    <x-card title="Aufbewahrungsregeln pro Dokumenttyp" description="Pro Dokumenttyp eine Mindestlaufzeit und eine Aktion nach Ablauf. Wird täglich um 03:15 ausgewertet.">
         @php
             $retentionRules = [];
             foreach (($retention ?? []) as $docType => $rule) {
@@ -108,9 +108,9 @@
                         <div class="col-span-3">
                             <label class="block text-xs font-medium text-slate-600">Nach Ablauf</label>
                             <select :name="`rules[${idx}][on_expiry]`" x-model="r.on_expiry" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="mark_for_review">Pruefung markieren</option>
+                                <option value="mark_for_review">Prüfung markieren</option>
                                 <option value="archive">Archivieren (Soft-Delete)</option>
-                                <option value="delete">Endgueltig loeschen</option>
+                                <option value="delete">Endgültig löschen</option>
                             </select>
                         </div>
                         <div class="col-span-1 flex items-end justify-end">
@@ -128,28 +128,28 @@
 
     <div id="sharing"></div>
     <x-card title="Externe Freigabe-Links (Sharing)"
-            description="Caps und Pruefungs-Intervalle fuer per-Link geteilte Dokumente.">
+            description="Caps und Prüfungs-Intervalle für per-Link geteilte Dokumente.">
         <form method="POST" action="{{ route('admin.settings.shares.update') }}" class="space-y-3 max-w-2xl">
             @csrf
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <x-input-label for="max_expiry_days" value="Max. Ablauf (Tage)" />
                     <x-text-input id="max_expiry_days" name="max_expiry_days" type="number" min="1" max="3650" value="{{ $shares['max_expiry_days'] }}" />
-                    <p class="mt-1 text-xs text-slate-500">Kann von individuellen Links nie ueberschritten werden.</p>
+                    <p class="mt-1 text-xs text-slate-500">Kann von individuellen Links nie überschritten werden.</p>
                 </div>
                 <div>
                     <x-input-label for="default_expiry_days" value="Default-Ablauf (Tage)" />
                     <x-text-input id="default_expiry_days" name="default_expiry_days" type="number" min="1" max="3650" value="{{ $shares['default_expiry_days'] }}" />
                 </div>
                 <div>
-                    <x-input-label for="review_interval_days" value="Pruefungs-Intervall (Tage)" />
+                    <x-input-label for="review_interval_days" value="Prüfungs-Intervall (Tage)" />
                     <x-text-input id="review_interval_days" name="review_interval_days" type="number" min="1" max="365" value="{{ $shares['review_interval_days'] }}" />
                     <p class="mt-1 text-xs text-slate-500">Mail an den Ersteller alle X Tage.</p>
                 </div>
                 <div>
                     <x-input-label for="review_grace_days" value="Reaktions-Frist (Tage)" />
                     <x-text-input id="review_grace_days" name="review_grace_days" type="number" min="1" max="90" value="{{ $shares['review_grace_days'] }}" />
-                    <p class="mt-1 text-xs text-slate-500">Wird ueberschritten -> automatischer Widerruf.</p>
+                    <p class="mt-1 text-xs text-slate-500">Wird überschritten -> automatischer Widerruf.</p>
                 </div>
             </div>
             <div class="flex justify-end">

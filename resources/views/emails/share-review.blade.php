@@ -13,7 +13,7 @@
         <tr><td style="color:#64748b;">Zugriffe</td><td>{{ $share->download_count }}@if($share->max_downloads) von max. {{ $share->max_downloads }}@endif</td></tr>
     </table>
 
-    <p>Bitte bestaetige, ob die Freigabe weiter aktiv bleiben soll. Wenn du
+    <p>Bitte bestätige, ob die Freigabe weiter aktiv bleiben soll. Wenn du
     bis <strong>{{ $autoRevokeAt->format('d.m.Y H:i') }}</strong> nicht reagierst,
     wird die Freigabe automatisch widerrufen.</p>
 
@@ -22,5 +22,5 @@
         <a href="{{ $revokeUrl }}" style="display:inline-block;background:#f43f5e;color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;">Jetzt widerrufen</a>
     </p>
 
-    <p style="color:#64748b;font-size:12px;">Beim Bestaetigen wirst du gebeten, einen Grund anzugeben (z. B. „laufende Pruefung mit Anwalt").</p>
+    <p style="color:#64748b;font-size:12px;">Beim Bestätigen wirst du gebeten, einen Grund anzugeben (z. B. „laufende Prüfung mit Anwalt").</p>
 </x-mail::message-layout>

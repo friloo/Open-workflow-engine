@@ -121,7 +121,7 @@ class LdapLoginTest extends TestCase
             'name' => 'Tom',
         ]);
 
-        // 'tom' ist keine gueltige E-Mail — sollte aber durchgehen, da LDAP aktiv ist
+        // 'tom' ist keine gültige E-Mail — sollte aber durchgehen, da LDAP aktiv ist
         $this->post('/login', ['email' => 'tom', 'password' => 'pw'])
             ->assertSessionHasNoErrors()
             ->assertRedirect('/dashboard');
@@ -153,9 +153,9 @@ class LdapLoginTest extends TestCase
         $this->assertSame(389, (int) Settings::get('auth.ldap.port'));
         $this->assertSame('service-pw', Settings::get('auth.ldap.bind_password'));
 
-        // Bind-Password muss verschluesselt in der DB stehen
+        // Bind-Password muss verschlüsselt in der DB stehen
         $raw = \DB::table('system_settings')->where('key', 'auth.ldap.bind_password')->value('value');
-        $this->assertNotSame('service-pw', $raw, 'bind_password ist nicht verschluesselt');
+        $this->assertNotSame('service-pw', $raw, 'bind_password ist nicht verschlüsselt');
     }
 
     public function test_admin_can_run_ldap_test_action(): void

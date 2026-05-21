@@ -18,7 +18,7 @@
                     <x-text-input id="logo_text" name="logo_text" maxlength="4" value="{{ $branding['logo_text'] }}" />
                 </div>
                 <div>
-                    <x-input-label for="primary_color" value="Primaerfarbe (#hex)" />
+                    <x-input-label for="primary_color" value="Primärfarbe (#hex)" />
                     <x-text-input id="primary_color" name="primary_color" type="color" value="{{ $branding['primary_color'] }}" />
                 </div>
             </div>
@@ -26,7 +26,7 @@
             <div class="space-y-3 pt-2 border-t border-slate-200">
                 <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Login-Seite</h4>
                 <p class="text-xs text-slate-500">
-                    Wenn ein Hintergrund-Bild URL gesetzt ist, ueberschreibt es den Farbverlauf.
+                    Wenn ein Hintergrund-Bild URL gesetzt ist, überschreibt es den Farbverlauf.
                 </p>
                 <div>
                     <x-input-label for="login_subtitle" value="Untertitel (z.B. Firmenname)" />

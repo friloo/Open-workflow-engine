@@ -75,16 +75,16 @@ class ApprovalExtraFieldsTest extends TestCase
         $this->actingAs($user)->post(route('tasks.decide', $step), [
             'decision' => 'approved',
             'comment' => '',
-            'extra' => ['bemerkung' => 'Geprueft, ok.'],
+            'extra' => ['bemerkung' => 'Geprüft, ok.'],
         ])->assertRedirect();
 
         $att->refresh();
         $this->assertIsArray($att->indexed_fields);
-        $this->assertSame('Geprueft, ok.', $att->indexed_fields['bemerkung'] ?? null);
+        $this->assertSame('Geprüft, ok.', $att->indexed_fields['bemerkung'] ?? null);
         $this->assertNotNull($att->indexed_at);
     }
 
-    public function test_zusatzfeld_wird_ins_doku_schema_uebernommen(): void
+    public function test_zusatzfeld_wird_ins_doku_schema_übernommen(): void
     {
         $this->seed(RolesAndPermissionsSeeder::class);
         \App\Support\Settings::set('attachments.document_types', ['Rechnung']);
@@ -139,9 +139,9 @@ class ApprovalExtraFieldsTest extends TestCase
         $schema = \App\Support\DocumentFieldSchema::forType('Rechnung');
         $keys = collect($schema)->pluck('key')->all();
         $this->assertContains('rechnungsnummer', $keys, 'Bestehendes Feld darf nicht weg sein');
-        $this->assertContains('bemerkung', $keys, 'Neues Feld muss ergaenzt sein');
+        $this->assertContains('bemerkung', $keys, 'Neues Feld muss ergänzt sein');
 
-        // 2. Lauf: kein erneutes Anhaengen (Idempotenz)
+        // 2. Lauf: kein erneutes Anhängen (Idempotenz)
         $instance2 = WorkflowInstance::create([
             'workflow_id' => $workflow->id, 'workflow_version_id' => $version->id,
             'data' => [], 'status' => 'running', 'started_at' => now(), 'started_by' => $user->id,

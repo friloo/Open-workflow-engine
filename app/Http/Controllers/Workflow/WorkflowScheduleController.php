@@ -47,7 +47,7 @@ class WorkflowScheduleController extends Controller
             'workflow' => $workflow->name,
             'subject' => $schedule->subjectUser?->email ?? $schedule->subject_label,
             'interval' => $schedule->interval_value.' '.$schedule->interval_unit,
-        ], "Schedule fuer Workflow {$workflow->name} angelegt");
+        ], "Schedule für Workflow {$workflow->name} angelegt");
 
         return redirect()->route('workflows.schedules.index', $workflow)->with('status', 'Schedule angelegt.');
     }
@@ -86,8 +86,8 @@ class WorkflowScheduleController extends Controller
         $schedule->delete();
 
         $this->audit->log('workflow.schedule.deleted', null, $snapshot, null,
-            "Schedule #{$snapshot['id']} geloescht");
+            "Schedule #{$snapshot['id']} gelöscht");
 
-        return back()->with('status', 'Schedule geloescht.');
+        return back()->with('status', 'Schedule gelöscht.');
     }
 }

@@ -35,8 +35,8 @@
                 </div>
                 <div class="sm:col-span-2">
                     <x-input-label for="secret" value="HMAC-Secret (optional)" />
-                    <x-text-input id="secret" name="secret" type="password" placeholder="@if($webhook->secret)(unveraendert lassen)@endif" autocomplete="new-password" />
-                    <p class="mt-1 text-xs text-slate-500">Wird verschluesselt gespeichert. Header <code>X-OWE-Signature</code> mit <code>sha256=&lt;hex&gt;</code> ueber dem JSON-Body.</p>
+                    <x-text-input id="secret" name="secret" type="password" placeholder="@if($webhook->secret)(unverändert lassen)@endif" autocomplete="new-password" />
+                    <p class="mt-1 text-xs text-slate-500">Wird verschlüsselt gespeichert. Header <code>X-OWE-Signature</code> mit <code>sha256=&lt;hex&gt;</code> über dem JSON-Body.</p>
                 </div>
                 <div class="sm:col-span-2">
                     <x-input-label value="Zusatz-Header" />

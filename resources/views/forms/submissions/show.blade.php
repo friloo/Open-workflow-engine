@@ -3,7 +3,7 @@
     <x-slot name="subheader">{{ $form->name }} · {{ $submission->created_at->format('d.m.Y H:i:s') }}</x-slot>
 
     <div class="mb-4">
-        <a href="{{ route('forms.submissions.index', $form) }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Alle Eingaenge</a>
+        <a href="{{ route('forms.submissions.index', $form) }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Alle Eingänge</a>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -28,7 +28,7 @@
         <x-card title="Metadaten">
             <dl class="space-y-2 text-sm">
                 <div><dt class="text-xs text-slate-500">Eingegangen</dt><dd>{{ $submission->created_at->format('d.m.Y H:i:s') }}</dd></div>
-                <div><dt class="text-xs text-slate-500">Eingereicht von</dt><dd>{{ $submission->submittedBy?->name ?? 'oeffentlich' }}</dd></div>
+                <div><dt class="text-xs text-slate-500">Eingereicht von</dt><dd>{{ $submission->submittedBy?->name ?? 'öffentlich' }}</dd></div>
                 @if($submission->instance)
                     <div><dt class="text-xs text-slate-500">Workflow-Vorgang</dt><dd><a href="{{ route('workflow-instances.show', $submission->instance) }}" class="text-indigo-600 hover:text-indigo-500">#{{ $submission->instance->id }} ({{ $submission->instance->workflow->name }})</a></dd></div>
                 @endif

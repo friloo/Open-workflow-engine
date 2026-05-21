@@ -53,7 +53,7 @@ class Phase15lTest extends TestCase
         $list = LookupList::create(['name' => 'Public', 'slug' => 'p', 'columns' => [
             ['key' => 'k', 'label' => 'K', 'role' => 'key'],
         ]]);
-        // employee hat lists.view nicht standardmaessig
+        // employee hat lists.view nicht standardmäßig
         $this->assertFalse($list->visibleForUser($employee));
         // Designer schon
         $designer = $this->userWith('workflow-designer');
@@ -129,7 +129,7 @@ class Phase15lTest extends TestCase
         $this->assertNotNull($step->due_at);
         $this->assertTrue($step->due_at->greaterThan(now()->addHours(23)));
 
-        // Faelligkeit vorziehen + check-due ausfuehren
+        // Fälligkeit vorziehen + check-due ausführen
         $step->forceFill(['due_at' => now()->subMinute()])->save();
         $this->artisan('workflow:check-due')->assertSuccessful();
 

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">System-Health</x-slot>
-    <x-slot name="subheader">Statuskarten fuer alle wichtigen Komponenten. Aktualisiert sich bei jedem Aufruf.</x-slot>
+    <x-slot name="subheader">Statuskarten für alle wichtigen Komponenten. Aktualisiert sich bei jedem Aufruf.</x-slot>
 
     @php
         $colors = [

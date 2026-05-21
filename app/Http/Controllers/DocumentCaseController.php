@@ -62,7 +62,7 @@ class DocumentCaseController extends Controller
         $data = $request->validate(['workflow_instance_id' => ['required', 'exists:workflow_instances,id']]);
         $case->workflowInstances()->syncWithoutDetaching([$data['workflow_instance_id']]);
         $this->audit->log('case.workflow_attached', $case, null, $data, "Vorgang an Akte {$case->name} geheftet");
-        return back()->with('status', 'Vorgang zur Akte hinzugefuegt.');
+        return back()->with('status', 'Vorgang zur Akte hinzugefügt.');
     }
 
     public function detachWorkflowInstance(DocumentCase $case, int $workflowInstanceId): RedirectResponse
@@ -79,7 +79,7 @@ class DocumentCaseController extends Controller
         $data = $request->validate(['contract_id' => ['required', 'exists:contracts,id']]);
         $case->contracts()->syncWithoutDetaching([$data['contract_id']]);
         $this->audit->log('case.contract_attached', $case, null, $data, "Vertrag an Akte {$case->name} geheftet");
-        return back()->with('status', 'Vertrag zur Akte hinzugefuegt.');
+        return back()->with('status', 'Vertrag zur Akte hinzugefügt.');
     }
 
     public function detachContract(DocumentCase $case, int $contractId): RedirectResponse
@@ -89,7 +89,7 @@ class DocumentCaseController extends Controller
     }
 
     /**
-     * Notiz an Akte anhaengen.
+     * Notiz an Akte anhängen.
      */
     public function addNote(Request $request, DocumentCase $case): RedirectResponse
     {
@@ -98,7 +98,7 @@ class DocumentCaseController extends Controller
             'user_id' => $request->user()->id,
             'body' => $data['body'],
         ]);
-        return back()->with('status', 'Notiz hinzugefuegt.');
+        return back()->with('status', 'Notiz hinzugefügt.');
     }
 
     public function deleteNote(Request $request, DocumentCase $case, int $noteId): RedirectResponse
@@ -110,7 +110,7 @@ class DocumentCaseController extends Controller
             abort(403);
         }
         $note->delete();
-        return back()->with('status', 'Notiz geloescht.');
+        return back()->with('status', 'Notiz gelöscht.');
     }
 
     public function edit(DocumentCase $case): View
@@ -138,8 +138,8 @@ class DocumentCaseController extends Controller
     {
         $name = $case->name;
         $case->delete();
-        $this->audit->log('case.deleted', null, ['name' => $name], null, "Akte {$name} geloescht");
-        return redirect()->route('cases.index')->with('status', "Akte {$name} geloescht.");
+        $this->audit->log('case.deleted', null, ['name' => $name], null, "Akte {$name} gelöscht");
+        return redirect()->route('cases.index')->with('status', "Akte {$name} gelöscht.");
     }
 
     private function validateCase(Request $request): array

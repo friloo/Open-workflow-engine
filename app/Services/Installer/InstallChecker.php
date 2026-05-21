@@ -3,7 +3,7 @@
 namespace App\Services\Installer;
 
 /**
- * Pruefungen fuer den Erstinstallations-Wizard: PHP, Extensions, Schreibrechte.
+ * Prüfungen für den Erstinstallations-Wizard: PHP, Extensions, Schreibrechte.
  */
 class InstallChecker
 {
@@ -18,7 +18,7 @@ class InstallChecker
         'pdo_sqlite' => 'SQLite-Treiber (Standard-Datenbank)',
         'pdo_mysql' => 'MySQL/MariaDB-Treiber',
         'gd' => 'Bildverarbeitung (z. B. PDF-Vorschauen)',
-        'imap' => 'IMAP-Postfaecher (alternativ: ueber webklex/php-imap ohne ext-imap)',
+        'imap' => 'IMAP-Postfächer (alternativ: über webklex/php-imap ohne ext-imap)',
     ];
 
     /** @return array<int, array{name:string, status:'ok'|'fail'|'warn', message:string}> */
@@ -31,7 +31,7 @@ class InstallChecker
         $out[] = [
             'name' => 'PHP-Version',
             'status' => version_compare($php, self::MIN_PHP, '>=') ? 'ok' : 'fail',
-            'message' => "PHP {$php} (benoetigt >= ".self::MIN_PHP.')',
+            'message' => "PHP {$php} (benötigt >= ".self::MIN_PHP.')',
         ];
 
         // Pflicht-Extensions
@@ -74,7 +74,7 @@ class InstallChecker
             'name' => 'vendor/ (Composer-Dependencies)',
             'status' => $vendorOk ? 'ok' : 'fail',
             'message' => $vendorOk
-                ? 'autoload.php gefunden — Release-Paket war vollstaendig.'
+                ? 'autoload.php gefunden — Release-Paket war vollständig.'
                 : 'vendor/autoload.php fehlt. Bitte das Release-ZIP MIT vendor/-Ordner verwenden (oder lokal "composer install --no-dev" vor dem Upload).',
         ];
 

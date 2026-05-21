@@ -8,8 +8,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Taeglich: Status aller Vertraege neu berechnen + bei erreichter
- * Kuendigungsfrist eine in-App-Benachrichtigung an den
+ * Täglich: Status aller Verträge neu berechnen + bei erreichter
+ * Kündigungsfrist eine in-App-Benachrichtigung an den
  * Verantwortlichen senden (einmal pro Frist-Auftreten, danach 90 Tage Ruhe).
  *
  * Erwartet Cron-Eintrag in app/Console/Kernel.php oder routes/console.php:
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
 class ContractsCheckDeadlines extends Command
 {
     protected $signature = 'contracts:check-deadlines';
-    protected $description = 'Vertraege: Status sync + Kuendigungs-Reminder';
+    protected $description = 'Verträge: Status sync + Kündigungs-Reminder';
 
     public function handle(): int
     {
@@ -42,8 +42,8 @@ class ContractsCheckDeadlines extends Command
                     AppNotification::create([
                         'user_id' => $c->owner_user_id,
                         'type' => 'contract.notice_due',
-                        'title' => 'Vertrag ' . $c->name . ' - Kuendigungsfrist erreicht',
-                        'body' => 'Kuendigungsfrist ' . $c->notice_period_days . ' Tage vor Ende ('
+                        'title' => 'Vertrag ' . $c->name . ' - Kündigungsfrist erreicht',
+                        'body' => 'Kündigungsfrist ' . $c->notice_period_days . ' Tage vor Ende ('
                             . $c->end_date?->format('d.m.Y') . ').',
                         'url' => route('contracts.show', $c),
                     ]);

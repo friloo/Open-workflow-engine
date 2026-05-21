@@ -52,7 +52,7 @@ class SecretController extends Controller
     {
         $key = $secret->key;
         $secret->delete();
-        $this->audit->log('secret.deleted', null, ['key' => $key], null, "Secret {$key} geloescht");
-        return back()->with('status', "Secret {$key} geloescht.");
+        $this->audit->log('secret.deleted', null, ['key' => $key], null, "Secret {$key} gelöscht");
+        return back()->with('status', "Secret {$key} gelöscht.");
     }
 }

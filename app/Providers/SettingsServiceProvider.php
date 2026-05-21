@@ -95,7 +95,7 @@ class SettingsServiceProvider extends ServiceProvider
     }
 
     /**
-     * Storage / Queue / Suche / Office-Vorschau aus der DB ueberschreiben.
+     * Storage / Queue / Suche / Office-Vorschau aus der DB überschreiben.
      * Default kommt weiter aus .env — die DB-Werte sind nur Overrides,
      * sodass eine frische Installation ohne UI-Zugriff sofort funktioniert
      * und das Admin-UI nur die Override-Schicht ist.
@@ -105,11 +105,11 @@ class SettingsServiceProvider extends ServiceProvider
         $infra = Settings::group('infrastructure');
         if ($infra === []) return;
 
-        // Storage-Disk fuer Attachments
+        // Storage-Disk für Attachments
         if (! empty($infra['attachments_disk'])) {
             config(['filesystems.attachments_disk' => $infra['attachments_disk']]);
         }
-        // S3 / MinIO-Credentials (wenn welche gesetzt sind, ueberschreiben)
+        // S3 / MinIO-Credentials (wenn welche gesetzt sind, überschreiben)
         $s3 = config('filesystems.disks.s3', []);
         foreach ([
             's3_key' => 'key',

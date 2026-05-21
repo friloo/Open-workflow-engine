@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">System-Update</x-slot>
-    <x-slot name="subheader">Holt die neueste Version aus dem konfigurierten Channel und installiert sie. Waehrenddessen ist die App im Wartungsmodus.</x-slot>
+    <x-slot name="subheader">Holt die neueste Version aus dem konfigurierten Channel und installiert sie. Währenddessen ist die App im Wartungsmodus.</x-slot>
 
     @php($channel = $check['channel'] ?? 'stable')
 
-    <x-card title="Channel" description="Bestimmt das Update-Repository. Bitte hier nicht aus Versehen development waehlen.">
+    <x-card title="Channel" description="Bestimmt das Update-Repository. Bitte hier nicht aus Versehen development wählen.">
         <form method="POST" action="{{ route('admin.update.channel') }}" class="space-y-3">
             @csrf
             <div class="flex items-center gap-3">
@@ -39,7 +39,7 @@
                 <div class="font-mono text-xs break-all" x-text="check.current || '— unbekannt —'"></div>
             </div>
             <div>
-                <div class="text-xs text-slate-500">Verfuegbare Version</div>
+                <div class="text-xs text-slate-500">Verfügbare Version</div>
                 <div class="font-mono text-xs break-all" x-text="check.latest || '—'"></div>
             </div>
         </div>
@@ -47,20 +47,20 @@
         <div class="mt-3">
             <button type="button" @click="load(true)" :disabled="checking"
                     class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed">
-                <span x-show="!checking">Jetzt pruefen</span>
+                <span x-show="!checking">Jetzt prüfen</span>
                 <span x-show="checking">Pruefe &hellip;</span>
             </button>
         </div>
 
         <template x-if="check.error">
             <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
-                Pruefung fehlgeschlagen: <span x-text="check.error"></span>
+                Prüfung fehlgeschlagen: <span x-text="check.error"></span>
             </div>
         </template>
 
         <template x-if="!check.error && check.has_update">
             <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                Update verfuegbar.
+                Update verfügbar.
             </div>
         </template>
 
@@ -85,7 +85,7 @@
         <div class="mt-4">
             <form method="POST" action="{{ route('admin.update.run') }}"
                   x-data="{ busy: false }"
-                  @submit="if (!confirm('Jetzt updaten? Die App ist waehrend des Updates kurz nicht erreichbar.')) { $event.preventDefault(); return; } busy = true">
+                  @submit="if (!confirm('Jetzt updaten? Die App ist während des Updates kurz nicht erreichbar.')) { $event.preventDefault(); return; } busy = true">
                 @csrf
                 <button type="submit" :disabled="!check.has_update || maintenance || busy"
                     class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -115,7 +115,7 @@
                 <label class="block text-xs font-medium text-slate-600 mb-1">Version-Label (optional)</label>
                 <input type="text" name="version" placeholder="z. B. 40-stellige SHA, sonst manual-Zeitstempel"
                        class="w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <p class="mt-1 text-xs text-slate-500">Wenn leer oder kein gueltiger SHA: <code>manual-YYYYMMDDHHMMSS</code> wird in <code>.version</code> geschrieben.</p>
+                <p class="mt-1 text-xs text-slate-500">Wenn leer oder kein gültiger SHA: <code>manual-YYYYMMDDHHMMSS</code> wird in <code>.version</code> geschrieben.</p>
             </div>
             <div>
                 <x-primary-button>ZIP anwenden</x-primary-button>

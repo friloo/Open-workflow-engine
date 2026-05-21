@@ -5,7 +5,7 @@
         @if($notifications->isEmpty())
             <x-empty-state icon="bell"
                 title="Keine Benachrichtigungen"
-                description="Sobald du eine Aufgabe erhaeltst oder eine Freigabe geprueft werden muss, taucht es hier auf." />
+                description="Sobald du eine Aufgabe erhältst oder eine Freigabe geprüft werden muss, taucht es hier auf." />
         @else
             <div class="mb-3 flex justify-end">
                 <form method="POST" action="{{ route('notifications.read_all') }}">

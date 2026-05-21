@@ -4,9 +4,9 @@
 
     <div class="px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-            Diese Seite ist nur ueber Admin-Berechtigung erreichbar. Sie ist NICHT
-            oeffentlich exponiert. Die Spec liegt in <code>resources/api-docs/openapi.yaml</code>
-            und wird hand-curiert — bei Code-Aenderungen an Endpunkten bitte mitpflegen.
+            Diese Seite ist nur über Admin-Berechtigung erreichbar. Sie ist NICHT
+            öffentlich exponiert. Die Spec liegt in <code>resources/api-docs/openapi.yaml</code>
+            und wird hand-curiert — bei Code-Änderungen an Endpunkten bitte mitpflegen.
         </div>
 
         <div class="flex items-center gap-2 text-xs">
@@ -19,7 +19,7 @@
             </a>
         </div>
 
-        {{-- Swagger-UI laedt via CDN. Wenn das wegen CSP / Offline nicht geht,
+        {{-- Swagger-UI lädt via CDN. Wenn das wegen CSP / Offline nicht geht,
              zeigt das Fallback unten die Roh-YAML. --}}
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
         <div id="swagger-ui" class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"></div>
@@ -35,7 +35,7 @@
             window.addEventListener('load', () => {
                 if (typeof SwaggerUIBundle === 'undefined') {
                     document.getElementById('swagger-ui').innerHTML =
-                        '<div class="p-6 text-sm text-rose-700">Swagger-UI konnte nicht geladen werden — bitte Netzwerk-Zugriff auf jsdelivr.net pruefen oder die YAML direkt herunterladen.</div>';
+                        '<div class="p-6 text-sm text-rose-700">Swagger-UI konnte nicht geladen werden — bitte Netzwerk-Zugriff auf jsdelivr.net prüfen oder die YAML direkt herunterladen.</div>';
                     return;
                 }
                 SwaggerUIBundle({

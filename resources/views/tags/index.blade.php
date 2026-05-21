@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Tags</x-slot>
-    <x-slot name="subheader">Frei vergebbare Schlagwoerter pro Dokument — z. B. "dringend", "intern", "rueckfrage".</x-slot>
+    <x-slot name="subheader">Frei vergebbare Schlagwörter pro Dokument — z. B. "dringend", "intern", "rückfrage".</x-slot>
 
     <x-card title="Neuen Tag anlegen">
         <form method="POST" action="{{ route('tags.store') }}" class="flex items-end gap-3">
@@ -19,7 +19,7 @@
 
     <x-card>
         @if($tags->isEmpty())
-            <x-empty-state title="Noch keine Tags" description="Lege oben einen Tag an. Tags helfen, Dokumente quer ueber Archive zu gruppieren." />
+            <x-empty-state title="Noch keine Tags" description="Lege oben einen Tag an. Tags helfen, Dokumente quer über Archive zu gruppieren." />
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($tags as $tag)
@@ -30,9 +30,9 @@
                             <code class="text-xs text-slate-500">{{ $tag->slug }}</code>
                             <span class="text-xs text-slate-500">· {{ $tag->attachments_count }} Doks</span>
                         </div>
-                        <form method="POST" action="{{ route('tags.destroy', $tag) }}" onsubmit="return confirm('Tag loeschen?')">
+                        <form method="POST" action="{{ route('tags.destroy', $tag) }}" onsubmit="return confirm('Tag löschen?')">
                             @csrf @method('DELETE')
-                            <button class="text-xs text-rose-600 hover:text-rose-500">Loeschen</button>
+                            <button class="text-xs text-rose-600 hover:text-rose-500">Löschen</button>
                         </form>
                     </li>
                 @endforeach

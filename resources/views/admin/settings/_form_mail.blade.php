@@ -23,7 +23,7 @@
                         <x-text-input id="port" name="port" type="number" value="{{ $mail['port'] ?? 587 }}" />
                     </div>
                     <div>
-                        <x-input-label for="encryption" value="Verschluesselung" />
+                        <x-input-label for="encryption" value="Verschlüsselung" />
                         <select id="encryption" name="encryption" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="" @selected(empty($mail['encryption']))>Keine</option>
                             <option value="tls" @selected(($mail['encryption'] ?? '')==='tls')>STARTTLS</option>
@@ -36,8 +36,8 @@
                     </div>
                     <div>
                         <x-input-label for="password" value="Passwort" />
-                        <x-text-input id="password" name="password" type="password" placeholder="@if(! empty($mail['password']))(unveraendert lassen)@endif" autocomplete="new-password" />
-                        <p class="mt-1 text-xs text-slate-500">Verschluesselt gespeichert. Leer = bisherigen Wert beibehalten.</p>
+                        <x-text-input id="password" name="password" type="password" placeholder="@if(! empty($mail['password']))(unverändert lassen)@endif" autocomplete="new-password" />
+                        <p class="mt-1 text-xs text-slate-500">Verschlüsselt gespeichert. Leer = bisherigen Wert beibehalten.</p>
                     </div>
                     <div>
                         <x-input-label for="from_address" value="Absender-E-Mail" />

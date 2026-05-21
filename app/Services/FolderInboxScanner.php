@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
  * neue Dateien, archiviert sie als Attachments (mit Doku-Typ-Schema
  * + OCR) und startet optional einen Workflow je Datei.
  *
- * Nach erfolgreicher Verarbeitung: Datei loeschen ODER in Unterordner
+ * Nach erfolgreicher Verarbeitung: Datei löschen ODER in Unterordner
  * verschieben (per Konfiguration).
  */
 class FolderInboxScanner
@@ -121,7 +121,7 @@ class FolderInboxScanner
         } catch (\App\Exceptions\DuplicateAttachmentException $e) {
             // Scan-Ordner liefert manchmal dasselbe File mehrfach (z. B. weil
             // der Scanner re-tried). Duplikat ignorieren — Original-Eintrag steht.
-            \Illuminate\Support\Facades\Log::info('Folder-Inbox: Duplikat uebersprungen', [
+            \Illuminate\Support\Facades\Log::info('Folder-Inbox: Duplikat übersprungen', [
                 'inbox' => $inbox->name, 'file' => $name, 'original_id' => $e->original->id,
             ]);
             return;
@@ -133,7 +133,7 @@ class FolderInboxScanner
             $data['doc_attachment_id'] = $att->id;
             $data['doc_original_name'] = $att->original_name;
             $data['doc_document_type'] = $att->document_type;
-            // Indexed Fields uebernehmen, falls schon vorhanden
+            // Indexed Fields übernehmen, falls schon vorhanden
             foreach ((array) ($att->indexed_fields ?? []) as $k => $v) {
                 if (! array_key_exists($k, $data)) $data[$k] = $v;
             }
@@ -145,7 +145,7 @@ class FolderInboxScanner
             'workflow_instance_id' => $instance?->id,
         ], "Datei {$name} aus Folder {$inbox->name} importiert");
 
-        // Aufraeumen
+        // Aufräumen
         if ($inbox->after_import === 'move' && $processedDir) {
             $target = $processedDir.DIRECTORY_SEPARATOR.date('Y-m-d_His').'_'.$name;
             @rename($fullPath, $target);

@@ -84,8 +84,8 @@ class LookupListController extends Controller
         abort_unless($list->editableByUser($request->user()), 403);
         $snapshot = $list->only(['id', 'name', 'slug']);
         $list->delete();
-        $this->audit->log('list.deleted', null, $snapshot, null, "Liste {$snapshot['name']} geloescht");
-        return redirect()->route('lists.index')->with('status', 'Liste geloescht.');
+        $this->audit->log('list.deleted', null, $snapshot, null, "Liste {$snapshot['name']} gelöscht");
+        return redirect()->route('lists.index')->with('status', 'Liste gelöscht.');
     }
 
     private function syncRolePermissions(LookupList $list, array $rolePerms): void
@@ -144,7 +144,7 @@ class LookupListController extends Controller
         $keyCount = collect($cols)->where('role', LookupList::ROLE_KEY)->count();
         if ($keyCount !== 1) {
             abort(redirect()->back()->withInput()->withErrors([
-                'columns' => 'Es muss genau eine Spalte mit Rolle "Schluessel" geben.',
+                'columns' => 'Es muss genau eine Spalte mit Rolle "Schlüssel" geben.',
             ]));
         }
     }

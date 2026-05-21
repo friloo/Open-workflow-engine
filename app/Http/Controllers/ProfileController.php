@@ -25,7 +25,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Schreibt die Notification-Praeferenzen aus dem Profile-Form.
+     * Schreibt die Notification-Präferenzen aus dem Profile-Form.
      * Form-Format: prefs[event_key][channel] = '1' wenn checked.
      */
     public function updateNotificationPreferences(Request $request): RedirectResponse

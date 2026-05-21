@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Aggregierte Workflow-Metriken: laufende vs. abgeschlossene Instanzen,
- * Durchlaufzeit (Median + p95), Engpaesse pro Schritt, Wochen-Throughput.
+ * Durchlaufzeit (Median + p95), Engpässe pro Schritt, Wochen-Throughput.
  */
 class WorkflowStats
 {
@@ -81,7 +81,7 @@ class WorkflowStats
     }
 
     /**
-     * Schritte mit der laengsten durchschnittlichen Bearbeitungszeit
+     * Schritte mit der längsten durchschnittlichen Bearbeitungszeit
      * (assigned_at -> completed_at).
      */
     private function bottlenecks(Workflow $workflow): array
@@ -121,7 +121,7 @@ class WorkflowStats
 
     /**
      * Anzahl pro ISO-Woche der letzten 12 Wochen
-     * (started_at). Liefert immer 12 Eintraege.
+     * (started_at). Liefert immer 12 Einträge.
      *
      * @return array<int, array{week: string, started: int, completed: int}>
      */

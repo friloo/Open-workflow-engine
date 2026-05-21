@@ -2,9 +2,9 @@
 <html>
 <head><meta charset="utf-8"></head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1f2937;">
-<h2>Quartals-Pruefung Vertraege</h2>
+<h2>Quartals-Prüfung Verträge</h2>
 <p>Hallo {{ $owner->name }},</p>
-<p>du bist als <strong>Verantwortliche/r</strong> fuer {{ $contracts->count() }} Vertraege eingetragen.
+<p>du bist als <strong>Verantwortliche/r</strong> für {{ $contracts->count() }} Verträge eingetragen.
 Bitte sichten — Stand: {{ $date->format('d.m.Y') }}.</p>
 
 <table cellpadding="6" cellspacing="0" border="1" style="border-collapse: collapse; width: 100%; font-size: 13px;">
@@ -39,7 +39,7 @@ Bitte sichten — Stand: {{ $date->format('d.m.Y') }}.</p>
 </table>
 
 <p style="margin-top: 16px;">
-    <a href="{{ url('/contracts') }}" style="background: #4f46e5; color: white; padding: 8px 14px; text-decoration: none; border-radius: 6px;">Alle Vertraege oeffnen</a>
+    <a href="{{ url('/contracts') }}" style="background: #4f46e5; color: white; padding: 8px 14px; text-decoration: none; border-radius: 6px;">Alle Verträge öffnen</a>
 </p>
 
 <p style="margin-top: 24px; font-size: 12px; color: #6b7280;">

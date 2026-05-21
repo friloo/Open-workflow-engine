@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">Workflow-Statistik</x-slot>
-    <x-slot name="subheader">Auf einen Blick: laufende Instanzen, ueberfaellige Aufgaben, Wochen-Throughput.</x-slot>
+    <x-slot name="subheader">Auf einen Blick: laufende Instanzen, überfällige Aufgaben, Wochen-Throughput.</x-slot>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <x-stat-card label="Laufend" :value="$global['instances']['running']" tone="indigo" />
         <x-stat-card label="Abgeschlossen" :value="$global['instances']['completed']" tone="emerald" />
         <x-stat-card label="Fehlgeschlagen" :value="$global['instances']['failed']" tone="rose" />
-        <x-stat-card label="Ueberfaellige Aufgaben" :value="$global['overdue_tasks']" tone="amber" />
+        <x-stat-card label="Überfällige Aufgaben" :value="$global['overdue_tasks']" tone="amber" />
     </div>
 
     <x-card title="Throughput (letzte 12 Wochen)" description="Anzahl gestartet vs. abgeschlossen pro Kalenderwoche.">

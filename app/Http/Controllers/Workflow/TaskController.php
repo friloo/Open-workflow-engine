@@ -31,9 +31,9 @@ class TaskController extends Controller
                 }
             });
 
-        // Snoozed (Wiedervorlage) standardmaessig ausblenden — User hat sich
-        // bewusst entschieden, das erst spaeter zu bearbeiten.
-        // Defensiv: ohne snoozed_until-Migration ueberspringen wir den Filter.
+        // Snoozed (Wiedervorlage) standardmäßig ausblenden — User hat sich
+        // bewusst entschieden, das erst später zu bearbeiten.
+        // Defensiv: ohne snoozed_until-Migration überspringen wir den Filter.
         $hasSnooze = Schema::hasColumn('workflow_step_executions', 'snoozed_until');
         $hideSnoozed = $hasSnooze
             ? fn ($q) => $q->where(function ($q2) {
@@ -64,7 +64,7 @@ class TaskController extends Controller
             ->with(['instance.workflow', 'instance.starter', 'assignedRole']);
         $baseScope($query);
 
-        // Snoozed-Filter zeigt absichtlich die zurueckgestellten Aufgaben;
+        // Snoozed-Filter zeigt absichtlich die zurückgestellten Aufgaben;
         // sonst werden sie ausgeblendet.
         if ($filter !== 'snoozed') $hideSnoozed($query);
 
@@ -170,7 +170,7 @@ class TaskController extends Controller
         ];
         $messages = [
             'comment.required' => $decision === 'rejected'
-                ? 'Bitte gib eine Begruendung fuer die Ablehnung ein.'
+                ? 'Bitte gib eine Begründung für die Ablehnung ein.'
                 : 'Bitte gib einen Kommentar zur Genehmigung ein.',
         ];
 
@@ -192,14 +192,14 @@ class TaskController extends Controller
                 default:         $rule[] = 'string'; $rule[] = 'max:1000';
             }
             $rules['extra.'.$f['key']] = $rule;
-            $messages['extra.'.$f['key'].'.required'] = 'Bitte „'.($f['label'] ?? $f['key']).'" ausfuellen.';
+            $messages['extra.'.$f['key'].'.required'] = 'Bitte „'.($f['label'] ?? $f['key']).'" ausfüllen.';
         }
 
         $data = $request->validate($rules, $messages);
 
         if ($data['decision'] === 'forwarded') {
             if (empty($data['forward_user_id'])) {
-                return back()->withErrors(['forward_user_id' => 'Bitte einen Benutzer auswaehlen.']);
+                return back()->withErrors(['forward_user_id' => 'Bitte einen Benutzer auswählen.']);
             }
             $target = User::findOrFail($data['forward_user_id']);
             $this->engine->forwardStep($step, $target, $data['comment'] ?? null, $request->user()->id);
@@ -227,7 +227,7 @@ class TaskController extends Controller
      * Schreibt die im Approval konfigurierten Zusatzfelder an den
      * vorgesehenen Ort:
      *  - target='doc':       indexed_fields aller an dieser Instanz
-     *                        haengenden Anhaenge werden gemerged.
+     *                        hängenden Anhänge werden gemerged.
      *  - target='instance':  in $instance->data['_approval'][step_key].
      *
      * Audit pro Feld, damit der Verlauf nachvollziehbar bleibt.
@@ -242,7 +242,7 @@ class TaskController extends Controller
             'text' => 'string', 'textarea' => 'string', 'select' => 'string',
             'checkbox' => 'string', 'number' => 'number', 'date' => 'date',
         ];
-        // Pro Doku-Type sammeln wir die Schema-Felder, die ggf. ergaenzt werden muessen.
+        // Pro Doku-Type sammeln wir die Schema-Felder, die ggf. ergänzt werden müssen.
         $docSchemaUpdates = [];
 
         foreach ($fieldsConfig as $f) {
@@ -287,8 +287,8 @@ class TaskController extends Controller
             }
 
             // Schema-Auto-Pflege: pro angefasstem Doku-Type fehlende Felder
-            // ergaenzen. Idempotent — bestehende Schemas bleiben unveraendert
-            // (Extractor/Pattern werden NICHT ueberschrieben).
+            // ergänzen. Idempotent — bestehende Schemas bleiben unverändert
+            // (Extractor/Pattern werden NICHT überschrieben).
             foreach (array_keys($touchedTypes) as $docType) {
                 $added = [];
                 foreach ($docSchemaUpdates as $key => $meta) {
@@ -351,7 +351,7 @@ class TaskController extends Controller
             'custom' => $data['custom_at'] ? \Carbon\Carbon::parse($data['custom_at']) : null,
         };
         if (! $target) {
-            return back()->withErrors(['custom_at' => 'Bitte ein gueltiges Datum angeben.']);
+            return back()->withErrors(['custom_at' => 'Bitte ein gültiges Datum angeben.']);
         }
 
         $step->update(['snoozed_until' => $target]);

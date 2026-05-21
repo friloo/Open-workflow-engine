@@ -1,6 +1,6 @@
 <x-app-layout>
-    <x-slot name="header">E-Mail-Postfaecher</x-slot>
-    <x-slot name="subheader">IMAP-Postfaecher, deren Anhaenge als Dokumente archiviert und optional in einen Workflow geleitet werden.</x-slot>
+    <x-slot name="header">E-Mail-Postfächer</x-slot>
+    <x-slot name="subheader">IMAP-Postfächer, deren Anhänge als Dokumente archiviert und optional in einen Workflow geleitet werden.</x-slot>
 
     <div class="mb-4 flex justify-end">
         <a href="{{ route('admin.mailboxes.create') }}"><x-primary-button type="button">Neues Postfach</x-primary-button></a>
@@ -9,8 +9,8 @@
     <x-card>
         @if($mailboxes->isEmpty())
             <x-empty-state icon="mail"
-                title="Noch keine Postfaecher"
-                description="Lege ein IMAP-Postfach an. Eingehende Mails werden alle 5 Minuten verarbeitet, Anhaenge revisionssicher gespeichert.">
+                title="Noch keine Postfächer"
+                description="Lege ein IMAP-Postfach an. Eingehende Mails werden alle 5 Minuten verarbeitet, Anhänge revisionssicher gespeichert.">
                 <a href="{{ route('admin.mailboxes.create') }}"><x-primary-button type="button">Postfach anlegen</x-primary-button></a>
             </x-empty-state>
         @else
@@ -48,9 +48,9 @@
                                     <form method="POST" action="{{ route('admin.mailboxes.test', $m) }}" class="inline">@csrf<button class="text-sm text-slate-600 hover:text-slate-900">Test</button></form>
                                     <form method="POST" action="{{ route('admin.mailboxes.fetch', $m) }}" class="inline">@csrf<button class="text-sm text-slate-600 hover:text-slate-900">Jetzt abrufen</button></form>
                                     <a href="{{ route('admin.mailboxes.edit', $m) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
-                                    <form method="POST" action="{{ route('admin.mailboxes.destroy', $m) }}" class="inline" onsubmit="return confirm('Postfach loeschen?')">
+                                    <form method="POST" action="{{ route('admin.mailboxes.destroy', $m) }}" class="inline" onsubmit="return confirm('Postfach löschen?')">
                                         @csrf @method('DELETE')
-                                        <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                        <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                     </form>
                                 </td>
                             </tr>

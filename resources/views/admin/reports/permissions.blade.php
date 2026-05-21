@@ -3,7 +3,7 @@
         Berechtigungs-Report
         <x-help-hint topic="admin" label="Anleitung" />
     </x-slot>
-    <x-slot name="subheader">Wer ist in welcher Rolle? Welche Permissions hat welche Rolle? Knopf-Druck-Export fuer Audit + Compliance.</x-slot>
+    <x-slot name="subheader">Wer ist in welcher Rolle? Welche Permissions hat welche Rolle? Knopf-Druck-Export für Audit + Compliance.</x-slot>
 
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div class="text-xs text-slate-500">

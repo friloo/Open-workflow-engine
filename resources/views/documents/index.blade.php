@@ -12,7 +12,7 @@
         @if($type)
             Treffer im aktuellen Archiv. Volltext und Indexfelder kombinierbar.
         @else
-            Volltext-Suche ueber alle Archive. Fuer Indexfeld-Filter links ein Archiv waehlen.
+            Volltext-Suche über alle Archive. Für Indexfeld-Filter links ein Archiv wählen.
         @endif
     </x-slot>
 
@@ -22,7 +22,7 @@
     @if(! empty($missing))
         <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             OCR-Tools nicht installiert: <strong>{{ implode(', ', $missing) }}</strong>.
-            Volltextsuche funktioniert nur fuer eingebettete PDF-Texte. Fuer Bild-PDFs
+            Volltextsuche funktioniert nur für eingebettete PDF-Texte. Für Bild-PDFs
             poppler-utils (pdftotext, pdftoppm) und tesseract-ocr auf dem Server installieren.
         </div>
     @endif
@@ -55,10 +55,10 @@
                         class="pl-3 pr-2 py-1 hover:bg-slate-50 {{ (int) request('saved') === $s->id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700' }}">
                         {{ $s->name }}
                     </a>
-                    <form method="POST" action="{{ route('saved_searches.destroy', $s) }}" onsubmit="return confirm('Suche „{{ $s->name }}" loeschen?')" class="border-l border-slate-200">
+                    <form method="POST" action="{{ route('saved_searches.destroy', $s) }}" onsubmit="return confirm('Suche „{{ $s->name }}" löschen?')" class="border-l border-slate-200">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="px-2 py-1 text-slate-400 hover:text-rose-600" title="Loeschen">×</button>
+                        <button type="submit" class="px-2 py-1 text-slate-400 hover:text-rose-600" title="Löschen">×</button>
                     </form>
                 </div>
             @endforeach
@@ -101,7 +101,7 @@
                 <option value="done" @selected($status==='done')>fertig</option>
                 <option value="pending" @selected($status==='pending')>pending</option>
                 <option value="failed" @selected($status==='failed')>fehlgeschlagen</option>
-                <option value="skipped" @selected($status==='skipped')>uebersprungen</option>
+                <option value="skipped" @selected($status==='skipped')>übersprungen</option>
             </select>
             <x-secondary-button type="submit">Suchen</x-secondary-button>
         </div>
@@ -111,12 +111,12 @@
                 <div class="flex items-center justify-between mb-3">
                     <div>
                         <div class="text-sm font-semibold text-indigo-900">Indexfelder · {{ $type }}</div>
-                        <div class="text-xs text-indigo-700/80">Mehrere Felder werden UND-verknuepft.</div>
+                        <div class="text-xs text-indigo-700/80">Mehrere Felder werden UND-verknüpft.</div>
                     </div>
                     <div class="text-xs">
                         @if(! empty($fieldFilters))
                             <a href="{{ route('documents.index', ['type' => $type, 'q' => $q]) }}"
-                               class="text-rose-600 hover:text-rose-500">Filter zuruecksetzen</a>
+                               class="text-rose-600 hover:text-rose-500">Filter zurücksetzen</a>
                         @endif
                     </div>
                 </div>
@@ -149,7 +149,7 @@
                                 <label class="block text-xs font-medium text-slate-700 mb-1">{{ $f['label'] }}</label>
                                 <input type="text" name="fields[{{ $f['key'] }}]"
                                        value="{{ is_array($current) ? '' : ($current ?? '') }}"
-                                       placeholder="enthaelt …"
+                                       placeholder="enthält …"
                                        class="block w-full rounded-md border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             </div>
                         @endif
@@ -161,7 +161,7 @@
             </div>
         @elseif($type && $type !== '__unclassified__')
             <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-                Fuer das Archiv <strong>{{ $type }}</strong> ist noch kein Index-Schema definiert.
+                Für das Archiv <strong>{{ $type }}</strong> ist noch kein Index-Schema definiert.
                 <a href="{{ route('admin.document_schemas.index') }}" class="text-indigo-600 hover:text-indigo-500">Felder anlegen →</a>
             </div>
         @endif
@@ -228,14 +228,14 @@
                                             class="rounded border-slate-300 text-indigo-600">
                                         <span class="text-slate-700">Alle</span>
                                     </label>
-                                    <span class="text-xs text-slate-500" x-text="selected.length === 0 ? 'nichts ausgewaehlt' : selected.length + ' ausgewaehlt'"></span>
+                                    <span class="text-xs text-slate-500" x-text="selected.length === 0 ? 'nichts ausgewählt' : selected.length + ' ausgewählt'"></span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <select x-model="action" name="action" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                        <option value="set_type">Typ aendern</option>
+                                        <option value="set_type">Typ ändern</option>
                                         <option value="add_tag">Tag setzen</option>
                                         <option value="remove_tag">Tag entfernen</option>
-                                        <option value="add_case">Zu Akte hinzufuegen</option>
+                                        <option value="add_case">Zu Akte hinzufügen</option>
                                         <option value="archive">Archivieren</option>
                                     </select>
                                     <template x-if="action === 'set_type'">
@@ -248,7 +248,7 @@
                                     </template>
                                     <template x-if="action === 'add_tag' || action === 'remove_tag'">
                                         <select name="tag_id" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                            <option value="">— Tag waehlen —</option>
+                                            <option value="">— Tag wählen —</option>
                                             @foreach($allTags as $tag)
                                                 <option value="{{ $tag->id }}">{{ $tag->name }}</option>
                                             @endforeach
@@ -256,13 +256,13 @@
                                     </template>
                                     <template x-if="action === 'add_case'">
                                         <select name="case_id" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                            <option value="">— Akte waehlen —</option>
+                                            <option value="">— Akte wählen —</option>
                                             @foreach($allCases as $case)
                                                 <option value="{{ $case->id }}">{{ $case->name }}</option>
                                             @endforeach
                                         </select>
                                     </template>
-                                    <x-primary-button x-bind:disabled="selected.length === 0" onclick="return confirm('Aktion auf ausgewaehlte Dokumente anwenden?')">Anwenden</x-primary-button>
+                                    <x-primary-button x-bind:disabled="selected.length === 0" onclick="return confirm('Aktion auf ausgewählte Dokumente anwenden?')">Anwenden</x-primary-button>
                                 </div>
                             </div>
                         </div>
@@ -301,8 +301,8 @@
                                 <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z"/></svg>
                             </div>
                             <strong class="text-slate-700">Klick ein Dokument links an</strong>
-                            <p class="mt-1">PDF und Bilder werden hier direkt angezeigt — kein „Oeffnen" mehr noetig.</p>
-                            <p class="mt-3 text-xs text-slate-400">Tastatur: <kbd class="rounded border border-slate-300 bg-white px-1 font-mono text-[10px]">↑</kbd> <kbd class="rounded border border-slate-300 bg-white px-1 font-mono text-[10px]">↓</kbd> blaettern.</p>
+                            <p class="mt-1">PDF und Bilder werden hier direkt angezeigt — kein „Öffnen" mehr nötig.</p>
+                            <p class="mt-3 text-xs text-slate-400">Tastatur: <kbd class="rounded border border-slate-300 bg-white px-1 font-mono text-[10px]">↑</kbd> <kbd class="rounded border border-slate-300 bg-white px-1 font-mono text-[10px]">↓</kbd> blättern.</p>
                         </div>
                     </template>
 
@@ -319,7 +319,7 @@
                                         </button>
                                         <button type="button" @click="next()" :disabled="selectedIdx === docs.length - 1"
                                             class="grid h-7 w-7 place-items-center rounded text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed"
-                                            title="Naechstes Dokument (Pfeil runter)">
+                                            title="Nächstes Dokument (Pfeil runter)">
                                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
                                         </button>
                                         <span class="text-[11px] text-slate-400 ms-1" x-text="(selectedIdx + 1) + ' / ' + docs.length"></span>
@@ -381,7 +381,7 @@
                             <template x-if="selected.previewable">
                                 {{-- #search=... wird vom Chrome/Edge-PDF-Viewer ausgewertet und
                                      springt zum ersten Treffer (markiert ihn). Firefox/Safari
-                                     ignorieren den Hash, die Datei oeffnet trotzdem normal. --}}
+                                     ignorieren den Hash, die Datei öffnet trotzdem normal. --}}
                                 <iframe :src="previewSrc" :title="selected.name" class="flex-1 w-full bg-white"></iframe>
                             </template>
                             <template x-if="!selected.previewable">
@@ -415,7 +415,7 @@
                     }
                     return url;
                 },
-                // Indexfelder fuer den schmalen Header oben — max 4 sichtbar,
+                // Indexfelder für den schmalen Header oben — max 4 sichtbar,
                 // damit nichts in 2 Zeilen umbricht.
                 get indexedFieldsForDisplay() {
                     if (!this.selected) return {};

@@ -74,7 +74,7 @@ class WebPushSender
         foreach ($webPush->flush() as $report) {
             if (! $report->isSuccess()) {
                 $code = $report->getResponse()?->getStatusCode();
-                // 404/410 = Subscription tot, sicher loeschen
+                // 404/410 = Subscription tot, sicher löschen
                 if (in_array($code, [404, 410], true)) {
                     PushSubscription::where('endpoint', (string) $report->getEndpoint())->delete();
                 }

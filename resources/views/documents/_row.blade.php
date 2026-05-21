@@ -32,7 +32,7 @@
                 {{ $d->sizeFormatted() }} · {{ $d->mime_type }} · {{ $d->created_at->format('d.m.Y H:i') }}
                 @if($d->uploader) · von {{ $d->uploader->name }} @endif
                 @if($d->attachable_type)
-                    · gehoert zu <code class="text-xs bg-slate-100 rounded px-1">{{ class_basename($d->attachable_type) }}#{{ $d->attachable_id }}</code>
+                    · gehört zu <code class="text-xs bg-slate-100 rounded px-1">{{ class_basename($d->attachable_type) }}#{{ $d->attachable_id }}</code>
                 @endif
             </div>
             @if($snippet)
@@ -47,7 +47,7 @@
             @endif
         </div>
         <div class="shrink-0 text-right space-x-3">
-            <a href="{{ route('attachments.download', $d) }}" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-500">Oeffnen</a>
+            <a href="{{ route('attachments.download', $d) }}" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-500">Öffnen</a>
         </div>
     </div>
 </li>

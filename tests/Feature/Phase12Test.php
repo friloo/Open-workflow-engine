@@ -70,7 +70,7 @@ class Phase12Test extends TestCase
         // Workflow nimmt den Fehler-Pfad (Output 2) und endet
         $this->assertSame('completed', $instance->fresh()->status);
 
-        // Audit-Log enthaelt einen geblockten Eintrag
+        // Audit-Log enthält einen geblockten Eintrag
         $this->assertDatabaseHas('audit_logs', ['event' => 'workflow.http.blocked']);
     }
 
@@ -109,7 +109,7 @@ class Phase12Test extends TestCase
 
         $this->assertNotNull($list->lookup('1000'));
         $this->assertNotNull($list->lookup('  1000 '));
-        // Case-insensitive Fallback bei alphanumerischen Schluesseln
+        // Case-insensitive Fallback bei alphanumerischen Schlüsseln
         LookupListEntry::create(['lookup_list_id' => $list->id, 'key_value' => 'IT-Office', 'data' => ['kostenstelle' => 'IT-Office']]);
         $this->assertNotNull($list->lookup('it-office'));
     }
@@ -159,7 +159,7 @@ class Phase12Test extends TestCase
     public function test_complete_step_is_transactional(): void
     {
         // Smoke-Test: completeStep ruft DB::transaction auf — wir verifizieren
-        // einfach, dass der Workflow weiterlaeuft.
+        // einfach, dass der Workflow weiterläuft.
         Mail::fake();
         $admin = $this->admin();
         $emp = User::factory()->create(['supervisor_id' => $admin->id]);

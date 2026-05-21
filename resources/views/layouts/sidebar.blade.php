@@ -10,7 +10,7 @@
             })->count()
         : 0;
 
-    // Archive (Dokumenttypen) als Sub-Eintraege unter "Dokumente".
+    // Archive (Dokumenttypen) als Sub-Einträge unter "Dokumente".
     $documentArchives = [];
     if ($user?->hasPermission('documents.search')) {
         $visibleArchives = \App\Support\DocumentTypes::visibleForUser($user);
@@ -46,7 +46,7 @@
             'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.run','forms.view','forms.manage']),
             'items' => [
                 ['name' => 'Workflows', 'route' => 'workflows.index', 'icon' => 'workflow', 'active' => request()->routeIs('workflows.*'), 'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.run'])],
-                ['name' => 'Vorgaenge', 'route' => 'workflow-instances.index', 'icon' => 'list', 'active' => request()->routeIs('workflow-instances.*'), 'when' => $user !== null],
+                ['name' => 'Vorgänge', 'route' => 'workflow-instances.index', 'icon' => 'list', 'active' => request()->routeIs('workflow-instances.*'), 'when' => $user !== null],
                 ['name' => 'Formulare', 'route' => 'forms.index', 'icon' => 'form', 'active' => request()->routeIs('forms.*'), 'when' => $user?->hasAnyPermission(['forms.view','forms.manage'])],
                 ['name' => 'Reports', 'route' => 'reports.index', 'icon' => 'chart', 'active' => request()->routeIs('reports.*'), 'when' => $user?->hasPermission('reports.view')],
             ],
@@ -56,7 +56,7 @@
             'when' => $user?->hasAnyPermission(['lists.view','lists.manage','assets.view','assets.manage','contracts.view','contracts.manage','documents.search']),
             'items' => [
                 ['name' => 'Listen', 'route' => 'lists.index', 'icon' => 'table', 'active' => request()->routeIs('lists.*'), 'when' => $user?->hasAnyPermission(['lists.view','lists.manage'])],
-                ['name' => 'Vertraege', 'route' => 'contracts.index', 'icon' => 'document', 'active' => request()->routeIs('contracts.*'), 'when' => $user?->hasAnyPermission(['contracts.view','contracts.manage'])],
+                ['name' => 'Verträge', 'route' => 'contracts.index', 'icon' => 'document', 'active' => request()->routeIs('contracts.*'), 'when' => $user?->hasAnyPermission(['contracts.view','contracts.manage'])],
                 ['name' => 'Assets', 'route' => 'assets.index', 'icon' => 'badge', 'active' => request()->routeIs('assets.*'), 'when' => $user?->hasAnyPermission(['assets.view','assets.manage'])],
                 ['name' => 'Dokumente', 'route' => 'documents.index', 'icon' => 'list', 'active' => request()->routeIs('documents.*'), 'when' => $user?->hasPermission('documents.search'), 'children' => $documentArchives, 'children_expanded' => request()->routeIs('documents.*')],
                 ['name' => 'Akten', 'route' => 'cases.index', 'icon' => 'document', 'active' => request()->routeIs('cases.*'), 'when' => $user?->hasPermission('documents.search')],
@@ -78,7 +78,7 @@
             'group' => 'Integrationen',
             'when' => $user?->hasAnyPermission(['mailboxes.manage','folder_inboxes.manage','webhooks.manage','incoming_webhooks.manage','secrets.manage']),
             'items' => [
-                ['name' => 'E-Mail-Postfaecher', 'route' => 'admin.mailboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.mailboxes.*'), 'when' => $user?->hasPermission('mailboxes.manage')],
+                ['name' => 'E-Mail-Postfächer', 'route' => 'admin.mailboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.mailboxes.*'), 'when' => $user?->hasPermission('mailboxes.manage')],
                 ['name' => 'Folder-Inboxen', 'route' => 'admin.folder-inboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.folder-inboxes.*'), 'when' => $user?->hasPermission('folder_inboxes.manage')],
                 ['name' => 'Webhooks (out)', 'route' => 'admin.webhooks.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.webhooks.*'), 'when' => $user?->hasPermission('webhooks.manage')],
                 ['name' => 'Webhooks (in)', 'route' => 'admin.incoming-webhooks.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.incoming-webhooks.*'), 'when' => $user?->hasPermission('incoming_webhooks.manage')],

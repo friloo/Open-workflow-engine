@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">API-Tokens fuer {{ $managedUser->name }}</x-slot>
+    <x-slot name="header">API-Tokens für {{ $managedUser->name }}</x-slot>
     <x-slot name="subheader">{{ $managedUser->email }}@if($managedUser->isServiceAccount()) · <span class="text-amber-700">Service-Account</span>@endif</x-slot>
 
     <x-breadcrumbs :items="[
@@ -18,7 +18,7 @@
         </x-card>
     @endif
 
-    <x-card title="Neuen Token fuer {{ $managedUser->name }} erzeugen">
+    <x-card title="Neuen Token für {{ $managedUser->name }} erzeugen">
         <form method="POST" action="{{ route('admin.users.tokens.store', $managedUser) }}" class="space-y-4">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -53,14 +53,14 @@
 
     <x-card title="Aktive Tokens">
         @if($tokens->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Tokens fuer diesen Benutzer.</p>
+            <p class="text-sm text-slate-500">Noch keine Tokens für diesen Benutzer.</p>
         @else
             <div class="overflow-x-auto -mx-4 sm:mx-0">
 <table class="min-w-full text-sm divide-y divide-slate-200">
                 <thead>
                     <tr class="text-left text-xs uppercase text-slate-500">
                         <th class="py-2 pr-4">Name</th>
-                        <th class="py-2 pr-4">Praefix</th>
+                        <th class="py-2 pr-4">Präfix</th>
                         <th class="py-2 pr-4">Abilities</th>
                         <th class="py-2 pr-4">Zuletzt benutzt</th>
                         <th class="py-2 pr-4">Ablauf</th>

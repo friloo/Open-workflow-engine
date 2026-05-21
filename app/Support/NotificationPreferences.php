@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Verwaltet die User-Praeferenz Matrix Event x Channel. Default-Verhalten
- * fuer noch nicht ueberschriebene Kombinationen: an. So funktionieren
+ * Verwaltet die User-Präferenz Matrix Event x Channel. Default-Verhalten
+ * für noch nicht überschriebene Kombinationen: an. So funktionieren
  * frische Installationen / neue User wie bisher.
  *
- * Plus ein Lookup-Cache pro Request, damit die n*m-Pruefung beim
+ * Plus ein Lookup-Cache pro Request, damit die n*m-Prüfung beim
  * Massenversand (Reminder-Cron, Eskalation an Rolle) nicht n*m Queries
  * macht.
  */
@@ -32,15 +32,15 @@ class NotificationPreferences
             ],
             'task.reminder' => [
                 'label' => 'Erinnerung an offene Aufgabe',
-                'description' => 'Wenn eine Aufgabe ueberfaellig ist oder bald die Frist erreicht.',
+                'description' => 'Wenn eine Aufgabe überfällig ist oder bald die Frist erreicht.',
             ],
             'task.completed' => [
                 'label' => 'Eigene Aufgabe abgeschlossen',
-                'description' => 'Bestaetigung dass deine Entscheidung gespeichert ist.',
+                'description' => 'Bestätigung dass deine Entscheidung gespeichert ist.',
             ],
             'task.escalated' => [
                 'label' => 'Aufgabe eskaliert',
-                'description' => 'Wenn die Karenzzeit abgelaufen ist und die Aufgabe an einen anderen Empfaenger geht.',
+                'description' => 'Wenn die Karenzzeit abgelaufen ist und die Aufgabe an einen anderen Empfänger geht.',
             ],
             'workflow.completed' => [
                 'label' => 'Vorgang abgeschlossen',
@@ -52,7 +52,7 @@ class NotificationPreferences
             ],
             'document.shared' => [
                 'label' => 'Sharing-Link erstellt',
-                'description' => 'Wenn jemand einen oeffentlichen Freigabe-Link zu einem Dokument erstellt.',
+                'description' => 'Wenn jemand einen öffentlichen Freigabe-Link zu einem Dokument erstellt.',
             ],
             'mention' => [
                 'label' => 'Erwaehnung in Kommentar',
@@ -71,7 +71,7 @@ class NotificationPreferences
 
     /**
      * Liefert true wenn der User diese Event-Channel-Kombination erhalten will.
-     * Default fuer fehlende Eintraege: true (= Opt-out-Modell).
+     * Default für fehlende Einträge: true (= Opt-out-Modell).
      *
      * Spezialfall Mail: zusaetzlich muss die globale Flag
      * users.email_notifications_enabled = true sein (das ist die schon
@@ -79,7 +79,7 @@ class NotificationPreferences
      */
     public static function wants(User $user, string $eventKey, string $channel): bool
     {
-        // Master-Switch fuer Mails ueberschreibt alles
+        // Master-Switch für Mails überschreibt alles
         if ($channel === 'mail' && ! $user->email_notifications_enabled) return false;
 
         $matrix = self::matrixFor($user);
@@ -89,7 +89,7 @@ class NotificationPreferences
     }
 
     /**
-     * Komplette Matrix fuer einen User als hash 'event:channel' => bool.
+     * Komplette Matrix für einen User als hash 'event:channel' => bool.
      * Per-Request gecached um wiederholte Queries zu vermeiden.
      *
      * @return array<string, bool>
@@ -116,7 +116,7 @@ class NotificationPreferences
     }
 
     /**
-     * Schreibt die User-Praeferenz. Wird vom Profile-Form gerufen.
+     * Schreibt die User-Präferenz. Wird vom Profile-Form gerufen.
      * Werte ausserhalb der Catalog/Channel-Listen werden ignoriert.
      */
     public static function set(User $user, string $eventKey, string $channel, bool $enabled): void

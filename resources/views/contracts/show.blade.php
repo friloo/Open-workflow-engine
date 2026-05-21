@@ -3,7 +3,7 @@
     <x-slot name="subheader">{{ $contract->party ?: 'Vertrag' }} · {{ $contract->category ?: '—' }}</x-slot>
 
     <x-breadcrumbs :items="[
-        ['title' => 'Vertraege', 'url' => route('contracts.index')],
+        ['title' => 'Verträge', 'url' => route('contracts.index')],
         ['title' => $contract->name],
     ]" />
 
@@ -14,19 +14,19 @@
                     <div>
                         @switch($contract->status)
                             @case('active')<span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Aktiv</span>@break
-                            @case('notice_due')<span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Kuendigungsfrist erreicht</span>@break
+                            @case('notice_due')<span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Kündigungsfrist erreicht</span>@break
                             @case('expired')<span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">Abgelaufen</span>@break
                         @endswitch
                         @if($contract->auto_renew)
-                            <span class="ms-2 inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">Auto-Verlaengerung {{ $contract->auto_renew_months }} Monate</span>
+                            <span class="ms-2 inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">Auto-Verlängerung {{ $contract->auto_renew_months }} Monate</span>
                         @endif
                     </div>
                     @if($canManage)
                         <div class="flex gap-2">
                             <a href="{{ route('contracts.edit', $contract) }}" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">Bearbeiten</a>
-                            <form method="POST" action="{{ route('contracts.destroy', $contract) }}" onsubmit="return confirm('Vertrag wirklich loeschen?')">
+                            <form method="POST" action="{{ route('contracts.destroy', $contract) }}" onsubmit="return confirm('Vertrag wirklich löschen?')">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-sm font-medium text-rose-700 hover:bg-rose-50">Loeschen</button>
+                                <button type="submit" class="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-sm font-medium text-rose-700 hover:bg-rose-50">Löschen</button>
                             </form>
                         </div>
                     @endif
@@ -65,7 +65,7 @@
                         <dd class="text-slate-900"><x-fmt-date :value="$contract->end_date" /></dd>
                     </div>
                     <div>
-                        <dt class="text-xs uppercase text-slate-500">Kuendigungsfrist</dt>
+                        <dt class="text-xs uppercase text-slate-500">Kündigungsfrist</dt>
                         <dd class="text-slate-900">{{ $contract->notice_period_days }} Tage</dd>
                     </div>
                     <div>
@@ -80,10 +80,10 @@
                     <form method="POST" action="{{ route('contracts.cases.attach', $contract) }}" class="mb-3 flex flex-wrap items-end gap-2">
                         @csrf
                         <div class="flex-1 min-w-[220px]">
-                            <x-input-label for="document_case_id" value="Akte waehlen" />
+                            <x-input-label for="document_case_id" value="Akte wählen" />
                             <select id="document_case_id" name="document_case_id" required
                                     class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">— Akte auswaehlen —</option>
+                                <option value="">— Akte auswählen —</option>
                                 @foreach($availableCases as $a)
                                     <option value="{{ $a->id }}">{{ $a->name }}@if($a->reference) ({{ $a->reference }})@endif</option>
                                 @endforeach
@@ -92,7 +92,7 @@
                         <x-secondary-button type="submit">Zu Akte heften</x-secondary-button>
                     </form>
                 @elseif($canManage)
-                    <p class="text-xs text-slate-500 mb-3">Keine offenen Akten verfuegbar.
+                    <p class="text-xs text-slate-500 mb-3">Keine offenen Akten verfügbar.
                         <a href="{{ route('cases.create') }}" class="text-indigo-600 hover:text-indigo-500">Neue Akte anlegen</a>.</p>
                 @endif
 
@@ -110,7 +110,7 @@
                                 </div>
                                 @if($canManage)
                                     <form method="POST" action="{{ route('contracts.cases.detach', [$contract, $a->id]) }}"
-                                          onsubmit="return confirm('Vertrag aus dieser Akte loesen?')">
+                                          onsubmit="return confirm('Vertrag aus dieser Akte lösen?')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="text-xs text-rose-600 hover:text-rose-500">Entfernen</button>
                                     </form>
@@ -154,12 +154,12 @@
                                 <x-input-label for="template_id" value="PDF aus Vorlage erzeugen" />
                                 <select id="template_id" name="template_id" required
                                         class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="">— Vorlage waehlen —</option>
+                                    <option value="">— Vorlage wählen —</option>
                                     @foreach($templates as $t)
                                         <option value="{{ $t->id }}">{{ $t->name }}</option>
                                     @endforeach
                                 </select>
-                                <p class="mt-1 text-xs text-slate-500">Platzhalter werden aus den Vertragsdaten gefuellt, PDF als Anhang gespeichert.</p>
+                                <p class="mt-1 text-xs text-slate-500">Platzhalter werden aus den Vertragsdaten gefüllt, PDF als Anhang gespeichert.</p>
                             </div>
                             <x-secondary-button type="submit">PDF erzeugen</x-secondary-button>
                         </form>
@@ -168,7 +168,7 @@
 
                 @if($contract->attachments->isEmpty())
                     <p class="text-sm text-slate-500">
-                        Noch keine Dokumente angehaengt.
+                        Noch keine Dokumente angehängt.
                         @if($canManage)Lade die Vertrags-PDF + Anlagen hier hoch — sie werden revisionssicher gespeichert (SHA-256-Hash, OCR-Volltext).@endif
                     </p>
                 @else
@@ -228,7 +228,7 @@
             <x-card title="Zugriffsrechte" description="Wer kann diesen Vertrag sehen?">
                 <div class="text-sm space-y-2">
                     <div>
-                        <div class="text-xs uppercase text-slate-500 mb-1">Ueber Vertragsart</div>
+                        <div class="text-xs uppercase text-slate-500 mb-1">Über Vertragsart</div>
                         @if($contract->type && $contract->type->roles->isNotEmpty())
                             @foreach($contract->type->roles as $r)
                                 <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs me-1 mb-1">
@@ -239,11 +239,11 @@
                                 </span>
                             @endforeach
                         @else
-                            <p class="text-xs text-slate-400">Keine Vertragsart oder keine Rollen ueber Typ freigeschaltet.</p>
+                            <p class="text-xs text-slate-400">Keine Vertragsart oder keine Rollen über Typ freigeschaltet.</p>
                         @endif
                     </div>
                     <div>
-                        <div class="text-xs uppercase text-slate-500 mb-1">Zusaetzlich nur fuer diesen Vertrag</div>
+                        <div class="text-xs uppercase text-slate-500 mb-1">Zusaetzlich nur für diesen Vertrag</div>
                         @if($contract->roles->isNotEmpty())
                             @foreach($contract->roles as $r)
                                 <span class="inline-flex items-center rounded bg-indigo-50 px-1.5 py-0.5 text-xs text-indigo-700 me-1 mb-1">
@@ -258,7 +258,7 @@
                         @endif
                     </div>
                     <p class="text-xs text-slate-500 pt-2 border-t border-slate-100">
-                        <strong>+M</strong> = darf auch bearbeiten/loeschen. Admins haben immer vollen Zugriff.
+                        <strong>+M</strong> = darf auch bearbeiten/löschen. Admins haben immer vollen Zugriff.
                     </p>
                 </div>
             </x-card>

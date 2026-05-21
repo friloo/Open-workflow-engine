@@ -33,7 +33,7 @@ class Attachment extends Model
     protected static function booted(): void
     {
         static::updating(function (Attachment $a) {
-            // Hash und Pfad sind revisionssicher — duerfen nicht veraendert werden.
+            // Hash und Pfad sind revisionssicher — dürfen nicht verändert werden.
             foreach (['content_hash', 'path', 'size', 'attachable_type', 'attachable_id'] as $f) {
                 if ($a->isDirty($f) && $a->getOriginal($f) !== null) {
                     throw new \RuntimeException("Attachment-Feld {$f} ist unveraenderlich.");
@@ -42,7 +42,7 @@ class Attachment extends Model
         });
 
         static::deleting(function (Attachment $a) {
-            // Nur bei force-delete physisch loeschen (revisionssicher).
+            // Nur bei force-delete physisch löschen (revisionssicher).
             if ($a->isForceDeleting()) {
                 try { Storage::disk($a->disk)->delete($a->path); } catch (\Throwable) {}
             }
@@ -119,10 +119,10 @@ class Attachment extends Model
      *
      * Erlaubt wenn:
      * 1. Sein Rollen-Doku-Type-Mapping greift (DocumentTypes::canViewType), ODER
-     * 2. das Dokument an einer WorkflowInstance haengt und er Assignee
+     * 2. das Dokument an einer WorkflowInstance hängt und er Assignee
      *    eines Steps darin ist oder war (auch wenn der Step abgeschlossen ist
-     *    — dadurch behaelt er Kontext nach seiner Entscheidung), ODER
-     * 3. das Dokument an einem Asset haengt das ihm gehoert oder fuer das er
+     *    — dadurch behält er Kontext nach seiner Entscheidung), ODER
+     * 3. das Dokument an einem Asset hängt das ihm gehört oder für das er
      *    assets.view hat.
      *
      * Damit kann z. B. ein Buchhalter Rechnungen genehmigen, ohne dass die

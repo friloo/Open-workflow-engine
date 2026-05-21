@@ -9,9 +9,9 @@ use Illuminate\Console\Command;
 class ReindexAttachments extends Command
 {
     protected $signature = 'documents:reindex {--type= : Nur ein bestimmter Dokumenttyp}
-                                                 {--missing : Nur Anhaenge ohne indexed_fields}
+                                                 {--missing : Nur Anhänge ohne indexed_fields}
                                                  {--id=* : Konkrete Attachment-IDs}';
-    protected $description = 'Liest Felder fuer bestehende Anhaenge erneut aus dem OCR-Text (basierend auf dem Dokumenttyp-Schema).';
+    protected $description = 'Liest Felder für bestehende Anhänge erneut aus dem OCR-Text (basierend auf dem Dokumenttyp-Schema).';
 
     public function handle(FieldExtractor $fields): int
     {

@@ -52,7 +52,7 @@
                         this.active = true;
                     },
                     onDragLeave() {
-                        // dragleave feuert beim Wechsel zwischen Kindern — kurze Verzoegerung damit's nicht flackert
+                        // dragleave feuert beim Wechsel zwischen Kindern — kurze Verzögerung damit's nicht flackert
                         setTimeout(() => { if (!this._dragDepth) this.active = false; }, 50);
                     },
                     async onDrop(e) {
@@ -89,7 +89,7 @@
                             redirect: 'follow',
                         });
                         if (!r.ok && r.status !== 302) {
-                            // Validierungs- oder Duplikat-Fehler — wir lesen den Body fuer Detail.
+                            // Validierungs- oder Duplikat-Fehler — wir lesen den Body für Detail.
                             let msg = `HTTP ${r.status}`;
                             try {
                                 const j = await r.clone().json();

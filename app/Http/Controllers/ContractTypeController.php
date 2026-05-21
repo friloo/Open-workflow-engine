@@ -12,7 +12,7 @@ use Illuminate\View\View;
 
 /**
  * Verwaltung der Vertragsarten (Mietvertrag, Wartung, Lizenz ...).
- * Pro Typ: Default-Kuendigungsfrist + Rollen mit Sicht/Manage-Rechten.
+ * Pro Typ: Default-Kündigungsfrist + Rollen mit Sicht/Manage-Rechten.
  */
 class ContractTypeController extends Controller
 {
@@ -76,13 +76,13 @@ class ContractTypeController extends Controller
     public function destroy(Request $request, ContractType $contractType): RedirectResponse
     {
         if ($contractType->contracts()->exists()) {
-            return back()->withErrors(['type' => 'Es existieren noch Vertraege dieses Typs. Erst entfernen oder umsortieren.']);
+            return back()->withErrors(['type' => 'Es existieren noch Verträge dieses Typs. Erst entfernen oder umsortieren.']);
         }
         $name = $contractType->name;
         $contractType->delete();
         $this->audit->log('contract_type.deleted', null, ['name' => $name], null,
-            'Vertragsart ' . $name . ' geloescht', $request->user()->id);
-        return redirect()->route('contract-types.index')->with('status', 'Vertragsart geloescht.');
+            'Vertragsart ' . $name . ' gelöscht', $request->user()->id);
+        return redirect()->route('contract-types.index')->with('status', 'Vertragsart gelöscht.');
     }
 
     private function validateType(Request $request): array

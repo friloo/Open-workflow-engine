@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * API: KPIs als JSON fuer BI-Tools (PowerBI, Grafana, Metabase).
+ * API: KPIs als JSON für BI-Tools (PowerBI, Grafana, Metabase).
  * Token-Ability: reports.view
  */
 class ReportsApiController extends Controller

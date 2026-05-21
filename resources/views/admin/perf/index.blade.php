@@ -1,14 +1,14 @@
 <x-app-layout>
     <x-slot name="header">Performance-Audit</x-slot>
-    <x-slot name="subheader">Routen, die {{ $threshold_ms }}ms oder {{ $threshold_queries }} Queries ueberschritten haben.</x-slot>
+    <x-slot name="subheader">Routen, die {{ $threshold_ms }}ms oder {{ $threshold_queries }} Queries überschritten haben.</x-slot>
 
     @if($entries->isEmpty())
-        <x-empty-state title="Alles im gruenen Bereich"
-            description="Keine Eintraege im Performance-Log. Die Routen laufen innerhalb der konfigurierten Threshold-Werte (siehe PERF_THRESHOLD_MS / PERF_THRESHOLD_QUERIES in der .env)." />
+        <x-empty-state title="Alles im grünen Bereich"
+            description="Keine Einträge im Performance-Log. Die Routen laufen innerhalb der konfigurierten Threshold-Werte (siehe PERF_THRESHOLD_MS / PERF_THRESHOLD_QUERIES in der .env)." />
     @else
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2">
-                <x-card title="Letzte Eintraege" description="Sortiert vom neuesten zum aeltesten. Bis zu 200 Eintraege.">
+                <x-card title="Letzte Einträge" description="Sortiert vom neuesten zum aeltesten. Bis zu 200 Einträge.">
                     <div class="overflow-x-auto">
                         <div class="overflow-x-auto -mx-4 sm:mx-0">
 <table class="min-w-full text-sm">
@@ -42,7 +42,7 @@
                 </x-card>
             </div>
 
-            <x-card title="Haeufigste langsame Routen" description="Top 15 nach Anzahl Vorkommen.">
+            <x-card title="Häufigste langsame Routen" description="Top 15 nach Anzahl Vorkommen.">
                 @if($top->isEmpty())
                     <p class="text-sm text-slate-500">Noch nichts aggregiert.</p>
                 @else

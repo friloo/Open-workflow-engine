@@ -1,6 +1,6 @@
 @php
     $u = auth()->user();
-    // Wizard erscheint nur fuer Admins, die noch nicht durch sind UND nicht dismissed haben
+    // Wizard erscheint nur für Admins, die noch nicht durch sind UND nicht dismissed haben
     $showWizard = $u && $u->hasRole('admin')
         && ! $u->onboarding_completed_at && ! $u->onboarding_dismissed_at;
     if (! $showWizard) return;
@@ -10,11 +10,11 @@
         open: true,
         step: 1,
         steps: [
-            { title: 'Willkommen!', body: 'Open Workflow Engine ist installiert. Wir fuehren dich kurz durch die wichtigsten Schritte (geht in ~5 Min).' },
+            { title: 'Willkommen!', body: 'Open Workflow Engine ist installiert. Wir führen dich kurz durch die wichtigsten Schritte (geht in ~5 Min).' },
             { title: '1. Mail-Versand', body: 'Workflow-Benachrichtigungen brauchen einen SMTP-Server. Konfiguriere ihn unter Systemeinstellungen → Kommunikation.', link: '{{ route('admin.settings.communication') }}', linkLabel: 'Mail einrichten →' },
             { title: '2. Anmeldung & SSO', body: 'Optional: Microsoft 365, OIDC, Google, SAML oder LDAP einbinden, damit Mitarbeiter sich mit ihrem Firma-Account anmelden.', link: '{{ route('admin.settings.sso') }}', linkLabel: 'SSO einrichten →' },
-            { title: '3. Erste Benutzer', body: 'Lege Mitarbeiter an oder importiere sie per CSV. Service-Accounts fuer Integrationen mit eigenem Flag.', link: '{{ route('admin.users.index') }}', linkLabel: 'Benutzer anlegen →' },
-            { title: '4. Dokumenttypen', body: 'Definiere die Archive (Rechnung, Vertrag, ...). Sie sind die Basis fuer Berechtigungen + Schemas + Retention.', link: '{{ route('admin.settings.documents') }}', linkLabel: 'Dokumente einrichten →' },
+            { title: '3. Erste Benutzer', body: 'Lege Mitarbeiter an oder importiere sie per CSV. Service-Accounts für Integrationen mit eigenem Flag.', link: '{{ route('admin.users.index') }}', linkLabel: 'Benutzer anlegen →' },
+            { title: '4. Dokumenttypen', body: 'Definiere die Archive (Rechnung, Vertrag, ...). Sie sind die Basis für Berechtigungen + Schemas + Retention.', link: '{{ route('admin.settings.documents') }}', linkLabel: 'Dokumente einrichten →' },
             { title: '5. Erster Workflow', body: 'Bau deinen ersten Workflow im Designer — oder importiere eine der drei Cookbook-Vorlagen.', link: '{{ route('workflows.index') }}', linkLabel: 'Workflows →' },
             { title: '6. Reports & Audit', body: 'Wenn Daten reinkommen, findest du KPIs unter Reports und den Berechtigungs-Report unter Administration.', link: '{{ route('reports.index') }}', linkLabel: 'Reports anschauen →' },
             { title: 'Fertig!', body: 'Du kannst die Tour jederzeit erneut aufrufen, indem du in der Hilfe nach Erste Schritte suchst.' },
@@ -42,7 +42,7 @@
             <div class="text-xs text-slate-500">
                 Schritt <span x-text="step"></span> / <span x-text="steps.length"></span>
             </div>
-            <button @click="skip()" class="text-slate-400 hover:text-slate-700 text-xs">Spaeter</button>
+            <button @click="skip()" class="text-slate-400 hover:text-slate-700 text-xs">Später</button>
         </div>
         <div class="px-6 py-6">
             <h2 class="text-xl font-semibold text-slate-900" x-text="steps[step - 1].title"></h2>
@@ -53,7 +53,7 @@
         </div>
         <div class="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-5 py-3">
             <button @click="if(step > 1) step--" :disabled="step === 1"
-                    class="text-xs text-slate-500 hover:text-slate-900 disabled:opacity-30">← Zurueck</button>
+                    class="text-xs text-slate-500 hover:text-slate-900 disabled:opacity-30">← Zurück</button>
             <div class="flex gap-1.5">
                 <template x-for="(s, i) in steps" :key="i">
                     <span class="inline-block h-2 w-2 rounded-full" :class="i+1 <= step ? 'bg-indigo-500' : 'bg-slate-300'"></span>

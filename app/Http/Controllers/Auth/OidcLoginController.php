@@ -41,7 +41,7 @@ class OidcLoginController extends Controller
 
         $cfg = $this->discovery();
         if (! $cfg) {
-            return response('OIDC-Discovery fehlgeschlagen. Issuer pruefen.', 503);
+            return response('OIDC-Discovery fehlgeschlagen. Issuer prüfen.', 503);
         }
 
         $state = Str::random(32);
@@ -114,7 +114,7 @@ class OidcLoginController extends Controller
             return redirect()->route('login')->withErrors(['email' => 'OIDC: kein Subject im UserInfo.']);
         }
         if (! $email) {
-            return redirect()->route('login')->withErrors(['email' => 'OIDC: kein E-Mail-Claim. Bitte Scope "email" pruefen.']);
+            return redirect()->route('login')->withErrors(['email' => 'OIDC: kein E-Mail-Claim. Bitte Scope "email" prüfen.']);
         }
         if (isset($userInfo['email_verified']) && $userInfo['email_verified'] === false) {
             return redirect()->route('login')->withErrors(['email' => 'OIDC: E-Mail-Adresse ist beim IdP nicht verifiziert.']);
@@ -149,7 +149,7 @@ class OidcLoginController extends Controller
 
         if (! $user->is_active) {
             $this->audit->log('auth.oidc.blocked', $user, null, null,
-                "OIDC-Login fuer inaktiven Account {$user->email}", $user->id);
+                "OIDC-Login für inaktiven Account {$user->email}", $user->id);
             return redirect()->route('login')->withErrors(['email' => 'Dieses Konto ist deaktiviert.']);
         }
 

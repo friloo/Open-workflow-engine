@@ -89,12 +89,12 @@ class ContractController extends Controller
     public function show(Contract $contract, Request $request): View
     {
         $user = $request->user();
-        // Wirkliche Sichtbarkeits-Pruefung (Route-Middleware prueft nur die globale Permission)
+        // Wirkliche Sichtbarkeits-Prüfung (Route-Middleware prüft nur die globale Permission)
         if (! Contract::query()->visibleTo($user)->whereKey($contract->id)->exists()) {
             abort(403, 'Kein Zugriff auf diesen Vertrag.');
         }
         $contract->load(['owner', 'creator', 'attachment', 'type', 'roles', 'attachments.uploader', 'cases']);
-        // Auswahl-Liste fuer "an Akte heften": nur offene Akten, ohne die bereits verknuepften
+        // Auswahl-Liste für "an Akte heften": nur offene Akten, ohne die bereits verknüpften
         $availableCases = \App\Models\DocumentCase::whereNull('closed_at')
             ->whereNotIn('id', $contract->cases->pluck('id'))
             ->orderBy('name')->limit(200)->get(['id', 'name', 'reference']);
@@ -108,7 +108,7 @@ class ContractController extends Controller
     public function edit(Contract $contract, Request $request): View
     {
         if (! $contract->userCanManage($request->user())) {
-            abort(403, 'Kein Bearbeitungsrecht fuer diesen Vertrag.');
+            abort(403, 'Kein Bearbeitungsrecht für diesen Vertrag.');
         }
         return view('contracts.form', [
             'contract' => $contract->load('roles'),
@@ -121,7 +121,7 @@ class ContractController extends Controller
     public function update(Request $request, Contract $contract): RedirectResponse
     {
         if (! $contract->userCanManage($request->user())) {
-            abort(403, 'Kein Bearbeitungsrecht fuer diesen Vertrag.');
+            abort(403, 'Kein Bearbeitungsrecht für diesen Vertrag.');
         }
         $data = $this->validateContract($request);
         $extraRoles = $data['extra_roles'] ?? [];
@@ -140,13 +140,13 @@ class ContractController extends Controller
     public function destroy(Request $request, Contract $contract): RedirectResponse
     {
         if (! $contract->userCanManage($request->user())) {
-            abort(403, 'Kein Bearbeitungsrecht fuer diesen Vertrag.');
+            abort(403, 'Kein Bearbeitungsrecht für diesen Vertrag.');
         }
         $name = $contract->name;
         $contract->delete();
         $this->audit->log('contract.deleted', $contract, null, ['name' => $name],
-            'Vertrag ' . $name . ' geloescht (Soft-Delete)', $request->user()->id);
-        return redirect()->route('contracts.index')->with('status', 'Vertrag geloescht.');
+            'Vertrag ' . $name . ' gelöscht (Soft-Delete)', $request->user()->id);
+        return redirect()->route('contracts.index')->with('status', 'Vertrag gelöscht.');
     }
 
     private function validateContract(Request $request): array
@@ -181,7 +181,7 @@ class ContractController extends Controller
     }
 
     /**
-     * Bulk-Aktion: mehrere Vertraege in einem Schritt aendern.
+     * Bulk-Aktion: mehrere Verträge in einem Schritt ändern.
      * Erlaubt: Owner setzen, an Akte heften, Status forcen (Admin).
      */
     public function bulk(Request $request): RedirectResponse
@@ -197,7 +197,7 @@ class ContractController extends Controller
         $user = $request->user();
         $contracts = Contract::query()->visibleTo($user)->whereIn('id', $data['contract_ids'])->get();
         if ($contracts->isEmpty()) {
-            return back()->withErrors(['contract_ids' => 'Keine sichtbaren/erreichbaren Vertraege.']);
+            return back()->withErrors(['contract_ids' => 'Keine sichtbaren/erreichbaren Verträge.']);
         }
 
         $touched = 0;
@@ -234,15 +234,15 @@ class ContractController extends Controller
 
         $this->audit->log('contract.bulk.' . $data['action'], null, null, [
             'count' => $touched, 'skipped' => $skipped, 'ids' => $contracts->pluck('id')->all(),
-        ], "Bulk-Aktion '{$data['action']}' auf {$touched} Vertraegen", $user->id);
+        ], "Bulk-Aktion '{$data['action']}' auf {$touched} Verträgen", $user->id);
 
         $msg = "Bulk-Aktion abgeschlossen: {$touched} bearbeitet.";
-        if ($skipped > 0) $msg .= " {$skipped} uebersprungen (keine Bearbeitungsrechte).";
+        if ($skipped > 0) $msg .= " {$skipped} übersprungen (keine Bearbeitungsrechte).";
         return back()->with('status', $msg);
     }
 
     /**
-     * Vom Vertrag aus eine Akte anhaengen — Gegenstueck zu
+     * Vom Vertrag aus eine Akte anhängen — Gegenstueck zu
      * DocumentCaseController::attachContract.
      */
     public function attachCase(Request $request, Contract $contract): RedirectResponse

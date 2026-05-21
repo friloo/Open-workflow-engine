@@ -14,11 +14,11 @@ use ZipArchive;
  * DSGVO-Service: Auskunft (Art. 15) und Vergessenwerden (Art. 17).
  *
  * Auskunft: sammelt alle personenbezogenen Daten zu einer Email
- * aus saemtlichen Tabellen und exportiert sie als ZIP mit JSON-
- * Dateien + den vom User hochgeladenen Anhaengen.
+ * aus sämtlichen Tabellen und exportiert sie als ZIP mit JSON-
+ * Dateien + den vom User hochgeladenen Anhängen.
  *
  * Vergessenwerden: anonymisiert den User-Datensatz. Workflow-
- * Historie + Belege bleiben (gesetzlich begruendete Aufbewahrung),
+ * Historie + Belege bleiben (gesetzlich begründete Aufbewahrung),
  * aber alle personenbezogenen Felder werden ersetzt.
  */
 class GdprService
@@ -79,7 +79,7 @@ class GdprService
             ])->all();
             $summary['comments'] = $comments->count();
 
-            // Hochgeladene Anhaenge
+            // Hochgeladene Anhänge
             $attachments = Attachment::where('uploaded_by', $user->id)->get();
             $data['data']['attachments'] = $attachments->map(fn ($a) => [
                 'id' => $a->id, 'name' => $a->original_name,
@@ -90,7 +90,7 @@ class GdprService
             ])->all();
             $summary['attachments'] = $attachments->count();
 
-            // Audit-Log-Eintraege wo der User Akteur war
+            // Audit-Log-Einträge wo der User Akteur war
             $audits = AuditLog::where('user_id', $user->id)
                 ->orderBy('id')->limit(5000)->get();
             $data['data']['audit_log'] = $audits->map(fn ($a) => [
@@ -110,7 +110,7 @@ class GdprService
                 $summary['saved_searches'] = $saved->count();
             }
 
-            // Notification-Praeferenzen
+            // Notification-Präferenzen
             if (\Schema::hasTable('user_notification_preferences')) {
                 $prefs = \DB::table('user_notification_preferences')->where('user_id', $user->id)->get();
                 $data['data']['notification_preferences'] = $prefs->map(fn ($r) => (array) $r)->all();
@@ -130,7 +130,7 @@ class GdprService
         $this->audit->log('gdpr.access_request', $user, null, [
             'subject_email' => $email,
             'summary' => $summary,
-        ], "DSGVO-Auskunft generiert fuer {$email}");
+        ], "DSGVO-Auskunft generiert für {$email}");
 
         return [
             'filename' => 'DSGVO-Auskunft-'.preg_replace('/[^a-z0-9]/i', '_', $email).'-'.now()->format('Y-m-d').'.zip',
@@ -141,8 +141,8 @@ class GdprService
 
     /**
      * Anonymisiert einen User. Workflow-Historie bleibt (gesetzlich
-     * begruendete Aufbewahrung), aber alle direkt personenbezogenen
-     * Felder werden ersetzt. Loescht den User nicht — die FK-Beziehungen
+     * begründete Aufbewahrung), aber alle direkt personenbezogenen
+     * Felder werden ersetzt. Löscht den User nicht — die FK-Beziehungen
      * von WorkflowSteps + Audit-Log brauchen den Datensatz weiter.
      *
      * @return array{user_id:int, anonymized_email:string}
@@ -187,12 +187,12 @@ class GdprService
             \DB::table('sessions')->where('user_id', $user->id)->delete();
         }
 
-        // Saved Searches loeschen (keine Verbindlichkeit)
+        // Saved Searches löschen (keine Verbindlichkeit)
         if (\Schema::hasTable('saved_searches')) {
             \DB::table('saved_searches')->where('user_id', $user->id)->delete();
         }
 
-        // Notification Prefs loeschen
+        // Notification Prefs löschen
         if (\Schema::hasTable('user_notification_preferences')) {
             \DB::table('user_notification_preferences')->where('user_id', $user->id)->delete();
         }
@@ -231,10 +231,10 @@ class GdprService
             $head .= sprintf("  %-30s %s\n", $key, is_array($value) ? json_encode($value) : $value);
         }
         $head .= "\n";
-        $head .= "Hinweis: 'export.json' enthaelt alle personenbezogenen Daten,\n";
+        $head .= "Hinweis: 'export.json' enthält alle personenbezogenen Daten,\n";
         $head .= "gruppiert nach Tabelle. Originale Dokument-Dateien sind NICHT\n";
-        $head .= "automatisch im ZIP — die koennen ueber den Doku-Bereich des\n";
-        $head .= "Systems gesammelt werden, falls erforderlich. Workflow-Anhaenge,\n";
+        $head .= "automatisch im ZIP — die koennen über den Doku-Bereich des\n";
+        $head .= "Systems gesammelt werden, falls erforderlich. Workflow-Anhänge,\n";
         $head .= "die der Nutzer hochgeladen hat, sind als Liste erfasst.\n";
         return $head;
     }

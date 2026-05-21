@@ -22,7 +22,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Welche Rollen duerfen Vertraege dieses Typs sehen?
+        // Welche Rollen dürfen Verträge dieses Typs sehen?
         Schema::create('contract_type_role', function (Blueprint $table) {
             $table->foreignId('contract_type_id')->constrained()->cascadeOnDelete();
             $table->foreignId('role_id')->constrained()->cascadeOnDelete();
@@ -49,7 +49,7 @@ return new class extends Migration
             }
         });
 
-        // Bestehende Vertraege: aus dem Freitext-Feld "category" einen Typ
+        // Bestehende Verträge: aus dem Freitext-Feld "category" einen Typ
         // erzeugen, damit die alten Daten in der neuen Struktur landen.
         if (Schema::hasTable('contracts')) {
             $categories = DB::table('contracts')

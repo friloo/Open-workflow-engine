@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Liefert die Anzahl offener (nicht zurueckgestellter) Aufgaben fuer den
+ * Liefert die Anzahl offener (nicht zurückgestellter) Aufgaben für den
  * aktuell eingeloggten Benutzer. Wird im Topbar-Inbox-Badge verwendet,
- * 30s gecached um pro Request hoeher Last zu vermeiden.
+ * 30s gecached um pro Request höher Last zu vermeiden.
  */
 class InboxCounter
 {

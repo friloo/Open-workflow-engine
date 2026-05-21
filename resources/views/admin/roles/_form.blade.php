@@ -1,5 +1,5 @@
 @php
-    // Kopierte Rolle: $selectedPermissions enthaelt Permission-SLUGS;
+    // Kopierte Rolle: $selectedPermissions enthält Permission-SLUGS;
     // wir mappen das auf IDs damit das existierende Form-Markup weiter
     // funktioniert.
     $copySlugs = $selectedPermissions ?? [];
@@ -25,15 +25,15 @@
                class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                @checked(old('requires_2fa', isset($role) ? $role->requires_2fa : ($copyFrom->requires_2fa ?? false)))>
         <span>
-            <span class="block text-sm font-medium text-slate-900">2FA fuer diese Rolle erzwingen</span>
-            <span class="block text-xs text-slate-500">User mit dieser Rolle muessen Zwei-Faktor-Authentifizierung einrichten, bevor sie weiter mit der Anwendung arbeiten koennen. Audit-relevant.</span>
+            <span class="block text-sm font-medium text-slate-900">2FA für diese Rolle erzwingen</span>
+            <span class="block text-xs text-slate-500">User mit dieser Rolle müssen Zwei-Faktor-Authentifizierung einrichten, bevor sie weiter mit der Anwendung arbeiten koennen. Audit-relevant.</span>
         </span>
     </label>
 </div>
 
 <div class="mt-8">
     <h3 class="text-sm font-semibold text-slate-900">Berechtigungen</h3>
-    <p class="text-xs text-slate-500 mb-3">Waehle alle Permissions aus, die zu dieser Rolle gehoeren.</p>
+    <p class="text-xs text-slate-500 mb-3">Wähle alle Permissions aus, die zu dieser Rolle gehören.</p>
 
     @if(isset($role) && $role->slug === 'admin')
         <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
@@ -62,7 +62,7 @@
 </div>
 
 {{-- Dokument-Archive: pro Archiv eine Checkbox, ob diese Rolle es in der
-     Dokumenten-Suche sehen darf. Greift nur wenn der User ueberhaupt
+     Dokumenten-Suche sehen darf. Greift nur wenn der User überhaupt
      documents.search hat. Admin sieht immer alles. --}}
 <div class="mt-8">
     <h3 class="text-sm font-semibold text-slate-900">Sichtbare Dokument-Archive</h3>
@@ -91,13 +91,13 @@
 </div>
 
 {{-- Listen / Lookup-Tabellen: zwei Checkboxen pro Liste — Lesen + Schreiben.
-     Eine Liste ohne Rollen-Eintrag ist fuer ALLE mit lists.view sichtbar. --}}
+     Eine Liste ohne Rollen-Eintrag ist für ALLE mit lists.view sichtbar. --}}
 <div class="mt-8">
     <h3 class="text-sm font-semibold text-slate-900">Zugriff auf Listen / Lookup-Tabellen</h3>
     <p class="text-xs text-slate-500 mb-3">
         Wenn eine Liste hier nicht angehakt ist, kann diese Rolle sie nur sehen, falls die
-        Liste insgesamt ohne Rollen-Beschraenkung gepflegt ist (Default-offen).
-        Mit Haken bei „Bearbeiten" darf die Rolle Eintraege aendern.
+        Liste insgesamt ohne Rollen-Beschränkung gepflegt ist (Default-offen).
+        Mit Haken bei „Bearbeiten" darf die Rolle Einträge ändern.
     </p>
 
     @if($lists->isEmpty())

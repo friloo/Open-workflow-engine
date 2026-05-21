@@ -39,7 +39,7 @@ class PermissionsReportController extends Controller
 
         return response()->streamDownload(function () use ($data) {
             $out = fopen('php://output', 'wb');
-            fputs($out, "\xEF\xBB\xBF"); // BOM fuer Excel/Umlaute
+            fputs($out, "\xEF\xBB\xBF"); // BOM für Excel/Umlaute
 
             // Abschnitt 1: User -> Rollen
             fputcsv($out, ['Abschnitt 1: Benutzer und Rollen'], ';');
@@ -72,7 +72,7 @@ class PermissionsReportController extends Controller
         $data = $this->loadData();
         $data['generatedAt'] = now();
         $data['generator'] = $request->user()->name;
-        // SHA-256-Fingerprint ueber die Daten — fuer Audit-Trailer im PDF.
+        // SHA-256-Fingerprint über die Daten — für Audit-Trailer im PDF.
         $data['dataHash'] = substr(hash('sha256', json_encode([
             'users' => $data['users']->map(fn ($u) => [
                 'id' => $u->id, 'email' => $u->email,

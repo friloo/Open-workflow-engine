@@ -6,7 +6,7 @@
         <div class="lg:col-span-2">
             <x-card>
                 @if($secrets->isEmpty())
-                    <x-empty-state title="Noch keine Secrets" description="Lege oben einen verschluesselten Wert an (API-Keys, Tokens) — in HTTP-Knoten als @{{ secret.NAME }} verwendbar." />
+                    <x-empty-state title="Noch keine Secrets" description="Lege oben einen verschlüsselten Wert an (API-Keys, Tokens) — in HTTP-Knoten als @{{ secret.NAME }} verwendbar." />
                 @else
                     <div class="overflow-x-auto -mx-4 sm:mx-0">
 <table class="min-w-full divide-y divide-slate-200 text-sm">
@@ -29,9 +29,9 @@
                                             <input type="password" name="value" placeholder="neuer Wert" class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <button class="text-xs text-indigo-600 hover:text-indigo-500">rotieren</button>
                                         </form>
-                                        <form method="POST" action="{{ route('admin.secrets.destroy', $s) }}" class="inline ms-2" onsubmit="return confirm('Secret loeschen?')">
+                                        <form method="POST" action="{{ route('admin.secrets.destroy', $s) }}" class="inline ms-2" onsubmit="return confirm('Secret löschen?')">
                                             @csrf @method('DELETE')
-                                            <button class="text-xs text-rose-600 hover:text-rose-500">loeschen</button>
+                                            <button class="text-xs text-rose-600 hover:text-rose-500">löschen</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -56,7 +56,7 @@
                 <div>
                     <x-input-label for="value" value="Wert" />
                     <x-text-input id="value" name="value" type="password" required autocomplete="new-password" />
-                    <p class="mt-1 text-xs text-slate-500">Wird verschluesselt gespeichert.</p>
+                    <p class="mt-1 text-xs text-slate-500">Wird verschlüsselt gespeichert.</p>
                 </div>
                 <div>
                     <x-input-label for="description" value="Beschreibung" />

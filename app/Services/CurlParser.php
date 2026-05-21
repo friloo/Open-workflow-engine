@@ -6,7 +6,7 @@ namespace App\Services;
  * Parsed einen curl-Command-String in seine Bestandteile:
  * URL, Method, Headers, Body, Auth (wenn via -H Authorization oder -u).
  *
- * Verarbeitet die haeufigsten Varianten:
+ * Verarbeitet die häufigsten Varianten:
  *   curl -X POST 'https://…' -H 'A: B' -d '{"a":1}'
  *   curl 'https://…' --header "A: B" --data-raw '...'
  *   curl -u user:pass 'https://…'
@@ -87,13 +87,13 @@ class CurlParser
                     if (preg_match('/^https?:\/\//i', $t)) {
                         $url = $t;
                     } elseif (str_starts_with($t, '-')) {
-                        // unbekannter Flag — wenn er ein Arg erwartet (heuristisch), skip naechstes
-                        // hier konservativ: ueberspringen
+                        // unbekannter Flag — wenn er ein Arg erwartet (heuristisch), skip nächstes
+                        // hier konservativ: überspringen
                     }
             }
         }
 
-        // Authorization-Header in struct auth uebersetzen
+        // Authorization-Header in struct auth übersetzen
         foreach ($headers as $name => $value) {
             if (strcasecmp($name, 'Authorization') !== 0) continue;
             $val = trim($value);

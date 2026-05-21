@@ -44,7 +44,7 @@ class BackupController extends Controller
         if (! $this->service->delete($file, $request->user()->id)) {
             return back()->withErrors(['backup' => 'Datei nicht gefunden.']);
         }
-        return back()->with('status', 'Backup geloescht.');
+        return back()->with('status', 'Backup gelöscht.');
     }
 
     public function updateRetention(Request $request): RedirectResponse

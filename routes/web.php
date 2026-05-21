@@ -34,7 +34,7 @@ Route::get('/', function () {
 Route::get('/ical/{token}.ics', [\App\Http\Controllers\IcalController::class, 'feed'])->name('ical.feed');
 
 // Public Share-Links
-// Genehmigung per Mail (signierter Link, kein Login noetig).
+// Genehmigung per Mail (signierter Link, kein Login nötig).
 Route::get('/mail-approval/{step}/{user}', [\App\Http\Controllers\MailApprovalController::class, 'show'])->name('mail-approval.show');
 Route::post('/mail-approval/{step}/{user}', [\App\Http\Controllers\MailApprovalController::class, 'submit'])->name('mail-approval.submit');
 
@@ -43,7 +43,7 @@ Route::post('/share/{token}/password', [\App\Http\Controllers\ShareController::c
 Route::get('/share/{token}/preview', [\App\Http\Controllers\ShareController::class, 'preview'])->name('share.preview');
 Route::get('/share/{token}/download', [\App\Http\Controllers\ShareController::class, 'download'])->name('share.download');
 
-// Review-Endpoints (signed, kein Login noetig)
+// Review-Endpoints (signed, kein Login nötig)
 Route::middleware('signed')->group(function () {
     Route::get('/share/{share}/review/confirm', [\App\Http\Controllers\ShareLinkController::class, 'reviewConfirmForm'])->name('shares.review.confirm');
     Route::post('/share/{share}/review/confirm', [\App\Http\Controllers\ShareLinkController::class, 'reviewConfirm'])->name('shares.review.confirm.submit');
@@ -183,11 +183,11 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
 
 // Globaler Vorgangs-Browser
 Route::middleware(['auth'])->group(function () {
-    Route::get('/vorgaenge', [WorkflowInstanceController::class, 'indexAll'])->name('workflow-instances.index');
-    Route::get('/vorgaenge/{instance}', [WorkflowInstanceController::class, 'show'])->name('workflow-instances.show');
-    Route::post('/vorgaenge/{instance}/abbrechen', [WorkflowInstanceController::class, 'cancel'])->name('workflow-instances.cancel');
-    Route::post('/vorgaenge/{instance}/kommentar', [WorkflowInstanceController::class, 'comment'])->name('workflow-instances.comment');
-    Route::post('/vorgaenge/bulk-abbrechen', [WorkflowInstanceController::class, 'bulkCancel'])->name('workflow-instances.bulk_cancel');
+    Route::get('/vorgänge', [WorkflowInstanceController::class, 'indexAll'])->name('workflow-instances.index');
+    Route::get('/vorgänge/{instance}', [WorkflowInstanceController::class, 'show'])->name('workflow-instances.show');
+    Route::post('/vorgänge/{instance}/abbrechen', [WorkflowInstanceController::class, 'cancel'])->name('workflow-instances.cancel');
+    Route::post('/vorgänge/{instance}/kommentar', [WorkflowInstanceController::class, 'comment'])->name('workflow-instances.comment');
+    Route::post('/vorgänge/bulk-abbrechen', [WorkflowInstanceController::class, 'bulkCancel'])->name('workflow-instances.bulk_cancel');
 });
 
 // Lookup-Listen (Kostenstellen etc.)
@@ -208,7 +208,7 @@ Route::middleware(['auth'])->prefix('listen')->name('lists.')->group(function ()
     });
 });
 
-// Assets (Fuehrerscheine, Unterweisungen, ...)
+// Assets (Führerscheine, Unterweisungen, ...)
 Route::middleware(['auth'])->prefix('assets')->name('assets.')->group(function () {
     Route::middleware('permission:assets.view,assets.manage')->group(function () {
         Route::get('/', [AssetController::class, 'index'])->name('index');
@@ -312,14 +312,14 @@ Route::middleware(['auth', 'permission:contracts.view,contracts.manage'])->group
             'update' => 'permission:contracts.manage',
             'destroy' => 'permission:contracts.manage',
         ]);
-    // Akten-Verknuepfung vom Vertrag aus
+    // Akten-Verknüpfung vom Vertrag aus
     Route::post('contracts/{contract}/cases', [\App\Http\Controllers\ContractController::class, 'attachCase'])->name('contracts.cases.attach');
     Route::delete('contracts/{contract}/cases/{caseId}', [\App\Http\Controllers\ContractController::class, 'detachCase'])->name('contracts.cases.detach');
-    // Bulk-Aktionen — nur fuer Manage-Berechtigte
+    // Bulk-Aktionen — nur für Manage-Berechtigte
     Route::middleware('permission:contracts.manage')
         ->post('contracts-bulk', [\App\Http\Controllers\ContractController::class, 'bulk'])->name('contracts.bulk');
 });
-// Vertragsarten-Verwaltung — nur fuer Admins/Manage-Berechtigte
+// Vertragsarten-Verwaltung — nur für Admins/Manage-Berechtigte
 Route::middleware(['auth', 'permission:contracts.manage'])->group(function () {
     Route::resource('contract-types', \App\Http\Controllers\ContractTypeController::class)
         ->parameters(['contract-types' => 'contractType'])
@@ -361,7 +361,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('reports/permissions.csv', [\App\Http\Controllers\Admin\PermissionsReportController::class, 'csv'])->name('reports.permissions.csv');
         Route::get('reports/permissions.pdf', [\App\Http\Controllers\Admin\PermissionsReportController::class, 'pdf'])->name('reports.permissions.pdf');
 
-        // Admin-Token-Verwaltung pro Benutzer (auch fuer Service-Accounts)
+        // Admin-Token-Verwaltung pro Benutzer (auch für Service-Accounts)
         Route::get('users/{user}/tokens', [\App\Http\Controllers\Admin\UserApiTokenController::class, 'index'])->name('users.tokens.index');
         Route::post('users/{user}/tokens', [\App\Http\Controllers\Admin\UserApiTokenController::class, 'store'])->name('users.tokens.store');
         Route::delete('users/{user}/tokens/{token}', [\App\Http\Controllers\Admin\UserApiTokenController::class, 'destroy'])->name('users.tokens.destroy');
@@ -429,7 +429,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/ai/ping', [AIController::class, 'ping'])->name('ai.ping');
     });
 
-    // KI-Vorschlaege brauchen nur workflows.design (oder darueber).
+    // KI-Vorschläge brauchen nur workflows.design (oder darüber).
     // Rate-Limit verhindert versehentliche Kosten-Explosion.
     Route::middleware(['permission:workflows.design', 'throttle:10,1'])->group(function () {
         Route::post('ai/suggest-http', [AIController::class, 'suggestHttp'])->name('ai.suggest_http');

@@ -1,7 +1,7 @@
 {{-- Wird sowohl von admin/settings/support.blade.php als auch von der konsolidierten
      Kommunikation-Seite eingebunden. Erwartet Variable $support. --}}
 <x-card title="IT-Support"
-        description="Wenn aktiviert, erscheint im Menue ein Eintrag, ueber den Benutzer Tickets erstellen koennen. Je nach Modus geht das per E-Mail an deine Support-Adresse, per HTTP an dein Ticketsystem, oder beides parallel.">
+        description="Wenn aktiviert, erscheint im Menü ein Eintrag, über den Benutzer Tickets erstellen koennen. Je nach Modus geht das per E-Mail an deine Support-Adresse, per HTTP an dein Ticketsystem, oder beides parallel.">
     @php
         $supportState = [
             'enabled' => (bool) ($support['enabled'] ?? false),
@@ -18,14 +18,14 @@
                 <input type="hidden" name="enabled" value="0">
                 <input type="checkbox" name="enabled" value="1" x-model="enabled"
                     class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                <span><strong>Support-Formular aktivieren</strong> — Benutzer sehen einen Menue-Eintrag und koennen Tickets uebermitteln.</span>
+                <span><strong>Support-Formular aktivieren</strong> — Benutzer sehen einen Menü-Eintrag und koennen Tickets übermitteln.</span>
             </label>
         </div>
 
         <div x-show="enabled" x-transition class="space-y-5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <x-input-label for="sidebar_label" value="Bezeichnung im Menue" />
+                    <x-input-label for="sidebar_label" value="Bezeichnung im Menü" />
                     <x-text-input id="sidebar_label" name="sidebar_label" value="{{ $support['sidebar_label'] ?? 'IT-Support' }}" />
                 </div>
                 <div>
@@ -54,17 +54,17 @@
             <div x-show="mode === 'api' || mode === 'both'" x-transition class="rounded-lg border border-slate-200 p-4 bg-slate-50/50 space-y-4">
                 <h4 class="text-sm font-semibold text-slate-900">Ticketsystem (HTTP-API)</h4>
 
-                {{-- KI: API-Doku oder curl reinpasten, KI fuellt alles aus --}}
+                {{-- KI: API-Doku oder curl reinpasten, KI füllt alles aus --}}
                 <div class="rounded-lg border border-violet-200 bg-violet-50 p-3 space-y-2"
                      x-data="{ aiInput: '', aiBusy: false, aiError: '', aiNotes: '' }">
                     <div class="flex items-center gap-2">
                         <span class="text-base">+</span>
-                        <h5 class="text-xs font-semibold text-violet-800">KI-Import: curl, OpenAPI oder API-Doku einfuegen</h5>
+                        <h5 class="text-xs font-semibold text-violet-800">KI-Import: curl, OpenAPI oder API-Doku einfügen</h5>
                     </div>
                     <p class="text-[11px] text-violet-700">
                         Du kannst hier einen kompletten curl-Befehl, einen OpenAPI-Snippet
                         oder die Endpunkt-Beschreibung aus einer Doku reinpasten.
-                        Die KI fuellt URL, Methode, Header, Auth und Body-Template
+                        Die KI füllt URL, Methode, Header, Auth und Body-Template
                         automatisch aus — Beispielwerte werden durch die richtigen
                         Platzhalter ersetzt.
                     </p>
@@ -75,7 +75,7 @@
                         <button type="button" :disabled="aiBusy || !aiInput.trim()"
                             @click="window.supportAiImport(@js(route('admin.ai.suggest_http')), aiInput, (result, error) => { aiBusy = false; if (error) { aiError = error; aiNotes = ''; } else { aiError = ''; aiNotes = result.notes || ''; } }); aiBusy = true; aiError = '';"
                             class="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-violet-500 disabled:opacity-50">
-                            <span x-show="!aiBusy">API uebernehmen</span>
+                            <span x-show="!aiBusy">API übernehmen</span>
                             <span x-show="aiBusy" x-cloak>analysiere &hellip;</span>
                         </button>
                         <span x-text="aiError" class="text-xs text-rose-700"></span>
@@ -167,7 +167,7 @@
             },
             body: JSON.stringify({
                 input: input,
-                purpose: 'Support-Ticket im Ticketsystem anlegen, ausgeloest aus dem internen Support-Formular',
+                purpose: 'Support-Ticket im Ticketsystem anlegen, ausgelöst aus dem internen Support-Formular',
                 available_fields: placeholders,
             }),
         })
@@ -187,12 +187,12 @@
             const sel = document.getElementById('api_method');
             if (sel && ['POST','PUT','PATCH'].includes(s.method)) sel.value = s.method;
         }
-        // Headers (Authorization rausfiltern — kommt ueber separate Auth)
+        // Headers (Authorization rausfiltern — kommt über separate Auth)
         if (Array.isArray(s.headers)) {
             const filtered = s.headers.filter(h => h.key && !/^authorization$/i.test(h.key));
             window.dispatchEvent(new CustomEvent('support-headers-replaced', { detail: filtered }));
         }
-        // Auth: wenn KI was gefunden hat, in Header-Liste einfuegen
+        // Auth: wenn KI was gefunden hat, in Header-Liste einfügen
         if (s.auth_type === 'bearer' && s.auth_token) {
             window.dispatchEvent(new CustomEvent('support-headers-add', {
                 detail: { key: 'Authorization', value: 'Bearer ' + s.auth_token }

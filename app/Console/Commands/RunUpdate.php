@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class RunUpdate extends Command
 {
-    protected $signature = 'owe:update {--check : Nur pruefen, nicht updaten}';
+    protected $signature = 'owe:update {--check : Nur prüfen, nicht updaten}';
     protected $description = 'Prueft auf neue Version (Channel-spezifisch) und installiert sie.';
 
     public function handle(UpdateManager $manager): int
@@ -15,7 +15,7 @@ class RunUpdate extends Command
         $check = $manager->check();
         $this->line('Channel:  '.$check['label']);
         $this->line('Aktuell:  '.($check['current'] ?? 'unbekannt'));
-        $this->line('Verfuegbar: '.($check['latest'] ?? '—'));
+        $this->line('Verfügbar: '.($check['latest'] ?? '—'));
         if (! empty($check['error'])) {
             $this->error('Fehler: '.$check['error']);
             return self::FAILURE;
@@ -25,7 +25,7 @@ class RunUpdate extends Command
             return self::SUCCESS;
         }
         if ($this->option('check')) {
-            $this->info('Update verfuegbar (nur Check).');
+            $this->info('Update verfügbar (nur Check).');
             return self::SUCCESS;
         }
         try {

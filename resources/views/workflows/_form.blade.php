@@ -14,10 +14,10 @@
         <x-input-label for="trigger_type" value="Trigger" />
         <select id="trigger_type" name="trigger_type" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
             @php($tt = old('trigger_type', $workflow->trigger_type ?? 'form'))
-            <option value="form" @selected($tt==='form')>Formular (Mitarbeiter fuellt aus)</option>
+            <option value="form" @selected($tt==='form')>Formular (Mitarbeiter füllt aus)</option>
             <option value="manual" @selected($tt==='manual')>Manueller Start</option>
-            <option value="recurring" @selected($tt==='recurring')>Wiederkehrend (z. B. Fuehrerschein-Pruefung)</option>
+            <option value="recurring" @selected($tt==='recurring')>Wiederkehrend (z. B. Führerschein-Prüfung)</option>
         </select>
-        <p class="mt-1 text-xs text-slate-500">Fuer oeffentlich erreichbare Formulare ein Stand-Alone-Formular unter <em>Automatisierung &rarr; Formulare</em> anlegen und mit diesem Workflow verknuepfen.</p>
+        <p class="mt-1 text-xs text-slate-500">Für öffentlich erreichbare Formulare ein Stand-Alone-Formular unter <em>Automatisierung &rarr; Formulare</em> anlegen und mit diesem Workflow verknüpfen.</p>
     </div>
 </div>

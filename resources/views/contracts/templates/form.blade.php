@@ -3,7 +3,7 @@
     <x-slot name="subheader">{{ $template->name ?? 'HTML mit Mustache-Platzhaltern' }}</x-slot>
 
     <x-breadcrumbs :items="[
-        ['title' => 'Vertraege', 'url' => route('contracts.index')],
+        ['title' => 'Verträge', 'url' => route('contracts.index')],
         ['title' => 'Vorlagen', 'url' => route('contract-templates.index')],
         ['title' => $template->exists ? $template->name : 'Neu'],
     ]" />
@@ -54,7 +54,7 @@
         </div>
 
         <div>
-            <x-card title="Platzhalter" description="Werden beim Erzeugen aus dem Vertrag ausgefuellt.">
+            <x-card title="Platzhalter" description="Werden beim Erzeugen aus dem Vertrag ausgefüllt.">
                 <ul class="space-y-1 text-xs">
                     @foreach($placeholders as $key => $sample)
                         <li class="flex items-baseline justify-between gap-2 border-b border-slate-100 pb-1">

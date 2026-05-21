@@ -8,13 +8,13 @@ use Minishlink\WebPush\VAPID;
 
 class PushGenerateVapid extends Command
 {
-    protected $signature = 'push:generate-vapid {--force : ohne Rueckfrage ueberschreiben}';
-    protected $description = 'Generiert VAPID-Schluesselpaar fuer Web-Push und speichert es in Settings.';
+    protected $signature = 'push:generate-vapid {--force : ohne Rückfrage überschreiben}';
+    protected $description = 'Generiert VAPID-Schlüsselpaar für Web-Push und speichert es in Settings.';
 
     public function handle(): int
     {
         if (Settings::get('auth.push.vapid_public') && ! $this->option('force')) {
-            $this->warn('VAPID-Keys existieren bereits. Mit --force ueberschreiben.');
+            $this->warn('VAPID-Keys existieren bereits. Mit --force überschreiben.');
             return self::FAILURE;
         }
 

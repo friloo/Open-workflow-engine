@@ -29,7 +29,7 @@ class RoleController extends Controller
     public function create(Request $request): View
     {
         // Optional: aus existierender Rolle kopieren — Permissions, Doc-Types,
-        // List-Access werden uebernommen, Name+Slug bleiben leer.
+        // List-Access werden übernommen, Name+Slug bleiben leer.
         $copyFromId = (int) $request->get('copy_from', 0);
         $copyFrom = $copyFromId ? Role::with('permissions')->find($copyFromId) : null;
         $selectedPermissions = $copyFrom ? $copyFrom->permissions->pluck('slug')->all() : [];
@@ -143,7 +143,7 @@ class RoleController extends Controller
     }
 
     /**
-     * Schreibt die fuer diese Rolle erlaubten Dokumenttypen ins globale
+     * Schreibt die für diese Rolle erlaubten Dokumenttypen ins globale
      * Settings-Mapping (attachments.role_document_types). Andere Rollen
      * werden nicht beruehrt.
      */
@@ -177,14 +177,14 @@ class RoleController extends Controller
     public function destroy(Role $role): RedirectResponse
     {
         if ($role->is_system) {
-            return back()->withErrors(['role' => 'Systemrollen koennen nicht geloescht werden.']);
+            return back()->withErrors(['role' => 'Systemrollen koennen nicht gelöscht werden.']);
         }
 
         $snapshot = ['name' => $role->name, 'slug' => $role->slug];
         $role->delete();
 
-        $this->audit->log('role.deleted', $role, $snapshot, null, "Rolle {$snapshot['name']} geloescht");
+        $this->audit->log('role.deleted', $role, $snapshot, null, "Rolle {$snapshot['name']} gelöscht");
 
-        return redirect()->route('admin.roles.index')->with('status', 'Rolle geloescht.');
+        return redirect()->route('admin.roles.index')->with('status', 'Rolle gelöscht.');
     }
 }

@@ -144,6 +144,6 @@ class Phase15eTest extends TestCase
         $admin = $this->admin();
         $w = Workflow::create(['name' => 'X', 'trigger_type' => 'manual', 'status' => Workflow::STATUS_ACTIVE]);
         $this->actingAs($admin)->get(route('workflows.stats.index'))->assertOk()->assertSee('Throughput');
-        $this->actingAs($admin)->get(route('workflows.stats.show', $w))->assertOk()->assertSee('Engpaesse');
+        $this->actingAs($admin)->get(route('workflows.stats.show', $w))->assertOk()->assertSee('Engpässe');
     }
 }

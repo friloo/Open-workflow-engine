@@ -26,7 +26,7 @@ class AttachmentTest extends TestCase
         $holder = User::factory()->create();
 
         $asset = Asset::create([
-            'name' => 'Fuehrerschein', 'type' => 'fuehrerschein',
+            'name' => 'Führerschein', 'type' => 'führerschein',
             'user_id' => $holder->id, 'lead_time_days' => 30, 'status' => 'active',
         ]);
 
@@ -112,12 +112,12 @@ class AttachmentTest extends TestCase
         $wf->forceFill(['current_version_id'=>$v->id])->save();
 
         $asset = Asset::create([
-            'name' => 'Fuehrerschein', 'type' => 'fuehrerschein',
+            'name' => 'Führerschein', 'type' => 'führerschein',
             'user_id' => $holder->id, 'valid_until' => now()->addDays(15)->toDateString(),
             'lead_time_days' => 30, 'status' => 'active', 'workflow_id' => $wf->id,
         ]);
 
-        // PDF an Asset haengen
+        // PDF an Asset hängen
         $file = UploadedFile::fake()->create('fs.pdf', 100, 'application/pdf');
         $this->actingAs($admin)->post(route('attachments.store', ['type' => 'asset', 'id' => $asset->id]), ['file' => $file]);
 
@@ -128,7 +128,7 @@ class AttachmentTest extends TestCase
         $this->assertSame(1, $instance->attachments()->count());
         $this->assertStringStartsWith('Asset-Scan:', $instance->attachments()->first()->label);
 
-        // Empfaenger sollte Vorgesetzter des Asset-Holders sein
+        // Empfänger sollte Vorgesetzter des Asset-Holders sein
         $this->assertSame($admin->id, $instance->stepExecutions()->first()->assigned_to_user_id);
     }
 
@@ -143,7 +143,7 @@ class AttachmentTest extends TestCase
 
         $def = ['drawflow' => ['Home' => ['data' => [
             '1' => ['id'=>1,'name'=>'start','class'=>'start','data'=>[],'inputs'=>[],'outputs'=>['output_1'=>['connections'=>[['node'=>'2','output'=>'input_1']]]]],
-            '2' => ['id'=>2,'name'=>'notify','class'=>'notify','data'=>['label'=>'Mail an Inhaber','recipient_type'=>'subject_user','subject'=>'Bitte vorzeigen','body'=>'Hallo {{ subject_user_name }}, bitte zeige deinen Fuehrerschein.'],'inputs'=>['input_1'=>[]],'outputs'=>['output_1'=>['connections'=>[['node'=>'3','output'=>'input_1']]]]],
+            '2' => ['id'=>2,'name'=>'notify','class'=>'notify','data'=>['label'=>'Mail an Inhaber','recipient_type'=>'subject_user','subject'=>'Bitte vorzeigen','body'=>'Hallo {{ subject_user_name }}, bitte zeige deinen Führerschein.'],'inputs'=>['input_1'=>[]],'outputs'=>['output_1'=>['connections'=>[['node'=>'3','output'=>'input_1']]]]],
             '3' => ['id'=>3,'name'=>'end','class'=>'end','data'=>['result'=>'completed'],'inputs'=>['input_1'=>[]],'outputs'=>[]],
         ]]]];
         $wf = Workflow::create(['name'=>'F','slug'=>'f','trigger_type'=>'recurring','status'=>'active','created_by'=>$admin->id,'updated_by'=>$admin->id]);
@@ -151,7 +151,7 @@ class AttachmentTest extends TestCase
         $wf->forceFill(['current_version_id'=>$v->id])->save();
 
         $asset = Asset::create([
-            'name' => 'Fuehrerschein', 'type' => 'fuehrerschein',
+            'name' => 'Führerschein', 'type' => 'führerschein',
             'user_id' => $holder->id, 'valid_until' => now()->addDays(10)->toDateString(),
             'lead_time_days' => 30, 'status' => 'active', 'workflow_id' => $wf->id,
         ]);

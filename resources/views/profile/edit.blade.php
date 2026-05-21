@@ -1,22 +1,22 @@
 <x-app-layout>
     <x-slot name="header">Mein Profil</x-slot>
-    <x-slot name="subheader">Persoenliche Daten und Benachrichtigungen.</x-slot>
+    <x-slot name="subheader">Persönliche Daten und Benachrichtigungen.</x-slot>
 
     <div class="space-y-6">
         <x-card title="Profilinformationen" description="Aktualisiere deinen Namen und deine E-Mail-Adresse.">
             @include('profile.partials.update-profile-information-form')
         </x-card>
 
-        <x-card title="Passwort aendern" description="Stelle ein langes, zufaelliges Passwort ein, damit dein Konto sicher bleibt.">
+        <x-card title="Passwort ändern" description="Stelle ein langes, zufälliges Passwort ein, damit dein Konto sicher bleibt.">
             @include('profile.partials.update-password-form')
         </x-card>
 
-        <x-card title="Vertretung" description="Waehrend deiner Abwesenheit gehen alle dir zugewiesenen Aufgaben automatisch an die hier hinterlegte Person.">
+        <x-card title="Vertretung" description="Während deiner Abwesenheit gehen alle dir zugewiesenen Aufgaben automatisch an die hier hinterlegte Person.">
             @include('profile.partials.update-delegation-form')
         </x-card>
 
         <x-card title="Benachrichtigungen"
-                description="Welche Ereignisse loesen eine Benachrichtigung aus — und auf welchem Kanal. Default fuer neue User: alles an.">
+                description="Welche Ereignisse lösen eine Benachrichtigung aus — und auf welchem Kanal. Default für neue User: alles an.">
             @if(session('status') === 'notifications-updated')
                 <div class="mb-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                     Benachrichtigungs-Einstellungen gespeichert.
@@ -105,7 +105,7 @@
                         }
                     }" x-init="refresh()" class="space-y-3">
                     <div x-show="! supported" x-cloak class="text-sm text-rose-700">
-                        Dein Browser unterstuetzt keine Web-Push (z. B. iOS Safari ausserhalb des Home-Screens).
+                        Dein Browser unterstützt keine Web-Push (z. B. iOS Safari ausserhalb des Home-Screens).
                     </div>
                     <div x-show="supported" x-cloak class="flex flex-wrap items-center gap-3">
                         <button type="button" @click="toggle()" :disabled="busy"
@@ -119,8 +119,8 @@
                         <span x-show="err" x-text="err" class="text-xs text-rose-700"></span>
                     </div>
                     <p class="text-xs text-slate-500">
-                        Nach „Aktivieren" fragt der Browser einmal nach Erlaubnis. Solange das Geraet
-                        angemeldet ist, erhaeltst du fuer dieselben Events Push-Hinweise wie per Mail
+                        Nach „Aktivieren" fragt der Browser einmal nach Erlaubnis. Solange das Gerät
+                        angemeldet ist, erhältst du für dieselben Events Push-Hinweise wie per Mail
                         / Glocke (Aufgaben zugewiesen, Eskalationen etc.) — je nach deinen
                         Benachrichtigungs-Einstellungen oben.
                     </p>
@@ -128,7 +128,7 @@
             @endif
         </x-card>
 
-        {{-- iCal-Feed: persoenlicher Kalender-Link --}}
+        {{-- iCal-Feed: persönlicher Kalender-Link --}}
         @php($icalToken = auth()->user()->ical_token)
         <x-card title="Kalender-Feed (iCal)" description="Aufgaben und Vertrags-Fristen in Outlook oder Apple Calendar abonnieren.">
             @if($icalToken)
@@ -139,7 +139,7 @@
                            onclick="this.select()"
                            class="flex-1 min-w-[20rem] rounded-lg border-slate-300 bg-slate-50 text-xs font-mono shadow-sm">
                     <form method="POST" action="{{ route('profile.ical.rotate') }}" class="inline"
-                          onsubmit="return confirm('Token neu erzeugen? Der alte Link wird sofort ungueltig.')">
+                          onsubmit="return confirm('Token neu erzeugen? Der alte Link wird sofort ungültig.')">
                         @csrf
                         <button class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">Neu erzeugen</button>
                     </form>
@@ -150,12 +150,12 @@
                     </form>
                 </div>
                 <ul class="mt-3 text-xs text-slate-500 space-y-0.5 list-disc ms-5">
-                    <li>Outlook: <em>Datei → Kontoeinstellungen → Internet-Kalender → Neu</em>, URL einfuegen.</li>
-                    <li>Apple Calendar: <em>Datei → Neues Kalenderabo</em>, URL einfuegen.</li>
-                    <li>Google Calendar: <em>Andere Kalender → Per URL hinzufuegen</em>.</li>
+                    <li>Outlook: <em>Datei → Kontoeinstellungen → Internet-Kalender → Neu</em>, URL einfügen.</li>
+                    <li>Apple Calendar: <em>Datei → Neues Kalenderabo</em>, URL einfügen.</li>
+                    <li>Google Calendar: <em>Andere Kalender → Per URL hinzufügen</em>.</li>
                 </ul>
             @else
-                <p class="text-sm text-slate-700">Aktiviere den Feed, um alle offenen Aufgaben mit Faelligkeit und deine Vertrags-Fristen automatisch in deinen Kalender zu spielen.</p>
+                <p class="text-sm text-slate-700">Aktiviere den Feed, um alle offenen Aufgaben mit Fälligkeit und deine Vertrags-Fristen automatisch in deinen Kalender zu spielen.</p>
                 <form method="POST" action="{{ route('profile.ical.rotate') }}" class="mt-3">
                     @csrf
                     <x-primary-button>iCal-Feed aktivieren</x-primary-button>

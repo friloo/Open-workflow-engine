@@ -56,7 +56,7 @@ class GoogleLoginController extends Controller
         $name = $oauthUser->getName() ?: $email;
 
         if (! $sub || ! $email) {
-            return redirect()->route('login')->withErrors(['email' => 'Google hat keine vollstaendigen Profilangaben geliefert.']);
+            return redirect()->route('login')->withErrors(['email' => 'Google hat keine vollständigen Profilangaben geliefert.']);
         }
 
         // Enforce hosted_domain restriction (defense-in-depth - Google's hd param is a hint, not a guarantee)
@@ -65,7 +65,7 @@ class GoogleLoginController extends Controller
             $userDomain = $oauthUser->user['hd'] ?? substr(strrchr($email, '@') ?: '', 1);
             if (strcasecmp($userDomain, $hostedDomain) !== 0) {
                 return redirect()->route('login')->withErrors([
-                    'email' => "Nur Konten der Domain {$hostedDomain} duerfen sich anmelden.",
+                    'email' => "Nur Konten der Domain {$hostedDomain} dürfen sich anmelden.",
                 ]);
             }
         }
@@ -99,7 +99,7 @@ class GoogleLoginController extends Controller
 
         if (! $user->is_active) {
             $this->audit->log('auth.google.blocked', $user, null, null,
-                "Google-Login fuer inaktiven Account {$user->email}", $user->id);
+                "Google-Login für inaktiven Account {$user->email}", $user->id);
             return redirect()->route('login')->withErrors(['email' => 'Dieses Konto ist deaktiviert.']);
         }
 

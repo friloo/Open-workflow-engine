@@ -3,7 +3,7 @@
         Systemeinstellungen · Anmeldung & SSO
         <x-help-hint topic="sso" label="Anleitung Anmeldung &amp; SSO" />
     </x-slot>
-    <x-slot name="subheader">Microsoft 365, OpenID Connect (Keycloak/Authentik/Auth0/Okta), Google Workspace, SAML 2.0 und LDAP/Active Directory — alles in einer Uebersicht.</x-slot>
+    <x-slot name="subheader">Microsoft 365, OpenID Connect (Keycloak/Authentik/Auth0/Okta), Google Workspace, SAML 2.0 und LDAP/Active Directory — alles in einer Übersicht.</x-slot>
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'sso'])
 
@@ -42,8 +42,8 @@
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="client_secret" value="Client-Secret" />
-                        <x-text-input id="client_secret" name="client_secret" type="password" placeholder="@if(! empty($m365['client_secret']))(unveraendert lassen)@endif" autocomplete="new-password" />
-                        <p class="mt-1 text-xs text-slate-500">Verschluesselt gespeichert. Leer = bisherigen Wert beibehalten.</p>
+                        <x-text-input id="client_secret" name="client_secret" type="password" placeholder="@if(! empty($m365['client_secret']))(unverändert lassen)@endif" autocomplete="new-password" />
+                        <p class="mt-1 text-xs text-slate-500">Verschlüsselt gespeichert. Leer = bisherigen Wert beibehalten.</p>
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="redirect_uri" value="Redirect-URI" />
@@ -51,7 +51,7 @@
                         <p class="mt-1 text-xs text-slate-500">Diese URL muss exakt in der Azure-AD-App als Redirect-URI eingetragen sein.</p>
                     </div>
                     <div class="sm:col-span-2">
-                        <x-input-label for="default_role" value="Standardrolle fuer neue Benutzer" />
+                        <x-input-label for="default_role" value="Standardrolle für neue Benutzer" />
                         <select id="default_role" name="default_role" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             @foreach($roles as $r)
                                 <option value="{{ $r->slug }}" @selected($m365['default_role']===$r->slug)>{{ $r->name }} ({{ $r->slug }})</option>
@@ -78,12 +78,12 @@
                     @csrf
                     <button type="submit"
                         class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
-                        Benutzer-Sync jetzt ausfuehren
+                        Benutzer-Sync jetzt ausführen
                     </button>
                 </form>
                 <span class="text-xs text-slate-500 self-center">
                     Cron: <code>php artisan m365:sync-users</code> &mdash;
-                    Benoetigt <code>User.Read.All</code> als Application-Permission mit Admin-Consent.
+                    Benötigt <code>User.Read.All</code> als Application-Permission mit Admin-Consent.
                 </span>
                 <x-input-error :messages="$errors->get('m365')" />
             </div>
@@ -123,8 +123,8 @@
                     <div>
                         <x-input-label for="oidc_client_secret" value="Client-Secret" />
                         <x-text-input id="oidc_client_secret" name="oidc_client_secret" type="password"
-                                      placeholder="@if(! empty($oidc['client_secret']))(unveraendert lassen)@endif" autocomplete="new-password" />
-                        <p class="mt-1 text-xs text-slate-500">Verschluesselt gespeichert. Leer = unveraendert.</p>
+                                      placeholder="@if(! empty($oidc['client_secret']))(unverändert lassen)@endif" autocomplete="new-password" />
+                        <p class="mt-1 text-xs text-slate-500">Verschlüsselt gespeichert. Leer = unverändert.</p>
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="oidc_redirect" value="Redirect-URI" />
@@ -140,7 +140,7 @@
                         <x-text-input id="oidc_button_label" name="oidc_button_label" value="{{ $oidc['button_label'] }}" />
                     </div>
                     <div>
-                        <x-input-label for="oidc_default_role" value="Standardrolle fuer neue Benutzer" />
+                        <x-input-label for="oidc_default_role" value="Standardrolle für neue Benutzer" />
                         <select id="oidc_default_role" name="oidc_default_role" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             @foreach($roles as $r)
                                 <option value="{{ $r->slug }}" @selected($oidc['default_role']===$r->slug)>{{ $r->name }} ({{ $r->slug }})</option>
@@ -153,7 +153,7 @@
 
         {{-- Google --}}
         <x-card title="Google Workspace"
-                description="SSO fuer Google-Workspace-Konten. Mit Hosted-Domain laesst sich auf einen Tenant einschraenken (z. B. firma.de).">
+                description="SSO für Google-Workspace-Konten. Mit Hosted-Domain lässt sich auf einen Tenant einschränken (z. B. firma.de).">
             <div class="space-y-4">
                 <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                     <input type="hidden" name="google_enabled" value="0">
@@ -174,7 +174,7 @@
                     <div>
                         <x-input-label for="google_client_secret" value="Client-Secret" />
                         <x-text-input id="google_client_secret" name="google_client_secret" type="password"
-                                      placeholder="@if(! empty($google['client_secret']))(unveraendert lassen)@endif" autocomplete="new-password" />
+                                      placeholder="@if(! empty($google['client_secret']))(unverändert lassen)@endif" autocomplete="new-password" />
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-label for="google_redirect" value="Redirect-URI" />
@@ -232,11 +232,11 @@
                         <x-text-input id="saml_sp_entity_id" name="saml_sp_entity_id" value="{{ $saml['sp_entity_id'] }}" />
                     </div>
                     <div>
-                        <x-input-label for="saml_email_attribute" value="Attribut fuer E-Mail" />
+                        <x-input-label for="saml_email_attribute" value="Attribut für E-Mail" />
                         <x-text-input id="saml_email_attribute" name="saml_email_attribute" value="{{ $saml['email_attribute'] }}" />
                     </div>
                     <div>
-                        <x-input-label for="saml_name_attribute" value="Attribut fuer Anzeigename" />
+                        <x-input-label for="saml_name_attribute" value="Attribut für Anzeigename" />
                         <x-text-input id="saml_name_attribute" name="saml_name_attribute" value="{{ $saml['name_attribute'] }}" />
                     </div>
                     <div>
@@ -286,7 +286,7 @@
                 <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                     <input type="hidden" name="ldap_enabled" value="0">
                     <input type="checkbox" name="ldap_enabled" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked($ldap['enabled'])>
-                    LDAP-Anmeldung aktivieren (auf der Login-Seite Username/Passwort gegen AD pruefen)
+                    LDAP-Anmeldung aktivieren (auf der Login-Seite Username/Passwort gegen AD prüfen)
                 </label>
                 <label class="inline-flex items-center gap-2 text-sm text-slate-700">
                     <input type="hidden" name="ldap_auto_provision" value="0">
@@ -325,7 +325,7 @@
                     <div>
                         <x-input-label for="ldap_bind_password" value="Service-Account Passwort" />
                         <x-text-input id="ldap_bind_password" name="ldap_bind_password" type="password"
-                                      placeholder="@if(! empty($ldap['bind_password']))(unveraendert lassen)@endif" autocomplete="new-password" />
+                                      placeholder="@if(! empty($ldap['bind_password']))(unverändert lassen)@endif" autocomplete="new-password" />
                     </div>
                     <div class="sm:col-span-3">
                         <x-input-label for="ldap_user_filter" value="User-Filter ({username} wird ersetzt)" />
@@ -337,11 +337,11 @@
                         </p>
                     </div>
                     <div>
-                        <x-input-label for="ldap_email_attribute" value="Attribut fuer E-Mail" />
+                        <x-input-label for="ldap_email_attribute" value="Attribut für E-Mail" />
                         <x-text-input id="ldap_email_attribute" name="ldap_email_attribute" value="{{ $ldap['email_attribute'] }}" />
                     </div>
                     <div>
-                        <x-input-label for="ldap_name_attribute" value="Attribut fuer Anzeigename" />
+                        <x-input-label for="ldap_name_attribute" value="Attribut für Anzeigename" />
                         <x-text-input id="ldap_name_attribute" name="ldap_name_attribute" value="{{ $ldap['name_attribute'] }}" />
                     </div>
                     <div>
@@ -361,7 +361,7 @@
         </div>
     </form>
 
-    {{-- Separate Test-Form ausserhalb des Save-Forms damit man speichern + testen unabhaengig kann --}}
+    {{-- Separate Test-Form ausserhalb des Save-Forms damit man speichern + testen unabhängig kann --}}
     <x-card title="LDAP-Verbindung testen"
             description="Pruefe die Konfiguration mit einem echten AD-User. Passwort wird nirgendwo gespeichert.">
         <form method="POST" action="{{ route('admin.settings.sso.test_ldap') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">

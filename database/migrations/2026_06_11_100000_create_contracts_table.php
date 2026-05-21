@@ -17,7 +17,7 @@ return new class extends Migration
 
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable()->index();
-            // Bei laufzeit-gebundenen Vertraegen: Tage vor end_date erinnern
+            // Bei laufzeit-gebundenen Verträgen: Tage vor end_date erinnern
             $table->unsignedSmallInteger('notice_period_days')->default(90);
             $table->boolean('auto_renew')->default(false);
             $table->unsignedSmallInteger('auto_renew_months')->nullable();
@@ -28,8 +28,8 @@ return new class extends Migration
             // Verantwortlicher User (bekommt die Erinnerungen)
             $table->foreignId('owner_user_id')->nullable()->constrained('users')->nullOnDelete();
 
-            // Optional: Hauptdokument (Vertragsdatei). Genauere Verknuepfung
-            // ueber attachments-Tabelle via attachable_type/id ist auch moeglich.
+            // Optional: Hauptdokument (Vertragsdatei). Genauere Verknüpfung
+            // über attachments-Tabelle via attachable_type/id ist auch möglich.
             $table->foreignId('attachment_id')->nullable()->constrained('attachments')->nullOnDelete();
 
             // Letzter Reminder, damit der Cron nicht jeden Tag erneut feuert

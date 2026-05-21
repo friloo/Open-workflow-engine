@@ -12,9 +12,9 @@
         <div class="lg:col-span-2 space-y-6">
             @php($attachments = $instance->attachments)
             @php($previewables = $attachments->filter(fn ($a) => $a->isPdf() || $a->isImage())->values())
-            <x-dropzone :upload-url="route('attachments.store', ['type'=>'instance','id'=>$instance->id])" label="Datei zur Aufgabe hinzufuegen">
+            <x-dropzone :upload-url="route('attachments.store', ['type'=>'instance','id'=>$instance->id])" label="Datei zur Aufgabe hinzufügen">
             @if($attachments->isNotEmpty())
-                {{-- Auf Desktop: grosse Preview mit Tabs zum Wechseln. Auf Mobile:
+                {{-- Auf Desktop: große Preview mit Tabs zum Wechseln. Auf Mobile:
                      einfache Datei-Liste zum Antippen / Download. --}}
                 <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"
                      x-data="{ idx: 0 }">
@@ -23,7 +23,7 @@
                             <h2 class="text-base font-semibold text-slate-900">Beleg zur Aufgabe</h2>
                             <p class="mt-1 text-sm text-slate-500">
                                 @if($previewables->count() > 1)
-                                    {{ $attachments->count() }} Dateien — klick eine fuer die Vorschau.
+                                    {{ $attachments->count() }} Dateien — klick eine für die Vorschau.
                                 @else
                                     Direkt sehen, was du genehmigst.
                                 @endif
@@ -32,7 +32,7 @@
                         <span class="text-xs text-slate-500 hidden lg:block">{{ $attachments->count() }} Datei(en)</span>
                     </div>
 
-                    {{-- Tabs (Desktop). Wenn nur 1 Datei: kein Tab-Strip noetig. --}}
+                    {{-- Tabs (Desktop). Wenn nur 1 Datei: kein Tab-Strip nötig. --}}
                     @if($attachments->count() > 1)
                         <div class="hidden lg:flex border-b border-slate-100 overflow-x-auto">
                             @foreach($attachments as $i => $a)
@@ -110,7 +110,7 @@
                 </div>
             @else
                 <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-600">
-                    Keine Dateien an dieser Aufgabe. <strong>Datei reinziehen</strong>, um eine anzuhaengen.
+                    Keine Dateien an dieser Aufgabe. <strong>Datei reinziehen</strong>, um eine anzuhängen.
                 </div>
             @endif
             </x-dropzone>
@@ -147,7 +147,7 @@
                         <label class="flex-1 min-w-[160px] cursor-pointer rounded-lg border border-slate-200 p-3 hover:border-emerald-400 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
                             <input type="radio" name="decision" value="approved" x-model="decision" class="sr-only">
                             <div class="text-sm font-semibold text-emerald-700">✓ Genehmigen</div>
-                            <div class="text-xs text-slate-500">Workflow laeuft am Ausgang „Genehmigt" weiter.</div>
+                            <div class="text-xs text-slate-500">Workflow läuft am Ausgang „Genehmigt" weiter.</div>
                         </label>
                         <label class="flex-1 min-w-[160px] cursor-pointer rounded-lg border border-slate-200 p-3 hover:border-rose-400 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
                             <input type="radio" name="decision" value="rejected" x-model="decision" class="sr-only">
@@ -158,7 +158,7 @@
                             <label class="flex-1 min-w-[160px] cursor-pointer rounded-lg border border-slate-200 p-3 hover:border-amber-400 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50">
                                 <input type="radio" name="decision" value="forwarded" x-model="decision" class="sr-only">
                                 <div class="text-sm font-semibold text-amber-700">↪ Weiterleiten</div>
-                                <div class="text-xs text-slate-500">Aufgabe an andere Person uebergeben.</div>
+                                <div class="text-xs text-slate-500">Aufgabe an andere Person übergeben.</div>
                             </label>
                         @endif
                     </div>
@@ -167,7 +167,7 @@
                         <label for="forward_user_id" class="block text-sm font-medium text-slate-700 mb-1">Weiterleiten an</label>
                         <select id="forward_user_id" name="forward_user_id"
                             class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="">— bitte waehlen —</option>
+                            <option value="">— bitte wählen —</option>
                             @foreach($directory['users'] as $u)
                                 <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
                             @endforeach
@@ -180,7 +180,7 @@
                     <div>
                         <label for="comment" class="block text-sm font-medium text-slate-700 mb-1">
                             <span x-show="decision === 'approved'">Kommentar @if($reqApprove)<span class="text-rose-600">*</span>@else(optional)@endif</span>
-                            <span x-show="decision === 'rejected'">Begruendung @if($reqReject)<span class="text-rose-600">*</span>@else(optional)@endif</span>
+                            <span x-show="decision === 'rejected'">Begründung @if($reqReject)<span class="text-rose-600">*</span>@else(optional)@endif</span>
                             <span x-show="decision !== 'approved' && decision !== 'rejected'">Kommentar (optional)</span>
                         </label>
                         <textarea id="comment" name="comment" rows="3"
@@ -226,7 +226,7 @@
                                             <select id="{{ $id }}" name="{{ $name }}"
                                                 @if($req) required @endif
                                                 class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                <option value="">— bitte waehlen —</option>
+                                                <option value="">— bitte wählen —</option>
                                                 @foreach((array) ($f['options'] ?? []) as $opt)
                                                     <option value="{{ $opt }}" @selected($old === $opt)>{{ $opt }}</option>
                                                 @endforeach
@@ -264,7 +264,7 @@
                                 @if($step->snoozed_until && $step->snoozed_until->isFuture())
                                     Wiedervorlage: {{ $step->snoozed_until->format('d.m. H:i') }}
                                 @else
-                                    Spaeter
+                                    Später
                                 @endif
                                 <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 12 12"><path d="M3 4.5 6 8l3-3.5"/></svg>
                             </button>
@@ -273,7 +273,7 @@
                                 @foreach([
                                     '1h' => 'in 1 Stunde',
                                     '4h' => 'in 4 Stunden',
-                                    'tomorrow' => 'morgen frueh (8 Uhr)',
+                                    'tomorrow' => 'morgen früh (8 Uhr)',
                                     '3d' => 'in 3 Tagen',
                                     '1w' => 'in 1 Woche',
                                 ] as $key => $label)
@@ -300,7 +300,7 @@
                                 @endif
                             </div>
                         </div>
-                        <a href="{{ route('tasks.index') }}"><x-secondary-button type="button">Zurueck</x-secondary-button></a>
+                        <a href="{{ route('tasks.index') }}"><x-secondary-button type="button">Zurück</x-secondary-button></a>
                         <x-primary-button x-bind:disabled="!decision">Senden</x-primary-button>
                     </div>
                 </form>
@@ -316,14 +316,14 @@
                     <span class="inline-flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-full bg-indigo-500"></span>aktuell</span>
                     <span class="inline-flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-full bg-slate-300"></span>offen</span>
                 </div>
-                <a href="{{ route('workflow-instances.show', $instance) }}" class="mt-3 inline-flex text-sm text-indigo-600 hover:text-indigo-500">Vollstaendigen Verlauf ansehen &rarr;</a>
+                <a href="{{ route('workflow-instances.show', $instance) }}" class="mt-3 inline-flex text-sm text-indigo-600 hover:text-indigo-500">Vollständigen Verlauf ansehen &rarr;</a>
             </x-card>
 
             <x-card title="Details">
                 <dl class="space-y-3 text-sm">
                     <div>
                         <dt class="text-xs font-medium text-slate-500">Antragsteller</dt>
-                        <dd class="text-slate-900">{{ $instance->starter?->name ?? 'oeffentlich' }}</dd>
+                        <dd class="text-slate-900">{{ $instance->starter?->name ?? 'öffentlich' }}</dd>
                     </div>
                     <div>
                         <dt class="text-xs font-medium text-slate-500">Eingegangen</dt>

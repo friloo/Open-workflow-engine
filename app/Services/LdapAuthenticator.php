@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
  *  1. Service-Account bindet sich am LDAP-Server (bind_dn + bind_password).
  *  2. Sucht den User per Filter (z. B. sAMAccountName={username}).
  *  3. Re-bindet als gefundener User mit dem eingegebenen Passwort.
- *  4. Liefert Attribute (mail, displayName, dn) zurueck.
+ *  4. Liefert Attribute (mail, displayName, dn) zurück.
  *
  * Falls die PHP-LDAP-Extension nicht geladen ist, kommt eine
  * sprechende Fehlermeldung. So bleibt die App startbar auch ohne
@@ -101,7 +101,7 @@ class LdapAuthenticator
         // Eigentliche Authentifizierung: re-bind als User mit dessen Passwort.
         if (! @ldap_bind($conn, $userDn, $password)) {
             @ldap_close($conn);
-            return ['ok' => false, 'error' => 'Ungueltige Anmeldedaten.'];
+            return ['ok' => false, 'error' => 'Ungültige Anmeldedaten.'];
         }
 
         $email = isset($entry[$emailAttr][0]) ? strtolower((string) $entry[$emailAttr][0]) : '';

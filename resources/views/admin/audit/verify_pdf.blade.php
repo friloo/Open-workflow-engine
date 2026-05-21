@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Audit-Zertifikat · Hash-Chain-Pruefung</title>
+<title>Audit-Zertifikat · Hash-Chain-Prüfung</title>
 <style>
     @page { margin: 20mm 18mm; }
     body { font-family: DejaVu Sans, sans-serif; font-size: 10pt; color: #1f2937; line-height: 1.5; }
@@ -45,9 +45,9 @@
     @if($broken === null)
         <div class="status-ok">✓ KETTE INTAKT</div>
         <div class="summary">
-            <strong>Pruefungs-Datum:</strong> {{ $verifiedAt->format('d.m.Y H:i:s') }}<br>
-            <strong>Geprueft durch:</strong> {{ $verifiedBy }}<br>
-            <strong>Audit-Eintraege total:</strong> {{ number_format($total, 0, ',', '.') }}<br>
+            <strong>Prüfungs-Datum:</strong> {{ $verifiedAt->format('d.m.Y H:i:s') }}<br>
+            <strong>Geprüft durch:</strong> {{ $verifiedBy }}<br>
+            <strong>Audit-Einträge total:</strong> {{ number_format($total, 0, ',', '.') }}<br>
             @if($firstEntry)
                 <strong>Erster Eintrag:</strong> {{ $firstEntry->created_at->format('d.m.Y H:i:s') }}
                 (Event: <code>{{ $firstEntry->event }}</code>)<br>
@@ -57,10 +57,10 @@
             <strong>Algorithmus:</strong> SHA-256 (prev_hash → payload → hash)
         </div>
         <p class="meta">
-            Jeder Audit-Eintrag wurde geprueft: stored_prev_hash + event +
+            Jeder Audit-Eintrag wurde geprüft: stored_prev_hash + event +
             user_id + alte/neue Werte + Zeitstempel ergeben den
-            gespeicherten Hash. Wuerde jemand einen Eintrag manipulieren,
-            wuerde diese Pruefung das erkennen.
+            gespeicherten Hash. Würde jemand einen Eintrag manipulieren,
+            würde diese Prüfung das erkennen.
         </p>
     @else
         <div class="status-broken">✗ KETTE GEBROCHEN</div>
@@ -74,7 +74,7 @@
         <p class="meta" style="color:#991b1b; max-width: 140mm; margin: 6mm auto;">
             <strong>Achtung:</strong> Die Audit-Kette ist nicht mehr konsistent. Mögliche Ursachen:
             direkter Datenbank-Zugriff, Migration mit Datenverlust, oder bewusste Manipulation.
-            Sofort untersuchen. Letzten Backup pruefen.
+            Sofort untersuchen. Letzten Backup prüfen.
         </p>
     @endif
 </div>

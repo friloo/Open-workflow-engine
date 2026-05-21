@@ -41,8 +41,8 @@
                 entwickelt von <a href="https://loheide.eu" target="_blank" rel="noopener" class="font-medium hover:underline" style="color: {{ $primary }};">Friederich Loheide</a>
             </p>
             <p class="text-[10px] text-slate-400 max-w-sm mx-auto">
-                Teilweise mit KI generiert. Nutzung auf eigene Gefahr — keine Gewaehr fuer Fehlerfreiheit,
-                Datensicherheit oder regulatorische Konformitaet.
+                Teilweise mit KI generiert. Nutzung auf eigene Gefahr — keine Gewähr für Fehlerfreiheit,
+                Datensicherheit oder regulatorische Konformität.
             </p>
         </div>
     </div>

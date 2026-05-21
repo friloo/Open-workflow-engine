@@ -33,6 +33,6 @@
     </x-card>
 
     <p class="mt-4 text-xs text-slate-500">
-        Nach dem Import landest du im Designer. Der Workflow ist im Status <em>Entwurf</em> — pruefe Empfaenger (Rollen/Listen) und aktiviere ihn dann.
+        Nach dem Import landest du im Designer. Der Workflow ist im Status <em>Entwurf</em> — prüfe Empfänger (Rollen/Listen) und aktiviere ihn dann.
     </p>
 </x-app-layout>

@@ -12,11 +12,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * API: Globale Volltext-Suche ueber Dokumente, Vertraege, Akten,
+ * API: Globale Volltext-Suche über Dokumente, Verträge, Akten,
  * Workflows und Benutzer. Liefert pro Bereich max 10 Treffer mit
- * minimalem Datensatz + URL. Permission-gehaertet:
+ * minimalem Datensatz + URL. Permission-gehärtet:
  *  - Dokumente brauchen documents.search
- *  - Vertraege werden ueber visibleTo gefiltert (contracts.view)
+ *  - Verträge werden über visibleTo gefiltert (contracts.view)
  *  - Akten brauchen documents.search
  *  - Workflows brauchen workflows.view oder workflows.design
  *  - Benutzer brauchen users.view

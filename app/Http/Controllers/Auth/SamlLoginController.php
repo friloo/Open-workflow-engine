@@ -20,8 +20,8 @@ use Symfony\Component\HttpFoundation\Response;
  * - idp_sso_url      — SingleSignOn-URL des IdP
  * - idp_x509_cert    — Public Cert des IdP (PEM, ohne BEGIN/END-Zeilen ok)
  * - sp_entity_id     — eigene EntityID (default: app.url/saml/metadata)
- * - email_attribute  — Attribute-Name fuer E-Mail (default "email")
- * - name_attribute   — Attribute-Name fuer Anzeigename (default "displayName")
+ * - email_attribute  — Attribute-Name für E-Mail (default "email")
+ * - name_attribute   — Attribute-Name für Anzeigename (default "displayName")
  * - auto_provision / default_role / button_label
  */
 class SamlLoginController extends Controller
@@ -53,7 +53,7 @@ class SamlLoginController extends Controller
             $auth->processResponse();
         } catch (\Throwable $e) {
             Log::warning('SAML processResponse failed', ['error' => $e->getMessage()]);
-            return redirect()->route('login')->withErrors(['email' => 'SAML-Antwort ungueltig: '.$e->getMessage()]);
+            return redirect()->route('login')->withErrors(['email' => 'SAML-Antwort ungültig: '.$e->getMessage()]);
         }
 
         if (! empty($auth->getErrors())) {
@@ -106,7 +106,7 @@ class SamlLoginController extends Controller
 
         if (! $user->is_active) {
             $this->audit->log('auth.saml.blocked', $user, null, null,
-                "SAML-Login fuer inaktiven Account {$user->email}", $user->id);
+                "SAML-Login für inaktiven Account {$user->email}", $user->id);
             return redirect()->route('login')->withErrors(['email' => 'Dieses Konto ist deaktiviert.']);
         }
 

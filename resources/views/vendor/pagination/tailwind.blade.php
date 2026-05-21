@@ -2,7 +2,7 @@
     <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="flex flex-wrap items-center justify-between gap-3">
         <div class="text-xs text-slate-500">
             @if($paginator->total() > 0)
-                Eintraege
+                Einträge
                 <strong class="text-slate-700">{{ $paginator->firstItem() }}</strong>
                 bis
                 <strong class="text-slate-700">{{ $paginator->lastItem() }}</strong>
@@ -45,19 +45,19 @@
             @if ($paginator->hasMorePages())
                 <a href="{{ $paginator->nextPageUrl() }}" rel="next"
                    class="inline-flex items-center px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50">
-                    naechste &rarr;
+                    nächste &rarr;
                 </a>
             @else
                 <span class="inline-flex items-center px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-400 cursor-default">
-                    naechste &rarr;
+                    nächste &rarr;
                 </span>
             @endif
         </div>
     </nav>
 @elseif($paginator->total() > 0)
     {{-- Eine Seite reicht — wir zeigen trotzdem die Treffer-Anzahl, damit der
-         User sieht, dass die Liste wirklich vollstaendig ist. --}}
+         User sieht, dass die Liste wirklich vollständig ist. --}}
     <div class="text-xs text-slate-500">
-        {{ $paginator->total() }} {{ $paginator->total() === 1 ? 'Eintrag' : 'Eintraege' }}
+        {{ $paginator->total() }} {{ $paginator->total() === 1 ? 'Eintrag' : 'Einträge' }}
     </div>
 @endif

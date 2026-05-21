@@ -20,7 +20,7 @@
                 <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Global</div>
                 <ul class="space-y-2">
                     <li class="flex items-center justify-between">
-                        <span class="text-slate-700">Schnellsuche oeffnen</span>
+                        <span class="text-slate-700">Schnellsuche öffnen</span>
                         <span class="flex items-center gap-1">
                             <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">Strg</kbd>
                             <span class="text-slate-400">+</span>
@@ -91,14 +91,14 @@
                 <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">In der Schnellsuche</div>
                 <ul class="space-y-2">
                     <li class="flex items-center justify-between">
-                        <span class="text-slate-700">Treffer durchblaettern</span>
+                        <span class="text-slate-700">Treffer durchblättern</span>
                         <span class="flex items-center gap-1">
                             <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">&uarr;</kbd>
                             <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">&darr;</kbd>
                         </span>
                     </li>
                     <li class="flex items-center justify-between">
-                        <span class="text-slate-700">Treffer oeffnen</span>
+                        <span class="text-slate-700">Treffer öffnen</span>
                         <kbd class="rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[11px] font-mono text-slate-600">Enter</kbd>
                     </li>
                 </ul>

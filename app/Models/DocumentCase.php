@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * "Akte" / Aktendeckel — buendelt zusammengehoerige Dokumente,
- * Workflow-Vorgaenge, Vertraege und Notizen.
+ * "Akte" / Aktendeckel — bündelt zusammengehörige Dokumente,
+ * Workflow-Vorgänge, Verträge und Notizen.
  *
  * Ein Dokument/Vorgang/Vertrag kann in mehreren Akten liegen
  * (z. B. ein Vertrag in der Kunden-Akte UND in der
- * Vertraege-Sammlung des Justiziariats).
+ * Verträge-Sammlung des Justiziariats).
  */
 class DocumentCase extends Model
 {

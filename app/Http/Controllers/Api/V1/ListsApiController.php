@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
  * API: Lookup-Listen (Kostenstellen, Lieferanten, ...).
  * Token-Abilities:
  *   - lists.view  (Lesen)
- *   - lists.manage (Neue Eintraege via API anlegen)
+ *   - lists.manage (Neue Einträge via API anlegen)
  */
 class ListsApiController extends Controller
 {

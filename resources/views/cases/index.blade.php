@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Akten</x-slot>
-    <x-slot name="subheader">Sammlungen zusammengehoeriger Dokumente — z. B. „Akte Mueller GmbH", „Vertrag XY", „Projekt Z".</x-slot>
+    <x-slot name="subheader">Sammlungen zusammengehöriger Dokumente — z. B. „Akte Mueller GmbH", „Vertrag XY", „Projekt Z".</x-slot>
 
     <div class="mb-4 flex items-center justify-between">
         <form method="GET" class="flex gap-2">
@@ -13,7 +13,7 @@
     <x-card>
         @if($cases->isEmpty())
             <x-empty-state icon="document" title="Noch keine Akten"
-                description="Lege eine Akte an, um Dokumente thematisch zu buendeln (z. B. pro Kunde, Vertrag oder Projekt)." />
+                description="Lege eine Akte an, um Dokumente thematisch zu bündeln (z. B. pro Kunde, Vertrag oder Projekt)." />
         @else
             <div class="overflow-x-auto -mx-4 sm:mx-0">
 <table class="min-w-full divide-y divide-slate-200 text-sm">
@@ -40,7 +40,7 @@
                                     <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">offen</span>
                                 @endif
                             </td>
-                            <td class="py-3 text-right"><a href="{{ route('cases.show', $c) }}" class="text-sm text-indigo-600 hover:text-indigo-500">Oeffnen &rarr;</a></td>
+                            <td class="py-3 text-right"><a href="{{ route('cases.show', $c) }}" class="text-sm text-indigo-600 hover:text-indigo-500">Öffnen &rarr;</a></td>
                         </tr>
                     @endforeach
                 </tbody>

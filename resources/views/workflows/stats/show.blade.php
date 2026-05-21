@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Statistik · {{ $workflow->name }}</x-slot>
-    <x-slot name="subheader">Durchlaufzeiten, Engpaesse und Throughput fuer diesen Workflow.</x-slot>
+    <x-slot name="subheader">Durchlaufzeiten, Engpässe und Throughput für diesen Workflow.</x-slot>
 
     @php
         if (! function_exists('owe_fmt_duration')) {
@@ -19,7 +19,7 @@
         <x-stat-card label="Laufend" :value="$stats['instances']['running']" tone="indigo" />
         <x-stat-card label="Abgeschlossen" :value="$stats['instances']['completed']" tone="emerald" />
         <x-stat-card label="Fehlgeschlagen" :value="$stats['instances']['failed']" tone="rose" />
-        <x-stat-card label="Ueberfaellige Aufgaben" :value="$stats['overdue_tasks']" tone="amber" />
+        <x-stat-card label="Überfällige Aufgaben" :value="$stats['overdue_tasks']" tone="amber" />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -33,9 +33,9 @@
             tone="amber" />
     </div>
 
-    <x-card title="Engpaesse — langsamste Schritte" description="Durchschnittliche Bearbeitungszeit pro Schritt (assigned -> completed).">
+    <x-card title="Engpässe — langsamste Schritte" description="Durchschnittliche Bearbeitungszeit pro Schritt (assigned -> completed).">
         @if(empty($stats['bottlenecks']))
-            <x-empty-state title="Noch keine abgeschlossenen Schritte" description="Sobald Vorgaenge durchgelaufen sind, erscheinen hier die Engpaesse." />
+            <x-empty-state title="Noch keine abgeschlossenen Schritte" description="Sobald Vorgänge durchgelaufen sind, erscheinen hier die Engpässe." />
         @else
             <table class="min-w-full text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">

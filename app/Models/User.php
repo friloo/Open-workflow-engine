@@ -55,7 +55,7 @@ class User extends Authenticatable
     /**
      * Scope: nur menschliche Benutzer (keine Service-Accounts).
      * Verwendet in allen User-Auswahllisten — Service-Accounts sollen
-     * nicht als Approver, Supervisor o.ae. ausgewaehlt werden.
+     * nicht als Approver, Supervisor o.ae. ausgewählt werden.
      */
     public function scopeHumans($query)
     {

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
  * Implementation ist bewusst leichtgewichtig:
  * - Kein Bot, kein OAuth, kein Approve-from-Teams.
  * - Adaptive-Card mit Titel + Antrags-Daten + Action-Button 'In OWE
- *   oeffnen' → User klickt, kommt in seine Aufgabe.
+ *   öffnen' → User klickt, kommt in seine Aufgabe.
  *
  * Setup: in Teams → Channel → Connectors → 'Incoming Webhook'. Die
  * generierte URL hier eintragen.
@@ -84,7 +84,7 @@ class TeamsNotifier
             ]],
             'potentialAction' => [[
                 '@type' => 'OpenUri',
-                'name' => 'In OWE oeffnen',
+                'name' => 'In OWE öffnen',
                 'targets' => [[
                     'os' => 'default',
                     'uri' => $data['url'],

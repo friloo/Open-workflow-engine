@@ -97,29 +97,29 @@ class ShareLinkController extends Controller
     /** Mail-Signed-Link „Freigabe behalten" — fragt nach Grund. */
     public function reviewConfirmForm(Request $request, ShareLink $share): View
     {
-        abort_unless($request->hasValidSignature(), 403, 'Link ungueltig oder abgelaufen.');
+        abort_unless($request->hasValidSignature(), 403, 'Link ungültig oder abgelaufen.');
         return view('shares.review-confirm', ['share' => $share]);
     }
 
     public function reviewConfirm(Request $request, ShareLink $share): View
     {
-        abort_unless($request->hasValidSignature(false) || $request->hasValidSignature(), 403, 'Link ungueltig.');
+        abort_unless($request->hasValidSignature(false) || $request->hasValidSignature(), 403, 'Link ungültig.');
         $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
         $share->forceFill([
             'last_review_response_at' => now(),
             'review_response' => $data['reason'],
         ])->save();
         $this->audit->log('share.review.confirmed', $share, null, ['reason' => $data['reason']],
-            'Freigabe-Pruefung bestaetigt: '.\Illuminate\Support\Str::limit($data['reason'], 80));
+            'Freigabe-Prüfung bestätigt: '.\Illuminate\Support\Str::limit($data['reason'], 80));
         return view('shares.review-done', ['share' => $share, 'mode' => 'confirmed']);
     }
 
     public function reviewRevoke(Request $request, ShareLink $share): View
     {
-        abort_unless($request->hasValidSignature(), 403, 'Link ungueltig oder abgelaufen.');
-        $share->revoke('Auf Pruefungs-Anfrage durch Inhaber widerrufen.');
+        abort_unless($request->hasValidSignature(), 403, 'Link ungültig oder abgelaufen.');
+        $share->revoke('Auf Prüfungs-Anfrage durch Inhaber widerrufen.');
         $this->audit->log('share.review.revoked', $share, null, null,
-            'Freigabe durch Pruefungs-Mail widerrufen');
+            'Freigabe durch Prüfungs-Mail widerrufen');
         return view('shares.review-done', ['share' => $share, 'mode' => 'revoked']);
     }
 }

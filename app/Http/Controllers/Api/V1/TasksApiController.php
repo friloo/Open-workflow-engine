@@ -58,7 +58,7 @@ class TasksApiController extends Controller
     }
 
     /**
-     * POST /api/v1/tasks/{step}/decide — Decision durchfuehren.
+     * POST /api/v1/tasks/{step}/decide — Decision durchführen.
      * Erwartet 'decision' (approved/rejected/forwarded), optional
      * 'comment', 'extra' (Zusatzfelder), 'forward_user_id'.
      */
@@ -71,7 +71,7 @@ class TasksApiController extends Controller
         $isAssignee = $step->assigned_to_user_id === $user->id
             || ($step->assigned_to_role_id && $user->roles->pluck('id')->contains($step->assigned_to_role_id));
         if (! $isAssignee) {
-            return response()->json(['error' => 'Nicht zustaendig fuer diese Aufgabe.'], 403);
+            return response()->json(['error' => 'Nicht zustaendig für diese Aufgabe.'], 403);
         }
 
         $data = $request->validate([
@@ -92,10 +92,10 @@ class TasksApiController extends Controller
 
         // Falls extra-Felder mitgekommen sind, koennen wir sie hier
         // theoretisch verarbeiten — die volle Validierung liegt im
-        // Web-Controller. Fuer die API behalten wir's einfach: wir
+        // Web-Controller. Für die API behalten wir's einfach: wir
         // schreiben sie direkt als indexed_fields an den Anhang
         // (sofern target=doc gewollt waere — pro Workflow konfiguriert).
-        // Hier nicht ausgewertet; siehe Web-Variante fuer die volle Logik.
+        // Hier nicht ausgewertet; siehe Web-Variante für die volle Logik.
 
         $this->engine->completeStep($step, $data['decision'], $data['comment'] ?? null, $user->id);
         return response()->json(['status' => $data['decision']]);

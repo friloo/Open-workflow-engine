@@ -51,7 +51,7 @@ class GdprTest extends TestCase
         $user->assignRole('employee');
         $userId = $user->id;
 
-        app(GdprService::class)->anonymize($user, 'Loeschungs-Antrag vom 19.05.');
+        app(GdprService::class)->anonymize($user, 'Löschungs-Antrag vom 19.05.');
 
         $user->refresh();
         $this->assertSame("anonymized-{$userId}@deleted.local", $user->email);

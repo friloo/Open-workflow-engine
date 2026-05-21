@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 
 /**
- * Quartals-Review fuer Vertrags-Owner:
- * Pro Owner eine Zusammenfassung aller seiner Vertraege (Status,
+ * Quartals-Review für Vertrags-Owner:
+ * Pro Owner eine Zusammenfassung aller seiner Verträge (Status,
  * Frist, Ende) in seinem Postkorb + per Mail. Soll als
- * Audit-Selbstkontrolle dienen — der Verantwortliche bestaetigt
+ * Audit-Selbstkontrolle dienen — der Verantwortliche bestätigt
  * implizit durch die Sichtung, dass die Vertragsdaten noch stimmen.
  *
  * Empfohlener Cron-Eintrag in routes/console.php:
@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\View;
 class ContractsQuarterlyReview extends Command
 {
     protected $signature = 'contracts:quarterly-review {--dry-run : nichts versenden, nur Anzahl ausgeben}';
-    protected $description = 'Quartals-Audit-Mail an alle Vertrags-Owner mit Liste ihrer Vertraege';
+    protected $description = 'Quartals-Audit-Mail an alle Vertrags-Owner mit Liste ihrer Verträge';
 
     public function handle(): int
     {
@@ -34,7 +34,7 @@ class ContractsQuarterlyReview extends Command
             return self::SUCCESS;
         }
 
-        // Pro Owner alle Vertraege buendeln
+        // Pro Owner alle Verträge bündeln
         $contracts = Contract::query()
             ->whereNotNull('owner_user_id')
             ->with('type')
@@ -53,7 +53,7 @@ class ContractsQuarterlyReview extends Command
                 AppNotification::send(
                     $owner,
                     'contract.quarterly_review',
-                    'Quartals-Pruefung: ' . $list->count() . ' Vertraege',
+                    'Quartals-Prüfung: ' . $list->count() . ' Verträge',
                     'Bitte sichten — Stand: ' . now()->format('d.m.Y'),
                     route('contracts.index', ['filter' => 'all']),
                 );
@@ -69,7 +69,7 @@ class ContractsQuarterlyReview extends Command
                     ])->render();
                     Mail::raw('', function ($m) use ($owner, $body, $list) {
                         $m->to($owner->email)
-                          ->subject('Quartals-Pruefung Vertraege: ' . $list->count() . ' Eintraege')
+                          ->subject('Quartals-Prüfung Verträge: ' . $list->count() . ' Einträge')
                           ->html($body);
                     });
                 } catch (\Throwable $e) {

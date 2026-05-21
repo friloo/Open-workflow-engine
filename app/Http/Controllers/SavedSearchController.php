@@ -32,11 +32,11 @@ class SavedSearchController extends Controller
             'params' => ['required', 'array'],
         ]);
 
-        // Maximal 30 pro User + Scope — verhindert Datenmuell.
+        // Maximal 30 pro User + Scope — verhindert Datenmüll.
         $existing = SavedSearch::where('user_id', $request->user()->id)
             ->where('scope', $data['scope'])->count();
         if ($existing >= 30) {
-            return back()->withErrors(['name' => 'Maximal 30 gespeicherte Suchen — bitte zuerst eine loeschen.']);
+            return back()->withErrors(['name' => 'Maximal 30 gespeicherte Suchen — bitte zuerst eine löschen.']);
         }
 
         SavedSearch::create([
@@ -52,15 +52,15 @@ class SavedSearchController extends Controller
 
     public function destroy(Request $request, SavedSearch $savedSearch): RedirectResponse
     {
-        // Nur eigene loeschbar
+        // Nur eigene löschbar
         if ($savedSearch->user_id !== $request->user()->id) abort(403);
         $savedSearch->delete();
-        return back()->with('status', 'Suche geloescht.');
+        return back()->with('status', 'Suche gelöscht.');
     }
 
     /**
-     * Filtert alles weg, was nicht zum Standard-Filter-Set des Scopes gehoert —
-     * verhindert dass jemand zufaellig sensible Daten in params parkt.
+     * Filtert alles weg, was nicht zum Standard-Filter-Set des Scopes gehört —
+     * verhindert dass jemand zufällig sensible Daten in params parkt.
      */
     private function cleanParams(string $scope, array $params): array
     {

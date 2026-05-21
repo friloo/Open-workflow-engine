@@ -44,8 +44,8 @@ class SimulationController extends Controller
     }
 
     /**
-     * Pre-Production-Check als PDF: laeuft die Simulation und rendert
-     * Eingabe + Trace in ein druckbares Layout fuer Reviews.
+     * Pre-Production-Check als PDF: läuft die Simulation und rendert
+     * Eingabe + Trace in ein druckbares Layout für Reviews.
      */
     public function pdf(Request $request, Workflow $workflow): Response
     {
@@ -64,7 +64,7 @@ class SimulationController extends Controller
 
         $this->audit->log('workflow.simulation_exported', $workflow, null,
             ['version' => $version?->version, 'steps' => count($result['trace'] ?? [])],
-            "Simulations-PDF fuer Workflow '{$workflow->name}' erzeugt", $request->user()->id);
+            "Simulations-PDF für Workflow '{$workflow->name}' erzeugt", $request->user()->id);
 
         $filename = 'workflow-simulation-' . $workflow->id . '-' . now()->format('Ymd-Hi') . '.pdf';
         return $pdf->download($filename);

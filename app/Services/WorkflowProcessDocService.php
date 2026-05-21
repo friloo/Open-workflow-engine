@@ -7,12 +7,12 @@ use App\Models\WorkflowVersion;
 
 /**
  * Generiert eine **Prozessbeschreibung** zu einem Workflow als HTML
- * (wird dann von DomPDF in PDF gewandelt). Wird typisch fuer
+ * (wird dann von DomPDF in PDF gewandelt). Wird typisch für
  * QM-/GoBD-Dokumentation gedruckt: was tut dieser Workflow, welche
  * Knoten in welcher Reihenfolge, welche Berechtigungen, welche
  * Eskalations-Regeln.
  *
- * Bewusst lesbar fuer Auditoren — nicht der Drawflow-JSON-Dump,
+ * Bewusst lesbar für Auditoren — nicht der Drawflow-JSON-Dump,
  * sondern eine strukturierte Tabelle mit allen wichtigen Feldern,
  * pro Knotentyp ein eigener Detail-Block.
  *
@@ -23,8 +23,8 @@ use App\Models\WorkflowVersion;
 class WorkflowProcessDocService
 {
     /**
-     * Liefert das aufbereitete Daten-Set fuer das Blade-Template.
-     * Hash der Definition wird mitgeliefert fuer das Footer-Stempel —
+     * Liefert das aufbereitete Daten-Set für das Blade-Template.
+     * Hash der Definition wird mitgeliefert für das Footer-Stempel —
      * damit ein Auditor merkt, ob die ausgedruckte Version noch der
      * Live-Version entspricht.
      */
@@ -38,7 +38,7 @@ class WorkflowProcessDocService
         $nodes = (array) data_get($version->definition, 'drawflow.Home.data', []);
         // Topologisch sortieren waere ideal — aber die Knoten haben in
         // Drawflow keine garantierte Ordnung. Wir starten beim 'start'-
-        // Knoten und folgen den Output-Verbindungen breitensuche-maessig.
+        // Knoten und folgen den Output-Verbindungen breitensuche-mäßig.
         $ordered = $this->orderNodes($nodes);
 
         $payload = [
@@ -88,7 +88,7 @@ class WorkflowProcessDocService
                 }
             }
         }
-        // Falls Knoten wegen disconnected Komponenten nicht erreicht: anhaengen
+        // Falls Knoten wegen disconnected Komponenten nicht erreicht: anhängen
         foreach ($nodes as $key => $node) {
             if (! isset($seen[$key])) $order[] = $node;
         }
@@ -109,7 +109,7 @@ class WorkflowProcessDocService
     }
 
     /**
-     * Eine Zeile fuer die Uebersichts-Tabelle pro Knoten:
+     * Eine Zeile für die Übersichts-Tabelle pro Knoten:
      *   Index, Label, Typ, Folgende Knoten.
      */
     private function summarizeNode(array $node, array $allNodes): array
@@ -156,7 +156,7 @@ class WorkflowProcessDocService
     }
 
     /**
-     * Maskiert sensible Konfig-Werte fuer die Druck-Ausgabe. Bei
+     * Maskiert sensible Konfig-Werte für die Druck-Ausgabe. Bei
      * HTTP-Knoten mit Bearer-Token / Basic-Auth-Password sieht man
      * im PDF nur '****' — Doku darf weitergegeben werden.
      */

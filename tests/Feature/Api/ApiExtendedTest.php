@@ -159,7 +159,7 @@ class ApiExtendedTest extends TestCase
 
     public function test_search_endpoint(): void
     {
-        Contract::create(['name' => 'Mietvertrag Schillerstrasse', 'notice_period_days' => 90, 'status' => 'active', 'created_by' => $this->admin->id]);
+        Contract::create(['name' => 'Mietvertrag Schillerstraße', 'notice_period_days' => 90, 'status' => 'active', 'created_by' => $this->admin->id]);
 
         $resp = $this->get('/api/v1/search?q=Schiller', $this->headers())->assertOk();
         $this->assertNotEmpty($resp->json('contracts'));

@@ -8,7 +8,7 @@ use App\Models\WorkflowVersion;
  * Berechnet einen knoten-basierten Diff zwischen zwei
  * Workflow-Versionen. Ergebnis ist eine Liste von Knoten mit
  * Status (added/removed/modified/unchanged) und je nach Status
- * mit Detail-Aenderungen pro Feld.
+ * mit Detail-Änderungen pro Feld.
  */
 class WorkflowDiffer
 {
@@ -62,7 +62,7 @@ class WorkflowDiffer
                     }
                     $row['fields'][] = ['key' => $fk, 'before' => $va, 'after' => $vb];
                 }
-                // Auch Connection-Aenderungen erfassen (kurz)
+                // Auch Connection-Änderungen erfassen (kurz)
                 $connA = json_encode(data_get($na, 'outputs', []));
                 $connB = json_encode(data_get($nb, 'outputs', []));
                 if ($connA !== $connB) {

@@ -23,7 +23,7 @@ class ContractTemplateTest extends TestCase
         ]);
         $c->setRelation('owner', new User(['name' => 'A. Admin', 'email' => 'a@example.com']));
         $t = new ContractTemplate([
-            'body_html' => 'Vertrag mit {{ party }} ueber {{ name }}. Frist: {{ notice_period_days }} Tage. Sachbearbeiter: {{ owner.name }}',
+            'body_html' => 'Vertrag mit {{ party }} über {{ name }}. Frist: {{ notice_period_days }} Tage. Sachbearbeiter: {{ owner.name }}',
         ]);
 
         $html = (new ContractTemplateRenderer())->render($t, $c);

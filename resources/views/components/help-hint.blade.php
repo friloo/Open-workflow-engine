@@ -10,7 +10,7 @@
     if ($topic) {
         $href = route('help.show', $topic) . ($anchor ? '#'.$anchor : '');
     }
-    $title = $text ?: ($topic ? 'Anleitung oeffnen' : 'Hilfe');
+    $title = $text ?: ($topic ? 'Anleitung öffnen' : 'Hilfe');
 @endphp
 
 <span class="inline-flex items-center" x-data="{ open: false }">

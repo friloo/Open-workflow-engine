@@ -14,7 +14,7 @@
         @if($mode === 'confirmed')
             <div class="grid h-16 w-16 mx-auto place-items-center rounded-full bg-emerald-100 text-emerald-700 text-3xl">✓</div>
             <h1 class="mt-6 text-xl font-semibold text-slate-900">Vielen Dank — Freigabe bleibt aktiv</h1>
-            <p class="mt-2 text-sm text-slate-600">Wir melden uns in einigen Tagen erneut zur Pruefung.</p>
+            <p class="mt-2 text-sm text-slate-600">Wir melden uns in einigen Tagen erneut zur Prüfung.</p>
         @else
             <div class="grid h-16 w-16 mx-auto place-items-center rounded-full bg-rose-100 text-rose-700 text-3xl">✕</div>
             <h1 class="mt-6 text-xl font-semibold text-slate-900">Freigabe widerrufen</h1>

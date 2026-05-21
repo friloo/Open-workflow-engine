@@ -98,15 +98,15 @@ class UserController extends Controller
     public function destroy(Request $request, User $user): RedirectResponse
     {
         if ($user->id === $request->user()->id) {
-            return back()->withErrors(['user' => 'Sie koennen sich nicht selbst loeschen.']);
+            return back()->withErrors(['user' => 'Sie koennen sich nicht selbst löschen.']);
         }
 
         $snapshot = $user->only(['id', 'name', 'email']);
         $user->delete();
 
-        $this->audit->log('user.deleted', $user, $snapshot, null, "Benutzer {$snapshot['email']} geloescht");
+        $this->audit->log('user.deleted', $user, $snapshot, null, "Benutzer {$snapshot['email']} gelöscht");
 
-        return redirect()->route('admin.users.index')->with('status', 'Benutzer geloescht.');
+        return redirect()->route('admin.users.index')->with('status', 'Benutzer gelöscht.');
     }
 
     private function validateUser(Request $request, ?User $user = null): array
@@ -132,7 +132,7 @@ class UserController extends Controller
             'prefer_m365_supervisor' => $request->boolean('prefer_m365_supervisor', false),
         ];
 
-        // Custom-Felder: nur konfigurierte Keys mit korrektem Typ uebernehmen.
+        // Custom-Felder: nur konfigurierte Keys mit korrektem Typ übernehmen.
         $defined = \App\Support\Settings::get('users.custom_fields', []);
         $cf = [];
         $input = $request->input('custom_fields', []);

@@ -47,7 +47,7 @@ class Contract extends Model
     }
 
     /**
-     * Mehrere Dateien koennen am Vertrag haengen (Vertrags-PDF, Anlagen,
+     * Mehrere Dateien koennen am Vertrag hängen (Vertrags-PDF, Anlagen,
      * AGB, Schriftverkehr). Aktuelle Versionen oben.
      */
     public function attachments(): MorphMany
@@ -84,12 +84,12 @@ class Contract extends Model
     }
 
     /**
-     * Sichtbarkeits-Scope: Vertraege die der gegebene User sehen darf.
+     * Sichtbarkeits-Scope: Verträge die der gegebene User sehen darf.
      *
      * Sichtbar wenn:
      * - User ist admin (alles)
      * - User ist Owner des Vertrages
-     * - User hat eine Rolle, die fuer den Vertragstyp freigegeben ist
+     * - User hat eine Rolle, die für den Vertragstyp freigegeben ist
      * - User hat eine Rolle, die direkt am Vertrag angeheftet ist
      * - Wenn kein contract_type_id und keine roles angeheftet sind:
      *   sichtbar (Legacy / unklassifiziert) — gleiches Pattern wie bei
@@ -118,7 +118,7 @@ class Contract extends Model
     }
 
     /**
-     * Darf der gegebene User diesen Vertrag bearbeiten/loeschen?
+     * Darf der gegebene User diesen Vertrag bearbeiten/löschen?
      * Anders als Sichtbarkeit setzt das zusaetzlich die globale
      * contracts.manage-Permission voraus.
      */
@@ -148,7 +148,7 @@ class Contract extends Model
     }
 
     /**
-     * Letzter Termin zu dem rechtzeitig gekuendigt werden muss
+     * Letzter Termin zu dem rechtzeitig gekündigt werden muss
      * (end_date - notice_period_days). Null wenn end_date nicht gesetzt.
      */
     public function noticeDeadline(): ?\Illuminate\Support\Carbon
@@ -158,7 +158,7 @@ class Contract extends Model
     }
 
     /**
-     * Status-Logik: berechnet, NICHT in DB schreiben. Cron synct das taeglich.
+     * Status-Logik: berechnet, NICHT in DB schreiben. Cron synct das täglich.
      */
     public function computedStatus(): string
     {

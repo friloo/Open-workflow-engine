@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">DATEV-Export</x-slot>
-    <x-slot name="subheader">Buchungsstapel + Belege als ZIP fuer DATEV / Buchhaltung.</x-slot>
+    <x-slot name="subheader">Buchungsstapel + Belege als ZIP für DATEV / Buchhaltung.</x-slot>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <x-card title="Export erstellen" description="Erzeugt ein ZIP mit Buchungsstapel-CSV + Original-Belegen.">
@@ -29,7 +29,7 @@
             </form>
         </x-card>
 
-        <x-card title="DATEV-Konten + Mapping" description="Default-Konten fuer den Buchungsstapel und Mapping der Indexfelder auf DATEV-Spalten.">
+        <x-card title="DATEV-Konten + Mapping" description="Default-Konten für den Buchungsstapel und Mapping der Indexfelder auf DATEV-Spalten.">
             <form method="POST" action="{{ route('admin.datev.config.update') }}" class="space-y-4">
                 @csrf
                 <div class="grid grid-cols-3 gap-2">
@@ -42,7 +42,7 @@
                         <x-text-input name="config[gegenkonto_aufwand]" value="{{ $config['gegenkonto_aufwand'] ?? '4400' }}" />
                     </div>
                     <div>
-                        <x-input-label value="BU-Schluessel" />
+                        <x-input-label value="BU-Schlüssel" />
                         <x-text-input name="config[bu_schluessel]" value="{{ $config['bu_schluessel'] ?? '' }}" />
                     </div>
                 </div>
@@ -50,7 +50,7 @@
                 <div>
                     <div class="text-xs font-semibold text-slate-700 mb-1">Indexfeld → DATEV-Spalte</div>
                     <p class="text-[11px] text-slate-500 mb-2">
-                        Welche Indexfeld-Keys aus deinem Doku-Schema fuer die DATEV-Spalten genutzt werden.
+                        Welche Indexfeld-Keys aus deinem Doku-Schema für die DATEV-Spalten genutzt werden.
                         Leer = nicht ersetzen, dann gilt der Default-Name.
                     </p>
                     <div class="space-y-1.5">

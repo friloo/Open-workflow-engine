@@ -22,7 +22,7 @@ class LookupListEntryController extends Controller
         $keyColumn = $list->keyColumn();
         $keyValue = trim((string) ($payload[$keyColumn['key']] ?? ''));
         if ($keyValue === '') {
-            return back()->withErrors(['key' => 'Schluesselwert darf nicht leer sein.']);
+            return back()->withErrors(['key' => 'Schlüsselwert darf nicht leer sein.']);
         }
 
         LookupListEntry::updateOrCreate(
@@ -39,8 +39,8 @@ class LookupListEntryController extends Controller
         abort_unless($entry->lookup_list_id === $list->id, 404);
         $key = $entry->key_value;
         $entry->delete();
-        $this->audit->log('list.entry.deleted', $list, ['key_value' => $key], null, "Eintrag {$key} aus Liste {$list->name} geloescht");
-        return back()->with('status', "Eintrag {$key} geloescht.");
+        $this->audit->log('list.entry.deleted', $list, ['key_value' => $key], null, "Eintrag {$key} aus Liste {$list->name} gelöscht");
+        return back()->with('status', "Eintrag {$key} gelöscht.");
     }
 
     public function import(Request $request, LookupList $list): RedirectResponse
@@ -92,7 +92,7 @@ class LookupListEntryController extends Controller
             }
             $keyValue = $data[$keyColumn['key']] ?? null;
             if ($keyValue === null || $keyValue === '') {
-                $failed++; $errors[] = "Zeile {$row}: Schluesselwert fehlt.";
+                $failed++; $errors[] = "Zeile {$row}: Schlüsselwert fehlt.";
                 continue;
             }
 

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Queue-Worker</x-slot>
-    <x-slot name="subheader">Hintergrund-Jobs fuer OCR und schwere Verarbeitung.</x-slot>
+    <x-slot name="subheader">Hintergrund-Jobs für OCR und schwere Verarbeitung.</x-slot>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <x-stat-card label="Pending"
@@ -42,14 +42,14 @@
                 fertig, OCR + Indexfeld-Extraktion passieren im Hintergrund.
             </p>
             <p class="text-xs text-slate-500">
-                Pendet ein OCR-Job zu lange (z. B. weil kein Worker laeuft), kann er per
+                Pendet ein OCR-Job zu lange (z. B. weil kein Worker läuft), kann er per
                 <code>php artisan ocr:run-pending</code> manuell nachgeholt werden.
             </p>
         </div>
     </x-card>
 
     @if($recent_failed->isNotEmpty())
-        <x-card title="Letzte Fehlschlaege" description="Aus failed_jobs. Per CLI nachschauen mit 'php artisan queue:failed'.">
+        <x-card title="Letzte Fehlschläge" description="Aus failed_jobs. Per CLI nachschauen mit 'php artisan queue:failed'.">
             <div class="overflow-x-auto">
                 <div class="overflow-x-auto -mx-4 sm:mx-0">
 <table class="min-w-full text-sm">
@@ -79,15 +79,15 @@
             <p class="mt-3 text-xs text-slate-500">
                 Retry per CLI: <code>php artisan queue:retry all</code> (alle), oder
                 <code>php artisan queue:retry &lt;id&gt;</code> (einzeln).
-                Loeschen: <code>php artisan queue:forget &lt;id&gt;</code>.
+                Löschen: <code>php artisan queue:forget &lt;id&gt;</code>.
             </p>
         </x-card>
     @endif
 
     <x-card title="Worker einrichten">
         <p class="text-sm text-slate-700">
-            Empfohlene Variante fuer Produktion: <code>systemd</code>-Unit, die den Worker
-            ueberwacht und automatisch neu startet:
+            Empfohlene Variante für Produktion: <code>systemd</code>-Unit, die den Worker
+            überwacht und automatisch neu startet:
         </p>
         <pre class="mt-3 rounded-lg bg-slate-900 text-slate-100 p-3 text-xs overflow-x-auto"># /etc/systemd/system/owe-queue.service
 [Unit]

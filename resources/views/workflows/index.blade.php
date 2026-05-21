@@ -67,7 +67,7 @@
                         <th class="py-2 pr-4">Trigger</th>
                         <th class="py-2 pr-4">Status</th>
                         <th class="py-2 pr-4">Aktuelle Version</th>
-                        <th class="py-2 pr-4">Geaendert</th>
+                        <th class="py-2 pr-4">Geändert</th>
                         <th class="py-2"></th>
                     </tr>
                 </thead>
@@ -114,7 +114,7 @@
                                 @if(auth()->user()->hasPermission('workflows.design'))
                                     <a href="{{ route('workflows.edit', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Metadaten</a>
                                     <a href="{{ route('workflows.versions', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Versionen</a>
-                                    <a href="{{ route('workflows.instances', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Vorgaenge ({{ $w->instances_count ?? 0 }})</a>
+                                    <a href="{{ route('workflows.instances', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Vorgänge ({{ $w->instances_count ?? 0 }})</a>
                                     @if($w->trigger_type==='recurring')
                                         <a href="{{ route('workflows.schedules.index', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Wiedervorlagen</a>
                                     @endif
@@ -125,7 +125,7 @@
                         <tr><td colspan="6">
                             <x-empty-state icon="workflow"
                                 title="Noch keine Workflows angelegt"
-                                description="Starte mit einer Vorlage (Bestellantrag, Krankmeldung, Fuehrerschein-Pruefung) oder lass die KI dir einen Entwurf bauen.">
+                                description="Starte mit einer Vorlage (Bestellantrag, Krankmeldung, Führerschein-Prüfung) oder lass die KI dir einen Entwurf bauen.">
                                 @if(auth()->user()->hasPermission('workflows.design'))
                                     <a href="{{ route('workflows.create') }}"><x-primary-button type="button">Neuer Workflow</x-primary-button></a>
                                     <a href="{{ route('help.show', 'workflows') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>

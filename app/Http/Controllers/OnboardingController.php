@@ -6,7 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Tracking fuer den Onboarding-Wizard: User klickt "Spaeter" oder
+ * Tracking für den Onboarding-Wizard: User klickt "Später" oder
  * "Fertig", wir merken uns das.
  */
 class OnboardingController extends Controller

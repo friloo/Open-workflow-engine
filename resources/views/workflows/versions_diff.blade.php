@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Versions-Vergleich · {{ $workflow->name }}</x-slot>
-    <x-slot name="subheader">Welche Knoten haben sich zwischen zwei Versionen geaendert?</x-slot>
+    <x-slot name="subheader">Welche Knoten haben sich zwischen zwei Versionen geändert?</x-slot>
 
     <x-breadcrumbs :items="[
         ['title' => 'Workflows', 'url' => route('workflows.index')],
@@ -15,7 +15,7 @@
                 <x-input-label for="a" value="Version A (Basis)" />
                 <select id="a" name="a" required
                         class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">— bitte waehlen —</option>
+                    <option value="">— bitte wählen —</option>
                     @foreach($versionsList as $v)
                         <option value="{{ $v->id }}" @selected($verA?->id === $v->id)>
                             v{{ $v->version_number }} · {{ $v->created_at->format('d.m.Y') }} ·
@@ -28,7 +28,7 @@
                 <x-input-label for="b" value="Version B (Vergleich)" />
                 <select id="b" name="b" required
                         class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">— bitte waehlen —</option>
+                    <option value="">— bitte wählen —</option>
                     @foreach($versionsList as $v)
                         <option value="{{ $v->id }}" @selected($verB?->id === $v->id)>
                             v{{ $v->version_number }} · {{ $v->created_at->format('d.m.Y') }} ·
@@ -48,12 +48,12 @@
             <div class="flex flex-wrap gap-2 text-sm">
                 <span class="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">+ {{ $diff['counts']['added'] }} neu</span>
                 <span class="rounded-full bg-rose-50 px-3 py-1 text-rose-700">− {{ $diff['counts']['removed'] }} entfernt</span>
-                <span class="rounded-full bg-amber-50 px-3 py-1 text-amber-700">~ {{ $diff['counts']['modified'] }} geaendert</span>
-                <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">= {{ $diff['counts']['unchanged'] }} unveraendert</span>
+                <span class="rounded-full bg-amber-50 px-3 py-1 text-amber-700">~ {{ $diff['counts']['modified'] }} geändert</span>
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">= {{ $diff['counts']['unchanged'] }} unverändert</span>
             </div>
         </x-card>
 
-        <x-card title="Knoten-Aenderungen">
+        <x-card title="Knoten-Änderungen">
             <ul class="divide-y divide-slate-100">
                 @foreach($diff['nodes'] as $n)
                     @if($n['status'] === 'unchanged') @continue @endif
@@ -68,7 +68,7 @@
                                 @switch($n['status'])
                                     @case('added')<span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">neu</span>@break
                                     @case('removed')<span class="rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">entfernt</span>@break
-                                    @case('modified')<span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">geaendert</span>@break
+                                    @case('modified')<span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">geändert</span>@break
                                 @endswitch
                             </div>
                         </div>
@@ -103,7 +103,7 @@
         </x-card>
 
         @if(! empty($diff['form_changes']))
-            <x-card title="Formular-Schema-Aenderungen">
+            <x-card title="Formular-Schema-Änderungen">
                 <table class="w-full text-xs">
                     <thead>
                         <tr class="text-left text-[10px] uppercase text-slate-500">

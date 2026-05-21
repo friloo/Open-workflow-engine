@@ -1,21 +1,21 @@
 <x-app-layout>
     <x-slot name="header">Systemeinstellungen</x-slot>
-    <x-slot name="subheader">Konfiguration der App. Waehle einen Bereich.</x-slot>
+    <x-slot name="subheader">Konfiguration der App. Wähle einen Bereich.</x-slot>
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'overview'])
 
     <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
-        <p class="font-semibold text-amber-900">⚠️ Hinweis fuer Administratoren</p>
+        <p class="font-semibold text-amber-900">⚠️ Hinweis für Administratoren</p>
         <p class="mt-1 text-amber-800">
             Open Workflow Engine wurde von
             <a href="https://loheide.eu" target="_blank" rel="noopener" class="font-medium text-amber-900 underline">Friederich Loheide (loheide.eu)</a>
             entwickelt — u. a. unter Mithilfe von KI-Code-Generierung.
         </p>
         <p class="mt-2 text-amber-800">
-            <strong>Nutzung auf eigenes Risiko.</strong> Keine Gewaehr fuer Fehlerfreiheit, DSGVO-/GoBD-Konformitaet,
-            Datensicherheit oder Folgeschaeden. Vor produktivem Einsatz Backups einrichten, Audit-Trail testen,
+            <strong>Nutzung auf eigenes Risiko.</strong> Keine Gewähr für Fehlerfreiheit, DSGVO-/GoBD-Konformität,
+            Datensicherheit oder Folgeschäden. Vor produktivem Einsatz Backups einrichten, Audit-Trail testen,
             Berechtigungen prüfen, ggf. extern auditieren lassen.
-            <a href="{{ route('help.show', 'about') }}" class="font-medium text-amber-900 underline">Vollstaendiger Disclaimer →</a>
+            <a href="{{ route('help.show', 'about') }}" class="font-medium text-amber-900 underline">Vollständiger Disclaimer →</a>
         </p>
     </div>
 
@@ -29,7 +29,7 @@
                     <span class="text-xs rounded-full bg-amber-100 text-amber-700 px-2 py-0.5">SMTP fehlt</span>
                 @endif
             </div>
-            <p class="text-sm text-slate-500">SMTP fuer Mails, IT-Support-Formular, Microsoft Teams.</p>
+            <p class="text-sm text-slate-500">SMTP für Mails, IT-Support-Formular, Microsoft Teams.</p>
         </a>
 
         <a href="{{ route('admin.settings.sso') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
@@ -49,7 +49,7 @@
                 <h3 class="text-base font-semibold text-slate-900">Branding</h3>
                 <span class="text-xs rounded-full bg-slate-100 text-slate-500 px-2 py-0.5">immer aktiv</span>
             </div>
-            <p class="text-sm text-slate-500">App-Name, Logo, Primaerfarbe, Benutzer-Custom-Fields.</p>
+            <p class="text-sm text-slate-500">App-Name, Logo, Primärfarbe, Benutzer-Custom-Fields.</p>
         </a>
 
         <a href="{{ route('admin.settings.ai') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">

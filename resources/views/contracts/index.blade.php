@@ -3,14 +3,14 @@
         Vertragsmanagement
         <x-help-hint topic="contracts" label="Anleitung Vertragsmanagement" />
     </x-slot>
-    <x-slot name="subheader">Vertraege mit Laufzeit, Kuendigungsfrist und automatischer Wiedervorlage.</x-slot>
+    <x-slot name="subheader">Verträge mit Laufzeit, Kündigungsfrist und automatischer Wiedervorlage.</x-slot>
 
     <form method="GET" class="mb-4 flex flex-wrap items-center gap-2">
         @php
             $chips = [
                 ['key' => 'all', 'label' => 'Alle', 'tone' => 'slate'],
                 ['key' => 'active', 'label' => 'Aktiv', 'tone' => 'emerald'],
-                ['key' => 'notice_due', 'label' => 'Kuendigungsfrist erreicht', 'tone' => 'amber'],
+                ['key' => 'notice_due', 'label' => 'Kündigungsfrist erreicht', 'tone' => 'amber'],
                 ['key' => 'expired', 'label' => 'Abgelaufen', 'tone' => 'rose'],
             ];
         @endphp
@@ -59,7 +59,7 @@
                   @change="refreshCount"
                   class="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs">
                 @csrf
-                <span class="text-slate-700"><strong x-text="count"></strong> ausgewaehlt</span>
+                <span class="text-slate-700"><strong x-text="count"></strong> ausgewählt</span>
                 <select name="action" x-model="action"
                         class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     <option value="">— Bulk-Aktion —</option>
@@ -67,7 +67,7 @@
                     <option value="attach_case">An Akte heften</option>
                     <option value="detach_case">Aus Akte entfernen</option>
                     <option value="recompute_status">Status neu berechnen</option>
-                    <option value="delete">Loeschen (Soft-Delete)</option>
+                    <option value="delete">Löschen (Soft-Delete)</option>
                 </select>
 
                 <select name="owner_user_id" x-show="action === 'set_owner'" x-cloak
@@ -80,7 +80,7 @@
 
                 <select name="document_case_id" x-show="action === 'attach_case' || action === 'detach_case'" x-cloak
                         class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">— Akte waehlen —</option>
+                    <option value="">— Akte wählen —</option>
                     @foreach(\App\Models\DocumentCase::whereNull('closed_at')->orderBy('name')->limit(200)->get(['id', 'name']) as $a)
                         <option value="{{ $a->id }}">{{ $a->name }}</option>
                     @endforeach
@@ -88,14 +88,14 @@
 
                 <button type="submit" :disabled="count === 0 || ! action"
                         class="rounded-lg bg-indigo-600 px-3 py-1 font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
-                    Ausfuehren
+                    Ausführen
                 </button>
             </form>
         @endif
 
         @if($contracts->isEmpty())
-            <x-empty-state icon="document" title="Noch keine Vertraege"
-                description="Lege Wartungs-, Miet- und Versicherungsvertraege an — OWE erinnert dich rechtzeitig vor Ablauf der Kuendigungsfrist.">
+            <x-empty-state icon="document" title="Noch keine Verträge"
+                description="Lege Wartungs-, Miet- und Versicherungsverträge an — OWE erinnert dich rechtzeitig vor Ablauf der Kündigungsfrist.">
                 @if(auth()->user()->hasPermission('contracts.manage'))
                     <a href="{{ route('contracts.create') }}"><x-primary-button type="button">Ersten Vertrag anlegen</x-primary-button></a>
                 @endif

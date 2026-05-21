@@ -7,7 +7,7 @@ use App\Models\ContractTemplate;
 
 /**
  * Rendert Vertrags-Vorlagen mit Mustache-Platzhaltern zu HTML.
- * Unterstuetzte Platzhalter:
+ * Unterstützte Platzhalter:
  *   {{ name }}, {{ party }}, {{ start_date }}, {{ end_date }},
  *   {{ notice_period_days }}, {{ owner.name }}, {{ owner.email }},
  *   {{ type.name }}, {{ today }}, plus benutzerdefinierte {{ data.X }}

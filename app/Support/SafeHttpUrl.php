@@ -21,7 +21,7 @@ class SafeHttpUrl
     {
         $parsed = parse_url($url);
         if ($parsed === false || empty($parsed['scheme']) || empty($parsed['host'])) {
-            throw new \RuntimeException("Ungueltige URL: {$url}");
+            throw new \RuntimeException("Ungültige URL: {$url}");
         }
         $scheme = strtolower($parsed['scheme']);
         if (! in_array($scheme, ['http', 'https'], true)) {
@@ -33,7 +33,7 @@ class SafeHttpUrl
             throw new \RuntimeException("Host {$host} ist gesperrt (SSRF-Schutz).");
         }
 
-        // Wenn der Host eine IP ist: gegen private Bereiche pruefen
+        // Wenn der Host eine IP ist: gegen private Bereiche prüfen
         if (filter_var($host, FILTER_VALIDATE_IP)) {
             if (! self::isPublicIp($host)) {
                 throw new \RuntimeException("Private/loopback IP ist gesperrt (SSRF-Schutz).");
@@ -41,11 +41,11 @@ class SafeHttpUrl
             return;
         }
 
-        // Hostnamen aufloesen — alle A/AAAA-Records pruefen
+        // Hostnamen auflösen — alle A/AAAA-Records prüfen
         $ips = @gethostbynamel($host) ?: [];
         foreach ($ips as $ip) {
             if (! self::isPublicIp($ip)) {
-                throw new \RuntimeException("Host {$host} loest auf private IP {$ip} auf (SSRF-Schutz).");
+                throw new \RuntimeException("Host {$host} löst auf private IP {$ip} auf (SSRF-Schutz).");
             }
         }
     }
@@ -70,7 +70,7 @@ class SafeHttpUrl
     }
 
     /**
-     * Entfernt Query-String aus einer URL fuer das Audit-Log
+     * Entfernt Query-String aus einer URL für das Audit-Log
      * (Secrets in Query-Strings landen so nicht im Log).
      */
     public static function redactForLog(string $url): string

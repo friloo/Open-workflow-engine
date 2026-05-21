@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('saved_searches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            // Aktuell nur 'documents' — aber so kann das spaeter
-            // auch fuer tasks/workflow-instances genutzt werden.
+            // Aktuell nur 'documents' — aber so kann das später
+            // auch für tasks/workflow-instances genutzt werden.
             $table->string('scope', 32)->default('documents');
             $table->string('name', 128);
             $table->json('params');

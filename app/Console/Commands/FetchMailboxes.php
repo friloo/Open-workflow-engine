@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 class FetchMailboxes extends Command
 {
     protected $signature = 'mail:fetch {--mailbox= : Nur dieses Postfach abrufen}';
-    protected $description = 'Holt Mails aus konfigurierten IMAP-Postfaechern und verarbeitet sie.';
+    protected $description = 'Holt Mails aus konfigurierten IMAP-Postfächern und verarbeitet sie.';
 
     public function handle(MailboxFetcher $fetcher): int
     {
@@ -20,7 +20,7 @@ class FetchMailboxes extends Command
         $mailboxes = $query->get();
 
         if ($mailboxes->isEmpty()) {
-            $this->info('Keine aktiven Postfaecher.');
+            $this->info('Keine aktiven Postfächer.');
             return self::SUCCESS;
         }
 
@@ -29,7 +29,7 @@ class FetchMailboxes extends Command
             try {
                 $stats = $fetcher->fetch($mailbox);
                 $this->info(sprintf(
-                    '  abgerufen=%d, verarbeitet=%d, uebersprungen=%d, fehler=%d',
+                    '  abgerufen=%d, verarbeitet=%d, übersprungen=%d, fehler=%d',
                     $stats['fetched'], $stats['processed'], $stats['skipped'], $stats['failed']
                 ));
             } catch (\Throwable $e) {

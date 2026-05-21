@@ -25,7 +25,7 @@
                         <x-input-label for="description" value="Was ist passiert?" />
                         <textarea id="description" name="description" rows="8" required
                             class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            placeholder="Beschreib so genau wie moeglich, was du gemacht hast und was nicht funktioniert. Hilfreich: Schritte zum Reproduzieren, Fehlermeldungen, Screenshots-Pfade.">{{ old('description') }}</textarea>
+                            placeholder="Beschreib so genau wie möglich, was du gemacht hast und was nicht funktioniert. Hilfreich: Schritte zum Reproduzieren, Fehlermeldungen, Screenshots-Pfade.">{{ old('description') }}</textarea>
                         <x-input-error :messages="$errors->get('description')" />
                     </div>
 
@@ -46,9 +46,9 @@
         <div>
             <x-card title="Was passiert mit meiner Anfrage?">
                 @if(($cfg['mode'] ?? 'mail') === 'mail')
-                    <p class="text-sm text-slate-700">Wir bekommen eine E-Mail mit deiner Anfrage und melden uns zurueck.</p>
+                    <p class="text-sm text-slate-700">Wir bekommen eine E-Mail mit deiner Anfrage und melden uns zurück.</p>
                 @elseif(($cfg['mode'] ?? 'mail') === 'api')
-                    <p class="text-sm text-slate-700">Wir legen automatisch ein Ticket im IT-Support-System an. Du bekommst eine Antwort sobald jemand sich darum kuemmert.</p>
+                    <p class="text-sm text-slate-700">Wir legen automatisch ein Ticket im IT-Support-System an. Du bekommst eine Antwort sobald jemand sich darum kümmert.</p>
                 @else
                     <p class="text-sm text-slate-700">Wir legen ein Ticket im Support-System an und schicken parallel eine Mail an unser Team. Du bekommst die Antwort auf deine Mail-Adresse.</p>
                 @endif

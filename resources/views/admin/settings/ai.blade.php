@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Systemeinstellungen · KI</x-slot>
-    <x-slot name="subheader">OpenAI-kompatibler Endpoint fuer Workflow-Assistenz und HTTP-Knoten-Generierung.</x-slot>
+    <x-slot name="subheader">OpenAI-kompatibler Endpoint für Workflow-Assistenz und HTTP-Knoten-Generierung.</x-slot>
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'ai'])
 
@@ -32,8 +32,8 @@
             </div>
             <div>
                 <x-input-label for="ai_api_key" value="API-Key (bei Ollama leer)" />
-                <x-text-input id="ai_api_key" name="api_key" type="password" autocomplete="new-password" placeholder="@if(! empty($ai['api_key']))(unveraendert lassen)@endif" />
-                <p class="mt-1 text-xs text-slate-500">Verschluesselt gespeichert.</p>
+                <x-text-input id="ai_api_key" name="api_key" type="password" autocomplete="new-password" placeholder="@if(! empty($ai['api_key']))(unverändert lassen)@endif" />
+                <p class="mt-1 text-xs text-slate-500">Verschlüsselt gespeichert.</p>
             </div>
             <div class="flex gap-2">
                 <button type="submit" :disabled="busy" @click="action='save'"

@@ -40,7 +40,7 @@ class Phase10Test extends TestCase
         $admin = $this->admin();
         $holder = User::factory()->create();
 
-        $asset = Asset::create(['name' => 'Fuehrerschein', 'type' => 'fs', 'user_id' => $holder->id, 'status' => 'active', 'lead_time_days' => 30]);
+        $asset = Asset::create(['name' => 'Führerschein', 'type' => 'fs', 'user_id' => $holder->id, 'status' => 'active', 'lead_time_days' => 30]);
 
         $content = "PDF-CONTENT-FAKE-".str_repeat('x', 5000);
         $file = UploadedFile::fake()->createWithContent('scan.pdf', $content)->mimeType('application/pdf');

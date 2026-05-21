@@ -56,7 +56,7 @@ class WebhookController extends Controller
     public function update(Request $request, Webhook $webhook): RedirectResponse
     {
         $data = $this->validateWebhook($request, $webhook);
-        // Leeres Secret = unveraendert lassen
+        // Leeres Secret = unverändert lassen
         if (empty($data['secret'])) unset($data['secret']);
         $original = $webhook->only(array_keys($data));
         $webhook->update([
@@ -72,8 +72,8 @@ class WebhookController extends Controller
     {
         $snapshot = $webhook->only(['id', 'name', 'url']);
         $webhook->delete();
-        $this->audit->log('webhook.deleted', null, $snapshot, null, "Webhook {$snapshot['name']} geloescht");
-        return redirect()->route('admin.webhooks.index')->with('status', 'Webhook geloescht.');
+        $this->audit->log('webhook.deleted', null, $snapshot, null, "Webhook {$snapshot['name']} gelöscht");
+        return redirect()->route('admin.webhooks.index')->with('status', 'Webhook gelöscht.');
     }
 
     public function test(Webhook $webhook, Request $request): RedirectResponse

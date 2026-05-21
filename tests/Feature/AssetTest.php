@@ -36,12 +36,12 @@ class AssetTest extends TestCase
             '1' => ['id'=>1,'name'=>'start','class'=>'start','data'=>[],'inputs'=>[],'outputs'=>['output_1'=>['connections'=>[['node'=>'2','output'=>'input_1']]]]],
             '2' => ['id'=>2,'name'=>'approval','class'=>'approval','data'=>['label'=>'Pruefen','recipient_type'=>'supervisor_of_initiator'],'inputs'=>['input_1'=>[]],'outputs'=>['output_1'=>['connections'=>[]],'output_2'=>['connections'=>[]]]],
         ]]]];
-        $wf = Workflow::create(['name'=>'Fuehrerschein','slug'=>'fs','trigger_type'=>'recurring','status'=>'active','created_by'=>$admin->id,'updated_by'=>$admin->id]);
+        $wf = Workflow::create(['name'=>'Führerschein','slug'=>'fs','trigger_type'=>'recurring','status'=>'active','created_by'=>$admin->id,'updated_by'=>$admin->id]);
         $v = WorkflowVersion::create(['workflow_id'=>$wf->id,'version_number'=>1,'definition'=>$def,'created_by'=>$admin->id]);
         $wf->forceFill(['current_version_id'=>$v->id])->save();
 
         $asset = Asset::create([
-            'name' => 'Fuehrerschein Klasse B', 'type' => 'fuehrerschein',
+            'name' => 'Führerschein Klasse B', 'type' => 'führerschein',
             'user_id' => $employee->id,
             'valid_until' => now()->addDays(15)->toDateString(),
             'lead_time_days' => 30,
@@ -88,7 +88,7 @@ class AssetTest extends TestCase
         $u2 = User::factory()->create(['email' => 'alice@example.com']);
 
         $csv = "user_email;name;type;valid_until;lead_time_days\n"
-             . "{$employee->email};Fuehrerschein;fuehrerschein;2030-01-15;30\n"
+             . "{$employee->email};Führerschein;führerschein;2030-01-15;30\n"
              . "alice@example.com;Stapler;ladevorrichtung;2027-06-01;14\n"
              . "unknown@example.com;Ghost;ghost;2030-01-01;30\n";
         $file = UploadedFile::fake()->createWithContent('assets.csv', $csv);
@@ -98,7 +98,7 @@ class AssetTest extends TestCase
             ->assertRedirect();
 
         $this->assertSame(2, Asset::count());
-        $this->assertNotNull(Asset::where('user_id', $employee->id)->where('type', 'fuehrerschein')->first());
+        $this->assertNotNull(Asset::where('user_id', $employee->id)->where('type', 'führerschein')->first());
         $this->assertNotNull(Asset::where('user_id', $u2->id)->where('type', 'ladevorrichtung')->first());
     }
 }

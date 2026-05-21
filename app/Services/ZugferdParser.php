@@ -16,7 +16,7 @@ use Symfony\Component\Process\Process;
  *   3. XML parsen mit DOMXPath + local-name(), damit alle Namespace-
  *      Varianten (UN/CEFACT CII, EN 16931) abgedeckt sind.
  *
- * Liefert ein Mapping von Feld-Kuerzeln auf erkannte Werte. Wird gecached
+ * Liefert ein Mapping von Feld-Kürzeln auf erkannte Werte. Wird gecached
  * pro Attachment (parsing ist nicht ganz billig).
  */
 class ZugferdParser
@@ -31,12 +31,12 @@ class ZugferdParser
         'amount_net' => 'Netto-Summe',
         'amount_tax' => 'USt-Betrag',
         'amount_gross' => 'Brutto-/Gesamtbetrag',
-        'currency' => 'Waehrung (z.B. EUR)',
+        'currency' => 'Währung (z.B. EUR)',
         'vendor_name' => 'Lieferanten-Name',
         'vendor_vat_id' => 'USt-IdNr des Lieferanten',
         'iban' => 'IBAN',
         'bic' => 'BIC',
-        'buyer_reference' => 'Leitweg-ID / Kaeufer-Referenz',
+        'buyer_reference' => 'Leitweg-ID / Käufer-Referenz',
     ];
 
     /**
@@ -45,7 +45,7 @@ class ZugferdParser
     public function parse(Attachment $att): ?array
     {
         // Cache nach content_hash, damit identische Bytes nur einmal geparst
-        // werden — aber unterschiedliche Anhaenge nicht kollidieren.
+        // werden — aber unterschiedliche Anhänge nicht kollidieren.
         $cacheKey = (string) ($att->content_hash ?? 'no-hash-'.$att->id);
         if (array_key_exists($cacheKey, $this->cache)) {
             return $this->cache[$cacheKey];
@@ -113,7 +113,7 @@ class ZugferdParser
 
         // Suche nach XML-Header + Root-Element (CrossIndustryInvoice |
         // Invoice | UBLDocument). Backreference auf die gleiche Tag-Form
-        // damit wir bei verschachtelten ram:-Tags nicht zu frueh schliessen.
+        // damit wir bei verschachtelten ram:-Tags nicht zu früh schliessen.
         $pattern = '/<\?xml[^>]*\?>\s*<((?:[a-zA-Z]+:)?(?:CrossIndustryInvoice|Invoice|UBLDocument))[^>]*>.*<\/\1\s*>/is';
         if (preg_match($pattern, $content, $m)) {
             return $m[0];
@@ -122,7 +122,7 @@ class ZugferdParser
     }
 
     /**
-     * Public entry point fuer rohes XML (z. B. wenn die XRechnung als
+     * Public entry point für rohes XML (z. B. wenn die XRechnung als
      * separater XML-Anhang in einer Mail kommt).
      *
      * @return array<string,string>|null

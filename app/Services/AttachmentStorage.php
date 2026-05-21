@@ -33,14 +33,14 @@ class AttachmentStorage
      * eine neue Version derselben Datei hochgeladen wird).
      */
     /**
-     * Welcher Disk fuer neue Anhaenge benutzt wird. Konfiguriert ueber
+     * Welcher Disk für neue Anhänge benutzt wird. Konfiguriert über
      * config/filesystems.php 'attachments_disk' bzw. ATTACHMENTS_DISK.
      * Default: 'local'. Wer S3 / MinIO / Wasabi nutzen will, setzt
      * ATTACHMENTS_DISK=s3.
      *
      * Bestehende Attachments behalten ihre 'disk'-Spalte — sie werden
      * vom alten Disk gelesen, neue landen auf dem neuen. So ist der
-     * Wechsel ohne sofortige Migration moeglich; alte Dateien laesst
+     * Wechsel ohne sofortige Migration möglich; alte Dateien lässt
      * man entweder liegen oder migriert sie via
      *   php artisan attachments:migrate-disk <ziel-disk>
      */
@@ -61,7 +61,7 @@ class AttachmentStorage
     public function store(UploadedFile $file, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, ?Attachment $newVersionOf = null, bool $allowDuplicate = false): Attachment
     {
         if ($file->getSize() > self::MAX_BYTES) {
-            throw new \RuntimeException('Datei zu gross (max. 15 MB).');
+            throw new \RuntimeException('Datei zu groß (max. 15 MB).');
         }
         $mime = $file->getMimeType() ?: 'application/octet-stream';
         if (! $this->mimeAllowed($mime)) {
@@ -74,7 +74,7 @@ class AttachmentStorage
             throw new \RuntimeException('Hash der Datei konnte nicht berechnet werden.');
         }
 
-        // Duplikat-Pruefung: gleicher Hash bereits irgendwo? Bei einer neuen
+        // Duplikat-Prüfung: gleicher Hash bereits irgendwo? Bei einer neuen
         // Version derselben Datei (gleiche Chain) erlauben wir es bewusst.
         if (! $allowDuplicate) {
             $dup = $this->findDuplicate($hash, $newVersionOf?->version_chain_id);
@@ -92,7 +92,7 @@ class AttachmentStorage
         }
 
         // Versionierung: neues Dokument startet eine Chain, neue Version
-        // haengt sich in eine bestehende Chain ein.
+        // hängt sich in eine bestehende Chain ein.
         if ($newVersionOf) {
             $chainId = $newVersionOf->version_chain_id;
             $versionNumber = ($newVersionOf->versions()->max('version_number') ?? 0) + 1;
@@ -127,8 +127,8 @@ class AttachmentStorage
     }
 
     /**
-     * Pruefe Integritaet aller Attachments. Liefert Liste mit verdaechtigen
-     * Eintraegen (Hash stimmt nicht oder Datei fehlt).
+     * Pruefe Integrität aller Attachments. Liefert Liste mit verdaechtigen
+     * Einträgen (Hash stimmt nicht oder Datei fehlt).
      *
      * @return array{checked:int, broken:array<int, array{id:int, name:string, reason:string}>}
      */
@@ -155,12 +155,12 @@ class AttachmentStorage
 
     /**
      * Speichert rohen Byte-String als Attachment. Wird vom PDF-Render-Knoten
-     * benutzt, der das PDF im Workflow erzeugt und revisionssicher anhaengt.
+     * benutzt, der das PDF im Workflow erzeugt und revisionssicher anhängt.
      */
     public function storeBytes(string $bytes, string $filename, string $mime, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, bool $allowDuplicate = false): Attachment
     {
         if (strlen($bytes) > self::MAX_BYTES) {
-            throw new \RuntimeException('Datei zu gross (max. 15 MB).');
+            throw new \RuntimeException('Datei zu groß (max. 15 MB).');
         }
         if (! $this->mimeAllowed($mime)) {
             throw new \RuntimeException("Dateityp nicht erlaubt ({$mime}).");

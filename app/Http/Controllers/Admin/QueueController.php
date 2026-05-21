@@ -11,7 +11,7 @@ use Illuminate\View\View;
  * Jobs, Worker-Konfiguration, kurze Hinweise zur Einrichtung.
  *
  * Bewusst minimal — wer ein vollwertiges Queue-Dashboard will, setzt
- * Horizon dazu (Redis erforderlich). Diese Seite reicht fuer 'datenbank'-
+ * Horizon dazu (Redis erforderlich). Diese Seite reicht für 'datenbank'-
  * Queue im typischen Mittelstands-Setup.
  */
 class QueueController extends Controller

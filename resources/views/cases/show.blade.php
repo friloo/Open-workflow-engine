@@ -18,12 +18,12 @@
         <a href="{{ route('cases.edit', $case) }}" class="text-sm text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
         <form method="POST" action="{{ route('cases.close', $case) }}" class="inline">
             @csrf
-            <button class="text-sm text-amber-700 hover:text-amber-800">{{ $case->closed_at ? 'Wieder oeffnen' : 'Akte schliessen' }}</button>
+            <button class="text-sm text-amber-700 hover:text-amber-800">{{ $case->closed_at ? 'Wieder öffnen' : 'Akte schliessen' }}</button>
         </form>
         <form method="POST" action="{{ route('cases.destroy', $case) }}" class="inline"
-              onsubmit="return confirm('Akte loeschen? Inhalte (Dokumente, Vorgaenge, Vertraege) bleiben erhalten, nur die Zuordnung wird geloest.')">
+              onsubmit="return confirm('Akte löschen? Inhalte (Dokumente, Vorgänge, Verträge) bleiben erhalten, nur die Zuordnung wird gelöst.')">
             @csrf @method('DELETE')
-            <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+            <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
         </form>
     </div>
 
@@ -36,15 +36,15 @@
     {{-- Counts-Karten --}}
     <div class="my-6 grid grid-cols-2 md:grid-cols-4 gap-3">
         <x-card><div class="text-xs uppercase text-slate-500">Dokumente</div><div class="text-2xl font-semibold">{{ $case->attachments->count() }}</div></x-card>
-        <x-card><div class="text-xs uppercase text-slate-500">Vorgaenge</div><div class="text-2xl font-semibold">{{ $case->workflowInstances->count() }}</div></x-card>
-        <x-card><div class="text-xs uppercase text-slate-500">Vertraege</div><div class="text-2xl font-semibold">{{ $case->contracts->count() }}</div></x-card>
+        <x-card><div class="text-xs uppercase text-slate-500">Vorgänge</div><div class="text-2xl font-semibold">{{ $case->workflowInstances->count() }}</div></x-card>
+        <x-card><div class="text-xs uppercase text-slate-500">Verträge</div><div class="text-2xl font-semibold">{{ $case->contracts->count() }}</div></x-card>
         <x-card><div class="text-xs uppercase text-slate-500">Notizen</div><div class="text-2xl font-semibold">{{ $case->notes->count() }}</div></x-card>
     </div>
 
     <x-card title="Dokumente">
         @if($case->attachments->isEmpty())
             <x-empty-state icon="document" title="Noch keine Dokumente"
-                description='In der Dokumenten-Liste mehrere Dokumente auswaehlen und ueber Bulk-Aktion zu dieser Akte hinzufuegen.' />
+                description='In der Dokumenten-Liste mehrere Dokumente auswählen und über Bulk-Aktion zu dieser Akte hinzufügen.' />
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($case->attachments as $d)
@@ -63,7 +63,7 @@
         @endif
     </x-card>
 
-    <x-card title="Workflow-Vorgaenge" description="Vorgaenge die dieser Akte zugeordnet sind.">
+    <x-card title="Workflow-Vorgänge" description="Vorgänge die dieser Akte zugeordnet sind.">
         <form method="POST" action="{{ route('cases.workflows.attach', $case) }}" class="mb-3 flex items-end gap-2">
             @csrf
             <div class="flex-1">
@@ -71,10 +71,10 @@
                 <x-text-input id="workflow_instance_id" name="workflow_instance_id" type="number" min="1" required placeholder="z. B. 42" />
                 <p class="mt-1 text-xs text-slate-500">Die Nummer findest du in der Vorgangs-URL.</p>
             </div>
-            <x-secondary-button type="submit">Anhaengen</x-secondary-button>
+            <x-secondary-button type="submit">Anhängen</x-secondary-button>
         </form>
         @if($case->workflowInstances->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Vorgaenge zugeordnet.</p>
+            <p class="text-sm text-slate-500">Noch keine Vorgänge zugeordnet.</p>
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($case->workflowInstances as $i)
@@ -99,7 +99,7 @@
     </x-card>
 
     @if(auth()->user()->hasAnyPermission(['contracts.view','contracts.manage']))
-    <x-card title="Vertraege" description="Vertraege die dieser Akte zugeordnet sind.">
+    <x-card title="Verträge" description="Verträge die dieser Akte zugeordnet sind.">
         <form method="POST" action="{{ route('cases.contracts.attach', $case) }}" class="mb-3 flex items-end gap-2">
             @csrf
             <div class="flex-1">
@@ -110,10 +110,10 @@
                     <a href="{{ route('contracts.index') }}" class="text-indigo-600 hover:text-indigo-500">Vertragsliste</a>.
                 </p>
             </div>
-            <x-secondary-button type="submit">Anhaengen</x-secondary-button>
+            <x-secondary-button type="submit">Anhängen</x-secondary-button>
         </form>
         @if($case->contracts->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Vertraege zugeordnet.</p>
+            <p class="text-sm text-slate-500">Noch keine Verträge zugeordnet.</p>
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($case->contracts as $c)
@@ -161,9 +161,9 @@
                             </div>
                             @if(auth()->id() === $n->user_id || auth()->user()->hasRole('admin'))
                                 <form method="POST" action="{{ route('cases.notes.delete', [$case, $n->id]) }}"
-                                      onsubmit="return confirm('Notiz loeschen?')">
+                                      onsubmit="return confirm('Notiz löschen?')">
                                     @csrf @method('DELETE')
-                                    <button class="text-xs text-rose-600 hover:text-rose-500">Loeschen</button>
+                                    <button class="text-xs text-rose-600 hover:text-rose-500">Löschen</button>
                                 </form>
                             @endif
                         </div>

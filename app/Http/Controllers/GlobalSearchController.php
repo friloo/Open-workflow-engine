@@ -11,7 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Liefert Suchergebnisse fuer das Cmd+K-Modal — gruppiert nach Bereich
+ * Liefert Suchergebnisse für das Cmd+K-Modal — gruppiert nach Bereich
  * (Dokumente, Workflows, Aufgaben, Benutzer). Pro Bereich max. 5 Treffer,
  * damit das Modal schnell bleibt.
  */
@@ -96,7 +96,7 @@ class GlobalSearchController extends Controller
                 'label' => 'Meine Aufgaben',
                 'items' => $tasks->map(fn ($t) => [
                     'title' => $t->instance->workflow->name,
-                    'subtitle' => $t->due_at ? 'faellig '.$t->due_at->format('d.m.Y H:i') : 'ohne Frist',
+                    'subtitle' => $t->due_at ? 'fällig '.$t->due_at->format('d.m.Y H:i') : 'ohne Frist',
                     'url' => route('tasks.show', $t),
                 ])->values(),
             ];

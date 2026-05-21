@@ -13,9 +13,9 @@ use Illuminate\Support\Str;
 
 /**
  * Bringt nach einem Approval einen visuellen Stempel auf alle
- * PDF-Anhaenge der Workflow-Instance auf. Der gestempelte PDF wird
+ * PDF-Anhänge der Workflow-Instance auf. Der gestempelte PDF wird
  * als NEUE VERSION desselben Attachments gespeichert (Original bleibt
- * unveraendert, Versions-Chain bleibt sauber).
+ * unverändert, Versions-Chain bleibt sauber).
  *
  * Pro Approval-Knoten konfigurierbar: data.stamp_pdf = true,
  * data.stamp_pdf_only_on = ['approved' | 'rejected' | 'both'] (default approved).
@@ -105,8 +105,8 @@ class ApprovalStampService
         try {
             $stamped = $this->stamper->stamp($bytes, $stampData);
         } catch (\Throwable $e) {
-            // Manche PDFs (z. B. mit moderner Verschluesselung oder PDF >1.4)
-            // koennen nicht importiert werden — sauber ueberspringen.
+            // Manche PDFs (z. B. mit moderner Verschlüsselung oder PDF >1.4)
+            // koennen nicht importiert werden — sauber überspringen.
             Log::info('approval stamp could not parse PDF', [
                 'attachment_id' => $pdf->id, 'error' => $e->getMessage(),
             ]);

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">{{ $mailbox->exists ? 'Postfach bearbeiten' : 'Neues Postfach' }}</x-slot>
-    <x-slot name="subheader">IMAP-Zugangsdaten und Verarbeitung. Passwoerter werden verschluesselt gespeichert.</x-slot>
+    <x-slot name="subheader">IMAP-Zugangsdaten und Verarbeitung. Passwörter werden verschlüsselt gespeichert.</x-slot>
 
     <form method="POST" action="{{ $mailbox->exists ? route('admin.mailboxes.update', $mailbox) : route('admin.mailboxes.store') }}" class="space-y-6">
         @csrf
@@ -32,7 +32,7 @@
                     <input type="number" name="port" value="{{ old('port', $mailbox->port) }}" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Verschluesselung</label>
+                    <label class="block text-sm font-medium text-slate-700">Verschlüsselung</label>
                     <select name="encryption" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         @foreach(['ssl' => 'SSL', 'tls' => 'STARTTLS', 'none' => 'Keine'] as $val => $label)
                             <option value="{{ $val }}" @selected(old('encryption', $mailbox->encryption) === $val)>{{ $label }}</option>
@@ -42,7 +42,7 @@
                 <div class="flex items-end">
                     <label class="inline-flex items-center gap-2 text-sm">
                         <input type="checkbox" name="validate_cert" value="1" @checked(old('validate_cert', $mailbox->validate_cert)) class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                        Zertifikat pruefen
+                        Zertifikat prüfen
                     </label>
                 </div>
             </div>
@@ -52,7 +52,7 @@
                     <input type="text" name="username" value="{{ old('username', $mailbox->username) }}" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Passwort {{ $mailbox->exists ? '(leer = unveraendert)' : '' }}</label>
+                    <label class="block text-sm font-medium text-slate-700">Passwort {{ $mailbox->exists ? '(leer = unverändert)' : '' }}</label>
                     <input type="password" name="password" value="" {{ $mailbox->exists ? '' : 'required' }} class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
                 </div>
                 <div>
@@ -65,7 +65,7 @@
         <x-card title="Verarbeitung">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Dokumenttyp fuer Anhaenge</label>
+                    <label class="block text-sm font-medium text-slate-700">Dokumenttyp für Anhänge</label>
                     <select name="document_type" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="">— ohne Typ —</option>
                         @foreach($documentTypes as $type)
@@ -83,18 +83,18 @@
                     </select>
                 </div>
             </div>
-            <p class="mt-4 text-xs text-slate-500">Wenn ein Workflow gewaehlt ist, wird pro Mail eine Instanz gestartet. Mail-Inhalte koennen in Formularfelder geschrieben werden:</p>
+            <p class="mt-4 text-xs text-slate-500">Wenn ein Workflow gewählt ist, wird pro Mail eine Instanz gestartet. Mail-Inhalte koennen in Formularfelder geschrieben werden:</p>
             <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-600">Feldname fuer Betreff</label>
+                    <label class="block text-xs font-medium text-slate-600">Feldname für Betreff</label>
                     <input type="text" name="subject_field" value="{{ old('subject_field', $mailbox->subject_field) }}" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono" placeholder="betreff">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600">Feldname fuer Absender</label>
+                    <label class="block text-xs font-medium text-slate-600">Feldname für Absender</label>
                     <input type="text" name="from_field" value="{{ old('from_field', $mailbox->from_field) }}" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono" placeholder="absender">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-600">Feldname fuer Mail-Text</label>
+                    <label class="block text-xs font-medium text-slate-600">Feldname für Mail-Text</label>
                     <input type="text" name="body_field" value="{{ old('body_field', $mailbox->body_field) }}" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono" placeholder="text">
                 </div>
             </div>

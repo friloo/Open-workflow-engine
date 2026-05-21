@@ -7,9 +7,9 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Verschiebt bestehende Anhaenge vom aktuellen Disk auf einen anderen
- * (z. B. lokal → S3 / MinIO). Streamt die Dateien chunk-weise, prueft
- * den SHA-256 nach dem Schreiben, loescht erst dann das Original.
+ * Verschiebt bestehende Anhänge vom aktuellen Disk auf einen anderen
+ * (z. B. lokal → S3 / MinIO). Streamt die Dateien chunk-weise, prüft
+ * den SHA-256 nach dem Schreiben, löscht erst dann das Original.
  *
  * Nutzung:
  *   php artisan attachments:migrate-disk s3
@@ -18,16 +18,16 @@ use Illuminate\Support\Facades\Storage;
  *
  * Lauft idempotent. Wird der Lauf unterbrochen, kann er einfach noch
  * mal gestartet werden — schon migrierte Files (disk = ziel) werden
- * uebersprungen.
+ * übersprungen.
  */
 class MigrateAttachmentsDisk extends Command
 {
     protected $signature = 'attachments:migrate-disk
         {to : Ziel-Disk (z. B. s3, local, minio)}
         {--from= : Quelle-Disk (Default: alle ausser Ziel)}
-        {--dry-run : Nur zeigen, was passieren wuerde}';
+        {--dry-run : Nur zeigen, was passieren würde}';
 
-    protected $description = 'Verschiebt Anhaenge vom aktuellen Disk auf einen anderen (z. B. lokal → S3).';
+    protected $description = 'Verschiebt Anhänge vom aktuellen Disk auf einen anderen (z. B. lokal → S3).';
 
     public function handle(): int
     {
@@ -45,11 +45,11 @@ class MigrateAttachmentsDisk extends Command
 
         $total = (clone $q)->count();
         if ($total === 0) {
-            $this->info('Nichts zu migrieren — alle Anhaenge sind bereits auf '.$to.'.');
+            $this->info('Nichts zu migrieren — alle Anhänge sind bereits auf '.$to.'.');
             return self::SUCCESS;
         }
 
-        $this->info(sprintf('%s%d Anhaenge -> Disk "%s"',
+        $this->info(sprintf('%s%d Anhänge -> Disk "%s"',
             $dry ? '[DRY-RUN] ' : '', $total, $to));
 
         $migrated = 0; $skipped = 0; $broken = [];
@@ -71,7 +71,7 @@ class MigrateAttachmentsDisk extends Command
                     continue;
                 }
 
-                // Streamen statt komplett in RAM laden — gross-Files-safe.
+                // Streamen statt komplett in RAM laden — groß-Files-safe.
                 $stream = $srcDisk->readStream($att->path);
                 if (! Storage::disk($to)->writeStream($att->path, $stream)) {
                     $broken[] = "ID {$att->id}: Schreiben auf Ziel fehlgeschlagen";
@@ -81,11 +81,11 @@ class MigrateAttachmentsDisk extends Command
                 }
                 if (is_resource($stream)) fclose($stream);
 
-                // Integritaet pruefen: SHA-256 nach Schreiben.
+                // Integrität prüfen: SHA-256 nach Schreiben.
                 $writtenHash = hash_file('sha256',
                     'sha256://'.$to // wir nutzen den Storage-Path stattdessen
                 );
-                // Storage::path() ist nicht universell verfuegbar; sicherer
+                // Storage::path() ist nicht universell verfügbar; sicherer
                 // Weg: nochmal lesen und hashen.
                 $content = Storage::disk($to)->get($att->path);
                 $writtenHash = hash('sha256', $content);
@@ -98,7 +98,7 @@ class MigrateAttachmentsDisk extends Command
                     continue;
                 }
 
-                // Erst nach erfolgreichem Verify die Quelle loeschen.
+                // Erst nach erfolgreichem Verify die Quelle löschen.
                 $srcDisk->delete($att->path);
                 $att->update(['disk' => $to]);
                 $migrated++;
@@ -111,7 +111,7 @@ class MigrateAttachmentsDisk extends Command
         $bar->finish();
         $this->newLine(2);
         $this->info("Migriert: {$migrated}".($dry ? ' (dry-run)' : ''));
-        if ($skipped > 0) $this->line("Uebersprungen: {$skipped}");
+        if ($skipped > 0) $this->line("Übersprungen: {$skipped}");
         if ($broken) {
             $this->warn('Fehlgeschlagen: '.count($broken));
             foreach (array_slice($broken, 0, 20) as $b) $this->line(' - '.$b);

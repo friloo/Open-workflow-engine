@@ -9,7 +9,7 @@ use App\Support\Settings;
 use Illuminate\Console\Command;
 
 /**
- * Prueft taeglich auf Updates und schickt eine In-App-Notification an alle
+ * Prueft täglich auf Updates und schickt eine In-App-Notification an alle
  * Benutzer mit Permission system.update — aber pro Soll-SHA nur einmal,
  * damit's nicht spammt.
  */
@@ -56,8 +56,8 @@ class NotifyUpdateAvailable extends Command
             AppNotification::send(
                 $user,
                 'system.update.available',
-                "OWE-Update verfuegbar ({$check['label']})",
-                "Eine neue Version ist verfuegbar: {$shortSha}…. Jetzt installieren ueber Verwaltung → System-Update.",
+                "OWE-Update verfügbar ({$check['label']})",
+                "Eine neue Version ist verfügbar: {$shortSha}…. Jetzt installieren über Verwaltung → System-Update.",
                 route('admin.update.index'),
             );
             $sent++;

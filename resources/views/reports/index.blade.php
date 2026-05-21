@@ -67,7 +67,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {{-- Durchlaufzeiten --}}
-        <x-card title="Durchlaufzeiten pro Workflow" description="Median (gegen Ausreisser robust) und Mittel in Stunden, fuer abgeschlossene Instanzen im Zeitraum.">
+        <x-card title="Durchlaufzeiten pro Workflow" description="Median (gegen Ausreisser robust) und Mittel in Stunden, für abgeschlossene Instanzen im Zeitraum.">
             @if($leadTimes->isEmpty())
                 <p class="text-sm text-slate-500">Keine abgeschlossenen Instanzen im Zeitraum.</p>
             @else
@@ -97,15 +97,15 @@
         </x-card>
 
         {{-- SLA-Verletzungen --}}
-        <x-card title="SLA-Verletzungen jetzt" description="Aktuell offene Aufgaben mit ueberschrittenem Faelligkeits-Datum.">
+        <x-card title="SLA-Verletzungen jetzt" description="Aktuell offene Aufgaben mit überschrittenem Fälligkeits-Datum.">
             @if($slaViolations->isEmpty())
-                <p class="text-sm text-emerald-700">Keine ueberfaelligen Aufgaben — alles im gruenen Bereich.</p>
+                <p class="text-sm text-emerald-700">Keine überfälligen Aufgaben — alles im grünen Bereich.</p>
             @else
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="text-left text-xs uppercase text-slate-500">
                             <th class="py-2 pr-4">Workflow</th>
-                            <th class="py-2 text-right">Ueberfaellig</th>
+                            <th class="py-2 text-right">Überfällig</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -121,7 +121,7 @@
         </x-card>
 
         {{-- Bottlenecks --}}
-        <x-card title="Top-Verzoegerer-Knoten" description="Welcher Knoten dauert (Median) am laengsten vom Zuweisen bis zum Abschluss?">
+        <x-card title="Top-Verzögerer-Knoten" description="Welcher Knoten dauert (Median) am längsten vom Zuweisen bis zum Abschluss?">
             @if($slowestSteps->isEmpty())
                 <p class="text-sm text-slate-500">Keine abgeschlossenen Aufgaben im Zeitraum.</p>
             @else
@@ -148,8 +148,8 @@
             @endif
         </x-card>
 
-        {{-- Top-Empfaenger --}}
-        <x-card title="Top-Empfaenger" description="Wer hat aktuell die meisten offenen Aufgaben?">
+        {{-- Top-Empfänger --}}
+        <x-card title="Top-Empfänger" description="Wer hat aktuell die meisten offenen Aufgaben?">
             @if($topAssignees->isEmpty())
                 <p class="text-sm text-slate-500">Keine offenen Aufgaben.</p>
             @else
@@ -158,7 +158,7 @@
                         <tr class="text-left text-xs uppercase text-slate-500">
                             <th class="py-2 pr-4">Mitarbeiter</th>
                             <th class="py-2 pr-4 text-right">Offen</th>
-                            <th class="py-2 text-right">davon ueberfaellig</th>
+                            <th class="py-2 text-right">davon überfällig</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">

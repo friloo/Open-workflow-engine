@@ -145,7 +145,7 @@ class WorkflowController extends Controller
         $this->audit->log('workflow.process_doc.printed', $workflow, null, [
             'version_id' => $payload['version']->id,
             'definition_hash' => $payload['definition_hash'],
-        ], "Prozessbeschreibung gedruckt fuer {$workflow->name} v{$payload['version']->version_number}");
+        ], "Prozessbeschreibung gedruckt für {$workflow->name} v{$payload['version']->version_number}");
 
         $html = view('workflows.print.process-doc', $payload)->render();
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4');
@@ -163,8 +163,8 @@ class WorkflowController extends Controller
         $workflow->delete();
 
         $this->audit->log('workflow.deleted', $workflow, $snapshot, null,
-            "Workflow {$name} geloescht");
+            "Workflow {$name} gelöscht");
 
-        return redirect()->route('workflows.index')->with('status', 'Workflow geloescht.');
+        return redirect()->route('workflows.index')->with('status', 'Workflow gelöscht.');
     }
 }

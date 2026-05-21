@@ -3,10 +3,10 @@
         Vertrags-Vorlagen
         <x-help-hint topic="contracts" label="Anleitung" />
     </x-slot>
-    <x-slot name="subheader">Vorlagen mit Platzhaltern wie {{ '{{ party }}' }}, {{ '{{ end_date }}' }} — erzeugen auf Knopfdruck eine ausgefuellte Vertrags-PDF.</x-slot>
+    <x-slot name="subheader">Vorlagen mit Platzhaltern wie {{ '{{ party }}' }}, {{ '{{ end_date }}' }} — erzeugen auf Knopfdruck eine ausgefüllte Vertrags-PDF.</x-slot>
 
     <x-breadcrumbs :items="[
-        ['title' => 'Vertraege', 'url' => route('contracts.index')],
+        ['title' => 'Verträge', 'url' => route('contracts.index')],
         ['title' => 'Vorlagen'],
     ]" />
 
@@ -17,7 +17,7 @@
     <x-card>
         @if($templates->isEmpty())
             <x-empty-state icon="document" title="Noch keine Vorlagen"
-                description="Lege Vorlagen fuer wiederkehrende Vertragsarten an — z. B. Wartungsvertrag, Mietvertrag. Platzhalter wie {{ '{{ party }}' }} werden beim Erzeugen aus den Vertragsdaten gefuellt.">
+                description="Lege Vorlagen für wiederkehrende Vertragsarten an — z. B. Wartungsvertrag, Mietvertrag. Platzhalter wie {{ '{{ party }}' }} werden beim Erzeugen aus den Vertragsdaten gefüllt.">
                 <a href="{{ route('contract-templates.create') }}"><x-primary-button type="button">Erste Vorlage</x-primary-button></a>
             </x-empty-state>
         @else
@@ -45,9 +45,9 @@
                             <td class="py-2 pr-4 text-right whitespace-nowrap">
                                 <a href="{{ route('contract-templates.edit', $t) }}" class="text-sm text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
                                 <form method="POST" action="{{ route('contract-templates.destroy', $t) }}" class="inline ms-2"
-                                      onsubmit="return confirm('Vorlage loeschen?')">
+                                      onsubmit="return confirm('Vorlage löschen?')">
                                     @csrf @method('DELETE')
-                                    <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                    <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                 </form>
                             </td>
                         </tr>

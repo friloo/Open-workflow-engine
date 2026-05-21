@@ -11,9 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Genehmigung per Mail: jeder Empfaenger erhaelt einen signierten Link
- * (Approve / Reject) mit seiner User-ID. Klick zeigt eine Bestaetigungs-
- * Seite mit Aufgaben-Kontext; erst der Klick auf "Bestaetigen" schliesst
+ * Genehmigung per Mail: jeder Empfänger erhält einen signierten Link
+ * (Approve / Reject) mit seiner User-ID. Klick zeigt eine Bestätigungs-
+ * Seite mit Aufgaben-Kontext; erst der Klick auf "Bestätigen" schliesst
  * den Schritt ab. Schuetzt vor Vorschau-Crawlern und Fehlklicks.
  */
 class MailApprovalController extends Controller
@@ -60,7 +60,7 @@ class MailApprovalController extends Controller
             'comment' => [$commentRule, 'string', 'max:2000'],
         ], [
             'comment.required' => $decision === 'rejected'
-                ? 'Bitte gib eine Begruendung fuer die Ablehnung ein.'
+                ? 'Bitte gib eine Begründung für die Ablehnung ein.'
                 : 'Bitte gib einen Kommentar zur Genehmigung ein.',
         ]);
 
@@ -81,7 +81,7 @@ class MailApprovalController extends Controller
     private function assertEligible(WorkflowStepExecution $step, User $user): void
     {
         if (! request()->hasValidSignature()) {
-            abort(403, 'Link ist ungueltig oder abgelaufen.');
+            abort(403, 'Link ist ungültig oder abgelaufen.');
         }
         if (! $user->is_active) {
             abort(403, 'Konto ist deaktiviert.');
@@ -91,6 +91,6 @@ class MailApprovalController extends Controller
         }
         if ($step->assigned_to_user_id && $step->assigned_to_user_id === $user->id) return;
         if ($step->assigned_to_role_id && $user->roles->pluck('id')->contains($step->assigned_to_role_id)) return;
-        abort(403, 'Du bist fuer diese Aufgabe nicht zustaendig.');
+        abort(403, 'Du bist für diese Aufgabe nicht zustaendig.');
     }
 }

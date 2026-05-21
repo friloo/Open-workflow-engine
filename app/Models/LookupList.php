@@ -56,8 +56,8 @@ class LookupList extends Model
     }
 
     /**
-     * Sichtbarkeit: wenn die Liste KEINE Rollen-Eintraege hat, ist sie fuer
-     * alle mit lists.view sichtbar (Backward-Compat). Wenn Eintraege da sind,
+     * Sichtbarkeit: wenn die Liste KEINE Rollen-Einträge hat, ist sie für
+     * alle mit lists.view sichtbar (Backward-Compat). Wenn Einträge da sind,
      * darf nur sehen wer in mindestens einer der zugeordneten Rollen ist.
      * Admins sehen alles.
      */
@@ -73,7 +73,7 @@ class LookupList extends Model
 
     /**
      * Editierbar nur wenn lists.manage UND (entweder Admin / keine
-     * Einschraenkungen / can_edit-Pivot fuer eine User-Rolle).
+     * Einschränkungen / can_edit-Pivot für eine User-Rolle).
      */
     public function editableByUser(?User $user): bool
     {
@@ -95,7 +95,7 @@ class LookupList extends Model
         if ($user->hasRole('admin')) return $query;
         $roleIds = $user->roles->pluck('id')->all();
         return $query->where(function ($q) use ($roleIds) {
-            // Listen ohne Rollen-Beschraenkung
+            // Listen ohne Rollen-Beschränkung
             $q->whereDoesntHave('roles');
             // ODER mit Rollen-Treffer
             if ($roleIds) {

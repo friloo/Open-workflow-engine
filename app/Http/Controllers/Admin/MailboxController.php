@@ -97,8 +97,8 @@ class MailboxController extends Controller
     {
         $snapshot = $mailbox->only(['id', 'name', 'host']);
         $mailbox->delete();
-        $this->audit->log('mailbox.deleted', null, $snapshot, null, "Postfach {$snapshot['name']} geloescht");
-        return redirect()->route('admin.mailboxes.index')->with('status', 'Postfach geloescht.');
+        $this->audit->log('mailbox.deleted', null, $snapshot, null, "Postfach {$snapshot['name']} gelöscht");
+        return redirect()->route('admin.mailboxes.index')->with('status', 'Postfach gelöscht.');
     }
 
     public function test(Mailbox $mailbox, MailboxFetcher $fetcher): RedirectResponse
@@ -116,7 +116,7 @@ class MailboxController extends Controller
         try {
             $stats = $fetcher->fetch($mailbox);
             return back()->with('status', sprintf(
-                'Abgerufen: %d, verarbeitet: %d, uebersprungen: %d, Fehler: %d.',
+                'Abgerufen: %d, verarbeitet: %d, übersprungen: %d, Fehler: %d.',
                 $stats['fetched'], $stats['processed'], $stats['skipped'], $stats['failed']
             ));
         } catch (\Throwable $e) {

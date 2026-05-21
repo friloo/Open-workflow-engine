@@ -51,7 +51,7 @@ class AIController extends Controller
     public function suggestHttp(AIClient $client, Request $request): JsonResponse
     {
         $data = $request->validate([
-            // 'description' bleibt aus Rueckwaerts-Kompat; 'input' ist neu fuer
+            // 'description' bleibt aus Rückwärts-Kompat; 'input' ist neu für
             // einen freien Mix aus curl / OpenAPI / Markdown-Doku / Freitext.
             'description' => ['nullable', 'string', 'max:20000'],
             'input' => ['nullable', 'string', 'max:20000'],
@@ -78,14 +78,14 @@ class AIController extends Controller
         }
 
         $fields = $data['available_fields'] ?? [];
-        $fieldList = $fields ? "Verfuegbare Platzhalter: ".implode(', ', $fields) : '';
+        $fieldList = $fields ? "Verfügbare Platzhalter: ".implode(', ', $fields) : '';
         $purpose = (string) ($data['purpose'] ?? '');
         $purposeLine = $purpose !== '' ? "Aktueller Zweck des Calls: {$purpose}" : '';
 
         $system = <<<TXT
-Du bist Experte fuer API-Integrationen. Aus dem gegebenen Input (kann sein:
+Du bist Experte für API-Integrationen. Aus dem gegebenen Input (kann sein:
 curl-Befehl, OpenAPI/Swagger-Snippet, Markdown-Doku, oder freie Beschreibung)
-erzeugst du ein JSON-Objekt fuer einen HTTP-Knoten.
+erzeugst du ein JSON-Objekt für einen HTTP-Knoten.
 
 Antworte AUSSCHLIESSLICH mit reinem JSON, ohne Markdown-Wrapper, in diesem
 Format:
@@ -110,13 +110,13 @@ Regeln:
 - KONKRETE BEISPIELWERTE im Body durch passende Platzhalter ersetzen.
   z. B. "max@example.com" -> {{ user_email }}, "Max Mustermann" -> {{ user_name }},
   "Drucker druckt nicht" -> {{ subject }}, etc.
-- Nur die unter "Verfuegbare Platzhalter" gelisteten Variablen verwenden.
+- Nur die unter "Verfügbare Platzhalter" gelisteten Variablen verwenden.
 - Authorization-Header NICHT in "headers" auflisten, stattdessen via
   auth_type/auth_token/auth_username/...
 - response_mapping mit Punktnotation, z. B. "data.id" -> "ticket_id".
-- Wenn mehrere Endpoints im Input stehen, waehle den passendsten zum
+- Wenn mehrere Endpoints im Input stehen, wähle den passendsten zum
   "Aktuellen Zweck" oder den ersten POST/PUT.
-- IDs oder Zahlen, fuer die kein Platzhalter passt, auf 0 oder einen
+- IDs oder Zahlen, für die kein Platzhalter passt, auf 0 oder einen
   sinnvollen Default lassen und in "notes" erwaehnen.
 
 {$purposeLine}
@@ -153,7 +153,7 @@ TXT;
             ], 422);
         }
 
-        // Wenn KI auth_token leer laesst, Pre-Parse-Auth uebernehmen (Token aus curl).
+        // Wenn KI auth_token leer lässt, Pre-Parse-Auth übernehmen (Token aus curl).
         if ($preparsed && ! empty($preparsed['auth'])) {
             $a = $preparsed['auth'];
             if (empty($parsed['auth_type']) || $parsed['auth_type'] === 'none') $parsed['auth_type'] = $a['type'] ?? 'none';
@@ -168,7 +168,7 @@ TXT;
             'method' => $parsed['method'] ?? null,
             'url' => $parsed['url'] ?? null,
             'preparsed' => $preparsed !== null,
-        ], 'KI-Vorschlag fuer HTTP-Call generiert', $request->user()->id);
+        ], 'KI-Vorschlag für HTTP-Call generiert', $request->user()->id);
 
         return response()->json(['suggestion' => $parsed]);
     }
@@ -190,7 +190,7 @@ TXT;
         $trigger = $data['trigger_type'] ?? 'form';
 
         $system = <<<TXT
-Du baust den ersten Entwurf eines Workflows fuer die Open Workflow Engine.
+Du baust den ersten Entwurf eines Workflows für die Open Workflow Engine.
 Antworte AUSSCHLIESSLICH mit reinem JSON (kein Markdown-Codeblock).
 
 JSON-Schema:
@@ -233,13 +233,13 @@ JSON-Schema:
 
 Regeln:
 - Genau ein Knoten "start" und mindestens ein "end".
-- Approval-Ausgaenge: 1=Genehmigt, 2=Abgelehnt, 3=Weitergeleitet (falls allow_forward=true).
+- Approval-Ausgänge: 1=Genehmigt, 2=Abgelehnt, 3=Weitergeleitet (falls allow_forward=true).
 - Condition: pro branches[i] ein Ausgang i (1-basiert), zusaetzlich letzter Ausgang = Else.
 - HTTP: 1=OK, 2=Fehler. Notify und Start haben Ausgang 1. End hat keine.
 - Platzhalter im Body/Subject: {{ initiator_name }}, {{ initiator_email }}, {{ subject_user_email }}, beliebige Formularfeld-Keys, {{ initiator_custom.<key> }}.
 - Trigger-Typ ist: {$trigger}. Wenn "form": baue passendes form_schema. Wenn "recurring": form_schema darf leer sein.
-- Wenn der Nutzer Kostenstellen/Listen-Lookups erwaehnt, setze recipient_type="list_lookup" und benenne lookup_source als den Form-Feld-Key (Liste muss spaeter manuell zugeordnet werden, list_id leer lassen).
-- Keine Erlaeuterungen, nur valide JSON-Antwort.
+- Wenn der Nutzer Kostenstellen/Listen-Lookups erwaehnt, setze recipient_type="list_lookup" und benenne lookup_source als den Form-Feld-Key (Liste muss später manuell zugeordnet werden, list_id leer lassen).
+- Keine Erläuterungen, nur valide JSON-Antwort.
 TXT;
 
         try {
@@ -268,7 +268,7 @@ TXT;
             'nodes' => count($parsed['nodes'] ?? []),
             'edges' => count($parsed['edges'] ?? []),
             'fields' => count($parsed['form_schema'] ?? []),
-        ], 'KI-Vorschlag fuer kompletten Workflow generiert', $request->user()->id);
+        ], 'KI-Vorschlag für kompletten Workflow generiert', $request->user()->id);
 
         return response()->json(['draft' => $parsed]);
     }

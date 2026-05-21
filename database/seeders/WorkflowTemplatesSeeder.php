@@ -60,7 +60,7 @@ class WorkflowTemplatesSeeder extends Seeder
         $form = [
             ['key'=>'kostenstelle','label'=>'Kostenstelle','type'=>'text','required'=>true,'options'=>[]],
             ['key'=>'beschreibung','label'=>'Was soll bestellt werden','type'=>'textarea','required'=>true,'options'=>[]],
-            ['key'=>'betrag','label'=>'Geschaetzter Betrag (EUR)','type'=>'number','required'=>true,'options'=>[]],
+            ['key'=>'betrag','label'=>'Geschätzter Betrag (EUR)','type'=>'number','required'=>true,'options'=>[]],
         ];
 
         $v = WorkflowVersion::create([
@@ -91,7 +91,7 @@ class WorkflowTemplatesSeeder extends Seeder
             '1' => ['id'=>1,'name'=>'start','class'=>'start','data'=>['label'=>'Start'],'inputs'=>[],'outputs'=>['output_1'=>['connections'=>[['node'=>'2','output'=>'input_1']]]],'pos_x'=>40,'pos_y'=>120],
             '2' => ['id'=>2,'name'=>'notify','class'=>'notify','data'=>[
                     'label'=>'Vorgesetzten informieren','recipient_type'=>'supervisor_of_initiator',
-                    'subject'=>'Krankmeldung von {{ name }}','body'=>'{{ name }} ist ab heute fuer {{ tage }} Tage krank. Grund: {{ bemerkung }}',
+                    'subject'=>'Krankmeldung von {{ name }}','body'=>'{{ name }} ist ab heute für {{ tage }} Tage krank. Grund: {{ bemerkung }}',
                 ],
                 'inputs'=>['input_1'=>[]],'outputs'=>['output_1'=>['connections'=>[['node'=>'3','output'=>'input_1']]]],'pos_x'=>280,'pos_y'=>120],
             '3' => ['id'=>3,'name'=>'end','class'=>'end','data'=>['label'=>'Erledigt','result'=>'completed'],'inputs'=>['input_1'=>[]],'outputs'=>[],'pos_x'=>520,'pos_y'=>120],
@@ -114,8 +114,8 @@ class WorkflowTemplatesSeeder extends Seeder
         $wf = Workflow::firstOrCreate(
             ['slug' => 'vorlage-fuehrerschein-pruefung'],
             [
-                'name' => 'Vorlage: Fuehrerschein-Pruefung',
-                'description' => 'Wiederkehrende Pruefung. Vorgesetzter bestaetigt Sichtung des Fuehrerscheins.',
+                'name' => 'Vorlage: Führerschein-Prüfung',
+                'description' => 'Wiederkehrende Prüfung. Vorgesetzter bestätigt Sichtung des Führerscheins.',
                 'trigger_type' => 'recurring',
                 'status' => 'draft',
                 'created_by' => $admin->id, 'updated_by' => $admin->id,

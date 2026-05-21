@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Process\Process;
 
 /**
- * Extrahiert Text aus hochgeladenen Dokumenten fuer die Volltextsuche.
+ * Extrahiert Text aus hochgeladenen Dokumenten für die Volltextsuche.
  *
  * Reihenfolge:
  *  - PDFs mit eingebettetem Text: `pdftotext` (poppler-utils)
@@ -76,7 +76,7 @@ class OcrExtractor
             }
         }
 
-        // Scan-PDF: erst in Bilder konvertieren, dann tesseract drueberlaufen
+        // Scan-PDF: erst in Bilder konvertieren, dann tesseract drüberlaufen
         if ($this->hasTool('pdftoppm') && $this->hasTool('tesseract')) {
             $tmp = sys_get_temp_dir().'/ocr_'.uniqid();
             @mkdir($tmp);

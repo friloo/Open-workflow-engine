@@ -90,7 +90,7 @@
                     </header>
                 @endisset
 
-                {{-- space-y-6 sorgt fuer Abstand zwischen direkten Top-Level-Kindern wie aufeinanderfolgenden <x-card>-Bloecken --}}
+                {{-- space-y-6 sorgt für Abstand zwischen direkten Top-Level-Kindern wie aufeinanderfolgenden <x-card>-Bloecken --}}
                 <div class="space-y-6">
                     {{ $slot }}
                 </div>
@@ -104,7 +104,7 @@
                         <a href="https://loheide.eu" target="_blank" rel="noopener" class="font-medium text-indigo-600 hover:text-indigo-500">Friederich Loheide</a>
                     </p>
                     <p>
-                        <a href="{{ route('help.show', 'about') }}" class="hover:text-slate-700">Ueber dieses Tool / Disclaimer</a>
+                        <a href="{{ route('help.show', 'about') }}" class="hover:text-slate-700">Über dieses Tool / Disclaimer</a>
                     </p>
                 </div>
             </footer>

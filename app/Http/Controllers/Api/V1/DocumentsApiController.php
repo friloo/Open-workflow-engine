@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Externer Zugriff auf Dokumente per JSON-API. Token-basiert mit Ability
- * 'documents.read' fuer Lesen und 'documents.write' fuer Upload/Update.
+ * 'documents.read' für Lesen und 'documents.write' für Upload/Update.
  *
  * Bewusst minimal: keine versteckte Magie. Was im Web-UI machbar ist,
  * ist auch hier machbar — mit denselben Permission-Checks

@@ -9,12 +9,12 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Erzeugt einen iCalendar-Feed (RFC 5545) fuer einen User:
- * - alle offenen Aufgaben mit Faelligkeit als VEVENT
- * - alle Vertraege wo der User Owner ist: Frist + Ende als VEVENT
+ * Erzeugt einen iCalendar-Feed (RFC 5545) für einen User:
+ * - alle offenen Aufgaben mit Fälligkeit als VEVENT
+ * - alle Verträge wo der User Owner ist: Frist + Ende als VEVENT
  *
  * Wird unter /ical/{token}.ics ausgeliefert; in Outlook/Apple Calendar
- * als Internet-Kalender einlesen, dann werden die Faelligkeiten dort
+ * als Internet-Kalender einlesen, dann werden die Fälligkeiten dort
  * automatisch sichtbar.
  */
 class IcalFeedGenerator
@@ -36,7 +36,7 @@ class IcalFeedGenerator
             'X-WR-TIMEZONE:Europe/Berlin',
         ];
 
-        // 1) Offene Aufgaben mit Faelligkeit
+        // 1) Offene Aufgaben mit Fälligkeit
         $roleIds = $user->roles->pluck('id');
         $tasks = WorkflowStepExecution::query()
             ->with(['instance.workflow'])
@@ -68,7 +68,7 @@ class IcalFeedGenerator
             ));
         }
 
-        // 2) Vertraege wo der User Owner ist — Kuendigungs-Frist + Ende
+        // 2) Verträge wo der User Owner ist — Kündigungs-Frist + Ende
         if (Schema::hasTable('contracts')) {
             $contracts = Contract::where('owner_user_id', $user->id)
                 ->whereNotNull('end_date')
@@ -81,7 +81,7 @@ class IcalFeedGenerator
                         stamp: $stamp,
                         date: $deadline,
                         summary: '[OWE] Frist: '.$c->name,
-                        description: 'Kuendigungsfrist fuer Vertrag '.$c->name
+                        description: 'Kündigungsfrist für Vertrag '.$c->name
                             . ($c->party ? ' ('.$c->party.')' : '')
                             . "\nDirekt-Link: {$appUrl}/contracts/{$c->id}",
                         url: $appUrl.'/contracts/'.$c->id,

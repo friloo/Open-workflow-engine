@@ -11,7 +11,7 @@ class HelpController extends Controller
     private const DOCS_PATH = 'resources/docs';
 
     /**
-     * Themen-Inhaltsverzeichnis. Gruppiert fuer die Sidebar.
+     * Themen-Inhaltsverzeichnis. Gruppiert für die Sidebar.
      * Reihenfolge der Sections + der Themen ist gleichzeitig die Navigation.
      *
      * Jedes Thema kann eine Permission-Liste angeben (ANY-of). Wenn leer,
@@ -26,8 +26,8 @@ class HelpController extends Controller
      */
     private array $sections = [
         'Einstieg' => [
-            'index' => 'Uebersicht',
-            'about' => 'Ueber dieses Tool & Disclaimer',
+            'index' => 'Übersicht',
+            'about' => 'Über dieses Tool & Disclaimer',
             'install' => ['label' => 'Erstinstallation (Web-Installer)', 'any' => ['system.settings']],
             'first-steps' => ['label' => 'Erste Schritte als Admin', 'any' => ['system.settings']],
             'dashboard' => 'Dashboard / Startseite',
@@ -53,7 +53,7 @@ class HelpController extends Controller
         'Daten & Formulare' => [
             'forms' => ['label' => 'Formulare', 'any' => ['forms.view', 'forms.manage']],
             'lists' => ['label' => 'Listen (Kostenstellen etc.)', 'any' => ['lists.view', 'lists.manage']],
-            'assets' => ['label' => 'Assets (Fuehrerschein etc.)', 'any' => ['assets.view', 'assets.manage']],
+            'assets' => ['label' => 'Assets (Führerschein etc.)', 'any' => ['assets.view', 'assets.manage']],
             'contracts' => ['label' => 'Vertragsmanagement', 'any' => ['contracts.view', 'contracts.manage']],
             'cases' => ['label' => 'Akten (Aktendeckel)', 'any' => ['documents.search']],
         ],
@@ -84,7 +84,7 @@ class HelpController extends Controller
         'Sicherheit & Betrieb' => [
             '2fa' => 'Zwei-Faktor-Anmeldung',
             'revisionssicher' => 'Revisionssicherheit',
-            'gobd' => 'GoBD-Konformitaet (DE)',
+            'gobd' => 'GoBD-Konformität (DE)',
             'dsgvo' => ['label' => 'DSGVO-Anfragen', 'any' => ['system.settings']],
             'admin' => ['label' => 'Administration', 'any' => ['system.settings']],
             'object-storage' => ['label' => 'Object-Storage (S3/MinIO)', 'any' => ['system.settings']],
@@ -138,7 +138,7 @@ class HelpController extends Controller
 
     /**
      * Filtert das Section-Mapping auf das, was der User sehen darf.
-     * Sections, deren saemtliche Themen rausgefiltert wurden, werden
+     * Sections, deren sämtliche Themen rausgefiltert wurden, werden
      * komplett weggelassen — keine leeren Header.
      */
     private function visibleSections(?\App\Models\User $user): array
@@ -202,7 +202,7 @@ class HelpController extends Controller
      *   ein '<blockquote><p>[!TIP]\nbody</p></blockquote>'. Den fangen
      *   wir hier ab und ersetzen ihn durch einen .callout-Block.
      * - Tabellen kriegen die owe-table-Klasse.
-     * - h2/h3 bekommen slug-IDs fuer Deep-Links und das TOC.
+     * - h2/h3 bekommen slug-IDs für Deep-Links und das TOC.
      */
     private function postprocessHtml(string $html): string
     {
@@ -250,7 +250,7 @@ class HelpController extends Controller
     }
 
     /**
-     * Extrahiert h2/h3 aus dem gerenderten HTML fuer das Seiten-TOC.
+     * Extrahiert h2/h3 aus dem gerenderten HTML für das Seiten-TOC.
      *
      * @return array<int, array{level:int,title:string,id:string}>
      */

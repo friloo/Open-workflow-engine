@@ -29,7 +29,7 @@ class ContractTemplateController extends Controller
     {
         return view('contracts.templates.form', [
             'template' => new ContractTemplate([
-                'body_html' => "<h1>{{ name }}</h1>\n<p>Vertragspartner: <strong>{{ party }}</strong></p>\n<p>Beginn: {{ start_date }} · Ende: {{ end_date }}</p>\n<p>Kuendigungsfrist: {{ notice_period_days }} Tage</p>\n<p>Verantwortlich: {{ owner.name }} ({{ owner.email }})</p>",
+                'body_html' => "<h1>{{ name }}</h1>\n<p>Vertragspartner: <strong>{{ party }}</strong></p>\n<p>Beginn: {{ start_date }} · Ende: {{ end_date }}</p>\n<p>Kündigungsfrist: {{ notice_period_days }} Tage</p>\n<p>Verantwortlich: {{ owner.name }} ({{ owner.email }})</p>",
             ]),
             'types' => ContractType::orderBy('name')->get(),
             'placeholders' => app(ContractTemplateRenderer::class)
@@ -75,12 +75,12 @@ class ContractTemplateController extends Controller
         $name = $contractTemplate->name;
         $contractTemplate->delete();
         $this->audit->log('contract_template.deleted', null, ['name' => $name], null,
-            "Vertrags-Vorlage {$name} geloescht", $request->user()->id);
-        return redirect()->route('contract-templates.index')->with('status', 'Vorlage geloescht.');
+            "Vertrags-Vorlage {$name} gelöscht", $request->user()->id);
+        return redirect()->route('contract-templates.index')->with('status', 'Vorlage gelöscht.');
     }
 
     /**
-     * Erzeugt aus einer Vorlage + einem Vertrag eine PDF und haengt
+     * Erzeugt aus einer Vorlage + einem Vertrag eine PDF und hängt
      * sie als Anhang an den Vertrag.
      */
     public function generate(Request $request, Contract $contract, ContractTemplateRenderer $renderer, AttachmentStorage $storage): RedirectResponse
@@ -109,11 +109,11 @@ class ContractTemplateController extends Controller
 
         $this->audit->log('contract.pdf_generated', $contract, null,
             ['template_id' => $template->id, 'attachment_id' => $att->id],
-            "PDF aus Vorlage {$template->name} fuer Vertrag {$contract->name} erzeugt",
+            "PDF aus Vorlage {$template->name} für Vertrag {$contract->name} erzeugt",
             $request->user()->id);
 
         return redirect()->route('contracts.show', $contract)
-            ->with('status', 'PDF aus Vorlage ' . $template->name . ' erzeugt und angehaengt.');
+            ->with('status', 'PDF aus Vorlage ' . $template->name . ' erzeugt und angehängt.');
     }
 
     private function validateTemplate(Request $request): array

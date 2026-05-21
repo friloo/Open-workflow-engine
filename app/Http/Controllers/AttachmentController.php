@@ -68,8 +68,8 @@ class AttachmentController extends Controller
         $result = app(\App\Services\AttachmentStorage::class)->verifyAll();
         $this->audit->log('attachments.integrity_checked', null, null, [
             'checked' => $result['checked'], 'broken' => count($result['broken']),
-        ], "Integritaetspruefung: {$result['checked']} geprueft, ".count($result['broken'])." auffaellig", $request->user()->id);
-        return back()->with('status', "Integritaet geprueft: {$result['checked']} Dateien, ".count($result['broken'])." auffaellig.")
+        ], "Integritätsprüfung: {$result['checked']} geprüft, ".count($result['broken'])." auffällig", $request->user()->id);
+        return back()->with('status', "Integrität geprüft: {$result['checked']} Dateien, ".count($result['broken'])." auffällig.")
             ->with('integrityBroken', $result['broken']);
     }
 
@@ -84,8 +84,8 @@ class AttachmentController extends Controller
         $this->ensureUploadAllowed($attachment->attachable, $request);
         $snapshot = $attachment->only(['id', 'original_name', 'attachable_type', 'attachable_id']);
         $attachment->delete();
-        $this->audit->log('attachment.deleted', null, $snapshot, null, "Datei {$snapshot['original_name']} geloescht");
-        return back()->with('status', 'Datei geloescht.');
+        $this->audit->log('attachment.deleted', null, $snapshot, null, "Datei {$snapshot['original_name']} gelöscht");
+        return back()->with('status', 'Datei gelöscht.');
     }
 
     private function resolveAttachable(string $type, int $id, Request $request)
@@ -107,8 +107,8 @@ class AttachmentController extends Controller
             return;
         }
         if ($attachable instanceof WorkflowInstance) {
-            // Initiator, Workflow-Designer, oder aktueller/frueherer Assignee
-            // eines Steps auf dieser Instanz duerfen Dateien anhaengen.
+            // Initiator, Workflow-Designer, oder aktueller/früherer Assignee
+            // eines Steps auf dieser Instanz dürfen Dateien anhängen.
             if ($attachable->started_by === $user->id) return;
             if ($user->hasAnyPermission(['workflows.design'])) return;
             $isAssignee = WorkflowStepExecution::where('workflow_instance_id', $attachable->id)
@@ -124,7 +124,7 @@ class AttachmentController extends Controller
             return;
         }
         if ($attachable instanceof Contract) {
-            // Wer den Vertrag bearbeiten darf, darf auch Anhaenge hochladen
+            // Wer den Vertrag bearbeiten darf, darf auch Anhänge hochladen
             if (! $attachable->userCanManage($user)) abort(403);
             return;
         }
@@ -136,7 +136,7 @@ class AttachmentController extends Controller
         $user = $request->user();
         $att = $a->attachable;
 
-        // Admins/Workflow-Designer und Asset-/Form-Manager duerfen alles
+        // Admins/Workflow-Designer und Asset-/Form-Manager dürfen alles
         if ($user->hasAnyPermission(['workflows.design', 'audit.view'])) return;
 
         if ($att instanceof Asset) {
@@ -157,7 +157,7 @@ class AttachmentController extends Controller
             if ($user->hasPermission('forms.view')) return;
         }
         if ($att instanceof Contract) {
-            // Wer den Vertrag sehen darf, darf auch dessen Anhaenge laden
+            // Wer den Vertrag sehen darf, darf auch dessen Anhänge laden
             $visible = Contract::query()->visibleTo($user)->whereKey($att->id)->exists();
             if ($visible) return;
         }

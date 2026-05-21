@@ -65,7 +65,7 @@
     <h2>2. Antrags-Formular</h2>
     <table>
         <thead>
-            <tr><th>Schluessel</th><th>Bezeichnung</th><th>Typ</th><th>Pflicht</th></tr>
+            <tr><th>Schlüssel</th><th>Bezeichnung</th><th>Typ</th><th>Pflicht</th></tr>
         </thead>
         <tbody>
             @foreach($form_schema as $f)
@@ -80,7 +80,7 @@
     </table>
 @endif
 
-<h2>{{ ! empty($form_schema) ? '3' : '2' }}. Ablauf-Uebersicht</h2>
+<h2>{{ ! empty($form_schema) ? '3' : '2' }}. Ablauf-Übersicht</h2>
 <table>
     <thead>
         <tr><th class="idx">#</th><th>Knoten</th><th>Typ</th><th>Folgt</th></tr>
@@ -114,7 +114,7 @@
 
         @switch($type)
             @case('start')
-                <p class="empty">Einstieg des Workflows. Wird vom Trigger automatisch ausgeloest.</p>
+                <p class="empty">Einstieg des Workflows. Wird vom Trigger automatisch ausgelöst.</p>
                 @break
 
             @case('end')
@@ -125,10 +125,10 @@
 
             @case('approval')
                 <table class="kv">
-                    <tr><td class="k">Empfaenger-Typ</td><td class="v">{{ $d['recipient_type'] ?? '—' }}</td></tr>
+                    <tr><td class="k">Empfänger-Typ</td><td class="v">{{ $d['recipient_type'] ?? '—' }}</td></tr>
                     @if(! empty($d['recipient_role_id']))<tr><td class="k">Rolle-ID</td><td class="v">#{{ $d['recipient_role_id'] }}</td></tr>@endif
                     @if(! empty($d['recipient_user_id']))<tr><td class="k">User-ID</td><td class="v">#{{ $d['recipient_user_id'] }}</td></tr>@endif
-                    @if(! empty($d['list_id']))<tr><td class="k">Lookup-Liste</td><td class="v">#{{ $d['list_id'] }} · Schluessel <code>{{ $d['lookup_source'] ?? '' }}</code></td></tr>@endif
+                    @if(! empty($d['list_id']))<tr><td class="k">Lookup-Liste</td><td class="v">#{{ $d['list_id'] }} · Schlüssel <code>{{ $d['lookup_source'] ?? '' }}</code></td></tr>@endif
                     <tr><td class="k">Karenzzeit</td><td class="v">{{ $d['grace_value'] ?? 3 }} {{ $d['grace_unit'] ?? 'days' }}</td></tr>
                     <tr><td class="k">Eskalation</td><td class="v">{{ $d['escalation_type'] ?? 'none' }}@if(! empty($d['escalation_role_id'])) → Rolle #{{ $d['escalation_role_id'] }}@endif</td></tr>
                     <tr><td class="k">Weiterleiten erlaubt</td><td class="v">{{ ! empty($d['allow_forward']) ? 'ja' : 'nein' }}</td></tr>
@@ -139,7 +139,7 @@
                 @if(! empty($d['extra_fields']))
                     <h3>Zusatzfelder beim Entscheiden</h3>
                     <table>
-                        <thead><tr><th>Schluessel</th><th>Label</th><th>Typ</th><th>Pflicht</th><th>Speichern in</th></tr></thead>
+                        <thead><tr><th>Schlüssel</th><th>Label</th><th>Typ</th><th>Pflicht</th><th>Speichern in</th></tr></thead>
                         <tbody>
                             @foreach($d['extra_fields'] as $f)
                                 <tr>
@@ -194,7 +194,7 @@
 
             @case('notify')
                 <table class="kv">
-                    <tr><td class="k">Empfaenger</td><td class="v">{{ $d['recipient_type'] ?? '—' }}@if(! empty($d['recipient_role_id'])) (Rolle #{{ $d['recipient_role_id'] }})@endif</td></tr>
+                    <tr><td class="k">Empfänger</td><td class="v">{{ $d['recipient_type'] ?? '—' }}@if(! empty($d['recipient_role_id'])) (Rolle #{{ $d['recipient_role_id'] }})@endif</td></tr>
                     <tr><td class="k">Betreff</td><td class="v">{{ $d['subject'] ?? '' }}</td></tr>
                 </table>
                 @if(! empty($d['body']))
@@ -248,7 +248,7 @@
                     <tr><td class="k">Doku-Typ</td><td class="v">{{ $d['document_type'] ?: '—' }}</td></tr>
                     <tr><td class="k">Label</td><td class="v">{{ $d['label'] ?: '—' }}</td></tr>
                 </table>
-                <h3>HTML-Template (gekuerzt)</h3>
+                <h3>HTML-Template (gekürzt)</h3>
                 <pre>{{ \Illuminate\Support\Str::limit($d['html_template'] ?? '', 800) }}</pre>
                 @break
 
@@ -326,7 +326,7 @@
                 @break
 
             @default
-                <p class="empty">Keine spezielle Darstellung fuer diesen Knotentyp.</p>
+                <p class="empty">Keine spezielle Darstellung für diesen Knotentyp.</p>
         @endswitch
     </div>
 @endforeach

@@ -15,7 +15,7 @@ return new class extends Migration
             // 'workflow.completed', 'workflow.failed', 'document.shared',
             // 'mention', ...
             $table->string('event_key', 64);
-            // 'mail' | 'in_app'  (web_push spaeter)
+            // 'mail' | 'in_app'  (web_push später)
             $table->string('channel', 16);
             $table->boolean('enabled')->default(true);
             $table->timestamps();

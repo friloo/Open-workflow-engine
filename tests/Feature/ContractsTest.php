@@ -70,7 +70,7 @@ class ContractsTest extends TestCase
         Contract::create([
             'name' => 'Software-Lizenz Buchhaltung',
             'end_date' => now()->addDays(20),
-            'notice_period_days' => 60, // -> heute schon ueberschritten -> notice_due
+            'notice_period_days' => 60, // -> heute schon überschritten -> notice_due
             'owner_user_id' => $owner->id,
             'status' => 'active',
             'created_by' => $owner->id,
@@ -78,7 +78,7 @@ class ContractsTest extends TestCase
 
         Artisan::call('contracts:check-deadlines');
 
-        // Notification fuer den Owner
+        // Notification für den Owner
         $notif = AppNotification::where('user_id', $owner->id)
             ->where('type', 'contract.notice_due')
             ->first();

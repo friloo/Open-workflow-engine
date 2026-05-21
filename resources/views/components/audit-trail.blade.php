@@ -1,7 +1,7 @@
 @props([
-    'model' => null,        // Eloquent-Model — Audit-Log-Eintraege werden ueber auditable_type/_id geladen
+    'model' => null,        // Eloquent-Model — Audit-Log-Einträge werden über auditable_type/_id geladen
     'limit' => 10,
-    'title' => 'Aenderungs-Historie',
+    'title' => 'Änderungs-Historie',
 ])
 
 @php
@@ -17,9 +17,9 @@
     }
 @endphp
 
-<x-card :title="$title" description="Letzte {{ $limit }} relevante Aenderungen aus dem Audit-Log.">
+<x-card :title="$title" description="Letzte {{ $limit }} relevante Änderungen aus dem Audit-Log.">
     @if($entries->isEmpty())
-        <p class="text-sm text-slate-500">Noch keine Aenderungen protokolliert.</p>
+        <p class="text-sm text-slate-500">Noch keine Änderungen protokolliert.</p>
     @else
         <ul class="space-y-2">
             @foreach($entries as $e)
@@ -38,7 +38,7 @@
         @if(auth()->user()->hasPermission('audit.view'))
             <a href="{{ route('admin.audit.index', ['q' => $model->getMorphClass() . '#' . $model->getKey()]) }}"
                class="mt-3 inline-block text-xs text-indigo-600 hover:text-indigo-500">
-                Alle Audit-Eintraege zu diesem Objekt &rarr;
+                Alle Audit-Einträge zu diesem Objekt &rarr;
             </a>
         @endif
     @endif

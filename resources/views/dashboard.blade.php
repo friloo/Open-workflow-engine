@@ -9,9 +9,9 @@
     @if($delegatedTo)
         <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
             <strong>Vertretung aktiv</strong> — {{ $delegatedTo->name }} ({{ $delegatedTo->email }})
-            uebernimmt deine neuen Aufgaben.
+            übernimmt deine neuen Aufgaben.
             <a href="{{ route('two-factor.show') }}" class="hidden"></a>
-            <a href="{{ route('profile.edit') }}" class="ms-2 underline">aendern</a>
+            <a href="{{ route('profile.edit') }}" class="ms-2 underline">ändern</a>
         </div>
     @endif
 
@@ -70,13 +70,13 @@
     {{-- KPI-Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <x-stat-card label="Offene Aufgaben" :value="$myOpenCount" tone="indigo"
-            :hint="$myOverdueCount > 0 ? $myOverdueCount.' davon ueberfaellig' : null" />
+            :hint="$myOverdueCount > 0 ? $myOverdueCount.' davon überfällig' : null" />
         <a href="{{ route('documents.inbox') }}" class="block">
             <x-stat-card label="Postkorb" :value="$inboxCount" tone="amber"
                 hint="Dokumente ohne Workflow" />
         </a>
         <a href="{{ route('workflow-instances.index') }}" class="block">
-            <x-stat-card label="Meine Vorgaenge" :value="$myRecentInstances->count()" tone="emerald"
+            <x-stat-card label="Meine Vorgänge" :value="$myRecentInstances->count()" tone="emerald"
                 hint="letzte 5 angezeigt" />
         </a>
         @if($adminInfo)
@@ -93,9 +93,9 @@
         @endif
     </div>
 
-    {{-- Persoenliche Statistik (letzte 30 Tage) — nur wenn User was entschieden hat --}}
+    {{-- Persönliche Statistik (letzte 30 Tage) — nur wenn User was entschieden hat --}}
     @if($myStats)
-        <x-card title="Meine Aktivitaet · letzte 30 Tage" description="Was du seit {{ $myStats['since']->format('d.m.') }} entschieden hast.">
+        <x-card title="Meine Aktivität · letzte 30 Tage" description="Was du seit {{ $myStats['since']->format('d.m.') }} entschieden hast.">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <div class="text-3xl font-semibold text-slate-900">{{ $myStats['total'] }}</div>
@@ -163,7 +163,7 @@
                                 </div>
                                 <div class="shrink-0 text-right text-xs {{ $overdue ? 'text-rose-700 font-semibold' : 'text-slate-500' }}">
                                     @if($step->due_at)
-                                        {{ $overdue ? 'ueberfaellig' : 'bis' }} <x-fmt-date :value="$step->due_at" />
+                                        {{ $overdue ? 'überfällig' : 'bis' }} <x-fmt-date :value="$step->due_at" />
                                     @else
                                         ohne Frist
                                     @endif
@@ -176,7 +176,7 @@
             @endif
         </x-card>
 
-        <x-card title="Meine letzten Vorgaenge">
+        <x-card title="Meine letzten Vorgänge">
             @if($myRecentInstances->isEmpty())
                 <p class="text-sm text-slate-500">Du hast noch keinen Workflow gestartet.</p>
             @else
@@ -213,7 +213,7 @@
                         </li>
                     @endforeach
                 </ul>
-                <a href="{{ route('admin.health.index') }}" class="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">Vollstaendig anzeigen &rarr;</a>
+                <a href="{{ route('admin.health.index') }}" class="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">Vollständig anzeigen &rarr;</a>
             </x-card>
         </div>
     @endif

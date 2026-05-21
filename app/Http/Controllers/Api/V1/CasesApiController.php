@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 /**
  * API: Akten (Aktendeckel). Token-Abilities:
  *  - documents.search   (Lesen)
- *  - documents.search + workflows.design oder documents.search + contracts.manage (Schreiben/Anhaengen)
+ *  - documents.search + workflows.design oder documents.search + contracts.manage (Schreiben/Anhängen)
  */
 class CasesApiController extends Controller
 {

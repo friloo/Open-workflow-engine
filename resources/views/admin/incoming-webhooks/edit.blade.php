@@ -20,7 +20,7 @@
                     </div>
                 @endif
             </div>
-            <form method="POST" action="{{ route('admin.incoming-webhooks.rotate', $webhook) }}" class="mt-3" onsubmit="return confirm('Token rotieren? Alte URL wird ungueltig.')">
+            <form method="POST" action="{{ route('admin.incoming-webhooks.rotate', $webhook) }}" class="mt-3" onsubmit="return confirm('Token rotieren? Alte URL wird ungültig.')">
                 @csrf
                 <x-secondary-button>Token rotieren</x-secondary-button>
             </form>
@@ -41,14 +41,14 @@
                 <div>
                     <x-input-label for="workflow_id" value="Workflow" />
                     <select id="workflow_id" name="workflow_id" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">— Workflow waehlen —</option>
+                        <option value="">— Workflow wählen —</option>
                         @foreach($workflows as $wf)
                             <option value="{{ $wf->id }}" @selected((int) old('workflow_id', $webhook->workflow_id) === $wf->id)>{{ $wf->name }} ({{ $wf->status }})</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <x-input-label for="secret" value="HMAC-Secret (optional, leer = unveraendert)" />
+                    <x-input-label for="secret" value="HMAC-Secret (optional, leer = unverändert)" />
                     <x-text-input id="secret" name="secret" type="password" />
                     <p class="mt-1 text-xs text-slate-500">Bei gesetztem Secret muss der Aufrufer einen <code>X-OWE-Signature</code>-Header mitschicken (HMAC-SHA256 des Bodys).</p>
                 </div>
@@ -75,7 +75,7 @@
                 <button type="button" @click="mappings.push({path:'',field:''})"
                         class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Mapping</button>
             </div>
-            <p class="mt-3 text-xs text-slate-500">Der vollstaendige Payload steht ausserdem als <code>@{{ webhook_payload }}</code> zur Verfuegung.</p>
+            <p class="mt-3 text-xs text-slate-500">Der vollständige Payload steht ausserdem als <code>@{{ webhook_payload }}</code> zur Verfügung.</p>
         </x-card>
 
         <div class="flex justify-between">
@@ -85,9 +85,9 @@
     </form>
 
     @if($webhook->exists)
-        <form method="POST" action="{{ route('admin.incoming-webhooks.destroy', $webhook) }}" class="mt-6" onsubmit="return confirm('Webhook loeschen?')">
+        <form method="POST" action="{{ route('admin.incoming-webhooks.destroy', $webhook) }}" class="mt-6" onsubmit="return confirm('Webhook löschen?')">
             @csrf @method('DELETE')
-            <button class="text-sm text-rose-600 hover:text-rose-500">Webhook loeschen</button>
+            <button class="text-sm text-rose-600 hover:text-rose-500">Webhook löschen</button>
         </form>
     @endif
 </x-app-layout>

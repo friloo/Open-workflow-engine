@@ -1,6 +1,6 @@
 @php
     $schema = $schema ?? [];
-    // Initiale Form-Daten als Alpine-Store fuer show_if-Bedingungen
+    // Initiale Form-Daten als Alpine-Store für show_if-Bedingungen
     $initialData = collect($schema)->mapWithKeys(fn ($f) => [$f['key'] => old($f['key'], null)])->all();
 @endphp
 <div x-data='@json(["d" => $initialData])'>
@@ -55,7 +55,7 @@
                 <select id="f-{{ $key }}" name="{{ $key }}" x-model="d['{{ $key }}']"
                     @if($required) required @endif
                     class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    <option value="">— bitte waehlen —</option>
+                    <option value="">— bitte wählen —</option>
                     @foreach($options as $opt)
                         <option value="{{ $opt }}" @selected($old==$opt)>{{ $opt }}</option>
                     @endforeach

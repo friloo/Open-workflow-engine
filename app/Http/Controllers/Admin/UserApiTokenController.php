@@ -12,8 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Admin-seitige Token-Verwaltung fuer beliebige (insbesondere
- * Service-Account-) User. Sinnvoll fuer Integrationen, bei denen
+ * Admin-seitige Token-Verwaltung für beliebige (insbesondere
+ * Service-Account-) User. Sinnvoll für Integrationen, bei denen
  * man kein Login als der Service-User braucht.
  *
  * Permission: users.manage (Voll-Admin oder dedizierte User-Manager-Rolle).
@@ -45,7 +45,7 @@ class UserApiTokenController extends Controller
             'expires_in_days' => ['nullable', 'integer', 'between:1,3650'],
         ]);
 
-        // Sicherheits-Check: Token-Abilities duerfen nie ueber die
+        // Sicherheits-Check: Token-Abilities dürfen nie über die
         // Permissions des Ziel-Users hinausgehen (auch der erstellende
         // Admin darf das nicht escalieren).
         $abilities = $data['abilities'] ?? null;
@@ -71,7 +71,7 @@ class UserApiTokenController extends Controller
             'expires_at' => $result['token']->expires_at?->toIso8601String(),
             'target_user_id' => $user->id,
             'target_user_email' => $user->email,
-        ], "Admin-API-Token fuer {$user->email} erstellt: {$result['token']->name}",
+        ], "Admin-API-Token für {$user->email} erstellt: {$result['token']->name}",
             $request->user()->id);
 
         $request->session()->put('api_token.plain', $result['plain']);

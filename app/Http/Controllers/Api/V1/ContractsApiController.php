@@ -11,9 +11,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * API: Vertraege. Token-Abilities:
+ * API: Verträge. Token-Abilities:
  *  - contracts.view  (Lesen)
- *  - contracts.manage (Anlegen/Aendern/Anhaenge hochladen)
+ *  - contracts.manage (Anlegen/Ändern/Anhänge hochladen)
  */
 class ContractsApiController extends Controller
 {
@@ -86,7 +86,7 @@ class ContractsApiController extends Controller
         $contract->update($data);
         $contract->update(['status' => $contract->computedStatus()]);
         $this->audit->log('contract.updated', $contract, null, $data,
-            'Vertrag '.$contract->name.' via API geaendert', $request->user()->id);
+            'Vertrag '.$contract->name.' via API geändert', $request->user()->id);
         return response()->json(self::serialize($contract, full: true));
     }
 

@@ -13,7 +13,7 @@ use Webklex\PHPIMAP\Client as ImapClient;
 use Webklex\PHPIMAP\Message;
 
 /**
- * Holt Mails per IMAP, legt Anhaenge revisionssicher ab und startet
+ * Holt Mails per IMAP, legt Anhänge revisionssicher ab und startet
  * optional einen Workflow. Per Postfach konfigurierbar.
  */
 class MailboxFetcher
@@ -24,7 +24,7 @@ class MailboxFetcher
         private readonly AuditLogger $audit,
     ) {}
 
-    /** Liefert die Zahl der UNGELESENEN Nachrichten — nur fuer den Verbindungstest. */
+    /** Liefert die Zahl der UNGELESENEN Nachrichten — nur für den Verbindungstest. */
     public function testConnection(Mailbox $mailbox): int
     {
         $client = $this->client($mailbox);

@@ -59,7 +59,7 @@
                 <div class="px-4 py-6 text-sm text-slate-500">Tippe mindestens 2 Zeichen.</div>
             </template>
             <template x-if="!loading && q.trim().length >= 2 && groups.length === 0">
-                <div class="px-4 py-6 text-sm text-slate-500">Keine Treffer fuer „<span x-text="q"></span>".</div>
+                <div class="px-4 py-6 text-sm text-slate-500">Keine Treffer für „<span x-text="q"></span>".</div>
             </template>
 
             <template x-for="(group, gi) in groups" :key="gi">
@@ -82,7 +82,7 @@
         <div class="border-t border-slate-200 bg-slate-50 px-4 py-2 flex items-center justify-between text-[11px] text-slate-500">
             <div class="flex items-center gap-3">
                 <span><kbd class="rounded border border-slate-300 bg-white px-1 font-mono">&uarr; &darr;</kbd> navigieren</span>
-                <span><kbd class="rounded border border-slate-300 bg-white px-1 font-mono">Enter</kbd> oeffnen</span>
+                <span><kbd class="rounded border border-slate-300 bg-white px-1 font-mono">Enter</kbd> öffnen</span>
             </div>
             <span>Strg+K / &#8984;K</span>
         </div>

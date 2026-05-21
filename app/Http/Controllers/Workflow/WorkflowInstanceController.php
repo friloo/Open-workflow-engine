@@ -154,6 +154,6 @@ class WorkflowInstanceController extends Controller
             'user_id' => $user->id,
             'body' => $data['body'],
         ]);
-        return back()->with('status', 'Kommentar hinzugefuegt.');
+        return back()->with('status', 'Kommentar hinzugefügt.');
     }
 }

@@ -61,7 +61,7 @@ class TwoFactorChallengeController extends Controller
 
         if (! $ok) {
             $this->audit->log('auth.2fa.failed', $user, null, null, "2FA-Code falsch: {$user->email}", $user->id);
-            throw ValidationException::withMessages(['code' => 'Code nicht gueltig.']);
+            throw ValidationException::withMessages(['code' => 'Code nicht gültig.']);
         }
 
         $remember = (bool) $request->session()->pull('auth.2fa.remember', false);

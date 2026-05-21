@@ -40,9 +40,9 @@
                             <td class="py-3 text-right space-x-3">
                                 <form method="POST" action="{{ route('admin.webhooks.test', $w) }}" class="inline">@csrf<button class="text-sm text-slate-600 hover:text-slate-900">Test</button></form>
                                 <a href="{{ route('admin.webhooks.edit', $w) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
-                                <form method="POST" action="{{ route('admin.webhooks.destroy', $w) }}" class="inline" onsubmit="return confirm('Webhook loeschen?')">
+                                <form method="POST" action="{{ route('admin.webhooks.destroy', $w) }}" class="inline" onsubmit="return confirm('Webhook löschen?')">
                                     @csrf @method('DELETE')
-                                    <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                    <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                 </form>
                             </td>
                         </tr>

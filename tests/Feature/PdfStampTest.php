@@ -35,7 +35,7 @@ class PdfStampTest extends TestCase
 
         $this->assertStringStartsWith('%PDF-', $stamped);
         $this->assertStringEndsWith("%%EOF\n", $stamped);
-        // Gestempelte PDF muss groesser sein als das Original
+        // Gestempelte PDF muss größer sein als das Original
         $this->assertGreaterThan(strlen($minimalPdf), strlen($stamped));
     }
 
@@ -51,13 +51,13 @@ class PdfStampTest extends TestCase
         $v = WorkflowVersion::create(['workflow_id' => $w->id, 'version_number' => 1,
             'definition' => ['drawflow' => ['Home' => ['data' => [
                 'n1' => ['id' => 'n1', 'class' => 'approval', 'data' => [
-                    'label' => 'Pruefung', 'stamp_pdf' => true, 'stamp_pdf_only_on' => 'approved',
+                    'label' => 'Prüfung', 'stamp_pdf' => true, 'stamp_pdf_only_on' => 'approved',
                 ]],
             ]]]]]);
         $i = WorkflowInstance::create(['workflow_id' => $w->id, 'workflow_version_id' => $v->id,
             'data' => [], 'status' => 'running', 'started_at' => now(), 'started_by' => $admin->id]);
 
-        // PDF an Workflow-Instance haengen
+        // PDF an Workflow-Instance hängen
         $pdfBytes = $this->minimalPdf();
         Storage::disk('local')->put('attachments/2026/05/test.pdf', $pdfBytes);
         $chainId = (string) Str::uuid();
@@ -104,7 +104,7 @@ class PdfStampTest extends TestCase
         $v = WorkflowVersion::create(['workflow_id' => $w->id, 'version_number' => 1,
             'definition' => ['drawflow' => ['Home' => ['data' => [
                 'n1' => ['id' => 'n1', 'class' => 'approval', 'data' => [
-                    'label' => 'Pruefung',
+                    'label' => 'Prüfung',
                     // KEIN stamp_pdf
                 ]],
             ]]]]]);
@@ -142,7 +142,7 @@ class PdfStampTest extends TestCase
         $v = WorkflowVersion::create(['workflow_id' => $w->id, 'version_number' => 1,
             'definition' => ['drawflow' => ['Home' => ['data' => [
                 'n1' => ['id' => 'n1', 'class' => 'approval', 'data' => [
-                    'label' => 'Pruefung', 'stamp_pdf' => true, 'stamp_pdf_only_on' => 'approved',
+                    'label' => 'Prüfung', 'stamp_pdf' => true, 'stamp_pdf_only_on' => 'approved',
                 ]],
             ]]]]]);
         $i = WorkflowInstance::create(['workflow_id' => $w->id, 'workflow_version_id' => $v->id,
@@ -170,7 +170,7 @@ class PdfStampTest extends TestCase
     }
 
     /**
-     * Minimales gueltiges PDF, das FPDI laden kann. Per ezpdf von Hand
+     * Minimales gültiges PDF, das FPDI laden kann. Per ezpdf von Hand
      * gebaut, mit einer einzigen leeren A4-Seite.
      */
     private function minimalPdf(): string

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Sammelt Health-Checks fuer die Admin-Uebersicht.
+ * Sammelt Health-Checks für die Admin-Übersicht.
  *
  * Pro Check: name, status ('ok' | 'warn' | 'fail'), message, details.
  */
@@ -80,23 +80,23 @@ class HealthChecker
     private function checkMailboxes(): array
     {
         if (! \Illuminate\Support\Facades\Schema::hasTable('mailboxes')) {
-            return ['name' => 'IMAP-Postfaecher', 'status' => 'ok', 'message' => 'Keine Postfaecher konfiguriert.'];
+            return ['name' => 'IMAP-Postfächer', 'status' => 'ok', 'message' => 'Keine Postfächer konfiguriert.'];
         }
         $mailboxes = Mailbox::where('is_active', true)->get();
         if ($mailboxes->isEmpty()) {
-            return ['name' => 'IMAP-Postfaecher', 'status' => 'ok', 'message' => 'Keine aktiven Postfaecher.'];
+            return ['name' => 'IMAP-Postfächer', 'status' => 'ok', 'message' => 'Keine aktiven Postfächer.'];
         }
         $errors = $mailboxes->filter(fn ($m) => ! empty($m->last_error));
         $stale = $mailboxes->filter(fn ($m) => ! $m->last_fetch_at || $m->last_fetch_at->lt(now()->subHours(2)));
         if ($errors->isNotEmpty()) {
-            return ['name' => 'IMAP-Postfaecher', 'status' => 'fail',
-                'message' => "{$errors->count()} Postfaecher mit Fehlern: ".$errors->pluck('name')->join(', ')];
+            return ['name' => 'IMAP-Postfächer', 'status' => 'fail',
+                'message' => "{$errors->count()} Postfächer mit Fehlern: ".$errors->pluck('name')->join(', ')];
         }
         if ($stale->isNotEmpty()) {
-            return ['name' => 'IMAP-Postfaecher', 'status' => 'warn',
-                'message' => "{$stale->count()} Postfaecher seit ueber 2h nicht abgefragt."];
+            return ['name' => 'IMAP-Postfächer', 'status' => 'warn',
+                'message' => "{$stale->count()} Postfächer seit über 2h nicht abgefragt."];
         }
-        return ['name' => 'IMAP-Postfaecher', 'status' => 'ok', 'message' => "{$mailboxes->count()} aktiv, alle aktuell."];
+        return ['name' => 'IMAP-Postfächer', 'status' => 'ok', 'message' => "{$mailboxes->count()} aktiv, alle aktuell."];
     }
 
     private function checkOcrBacklog(): array
@@ -108,7 +108,7 @@ class HealthChecker
         return [
             'name' => 'OCR-Backlog',
             'status' => $pending > 500 ? 'warn' : 'ok',
-            'message' => "{$pending} ausstehend (laeuft naechtlich)",
+            'message' => "{$pending} ausstehend (läuft nächtlich)",
         ];
     }
 
@@ -150,7 +150,7 @@ class HealthChecker
         $age = time() - $ts;
         if ($age > 600) {
             return ['name' => 'Scheduler', 'status' => 'fail',
-                'message' => 'Letzter Lauf vor '.gmdate('H:i:s', $age).'. Cron pruefen!'];
+                'message' => 'Letzter Lauf vor '.gmdate('H:i:s', $age).'. Cron prüfen!'];
         }
         return ['name' => 'Scheduler', 'status' => 'ok',
             'message' => 'Letzter Lauf vor '.gmdate('H:i:s', $age).'.'];
@@ -169,7 +169,7 @@ class HealthChecker
             }
             if ($check['has_update']) {
                 return ['name' => 'System-Update', 'status' => 'warn',
-                    'message' => "Update verfuegbar ({$check['channel']}) → {$check['latest']}"];
+                    'message' => "Update verfügbar ({$check['channel']}) → {$check['latest']}"];
             }
             return ['name' => 'System-Update', 'status' => 'ok',
                 'message' => 'Aktuell ('.($check['current'] ?? 'unbekannt').').'];

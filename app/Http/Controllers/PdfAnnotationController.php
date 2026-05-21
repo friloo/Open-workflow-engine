@@ -14,9 +14,9 @@ use Illuminate\Http\Request;
  * Renderer), sondern eine Liste von Notizen / Stempeln mit Seitenzahl
  * + Author + Datum unter dem Preview.
  *
- * Wer es spaeter visuell will: Koordinaten (x/y/width/height) lassen
+ * Wer es später visuell will: Koordinaten (x/y/width/height) lassen
  * sich in den 'text'-Spalten-payload kodieren oder als zusaetzliche
- * Spalten ergaenzen — das Datenmodell traegt das mit.
+ * Spalten ergänzen — das Datenmodell trägt das mit.
  */
 class PdfAnnotationController extends Controller
 {
@@ -46,15 +46,15 @@ class PdfAnnotationController extends Controller
             'kind' => $ann->kind,
             'text' => $ann->text,
             'page' => $ann->page,
-        ], "Notiz '{$ann->text}' an Dokument #{$attachment->id} hinzugefuegt", $request->user()->id);
+        ], "Notiz '{$ann->text}' an Dokument #{$attachment->id} hinzugefügt", $request->user()->id);
 
-        return back()->with('status', 'Notiz hinzugefuegt.');
+        return back()->with('status', 'Notiz hinzugefügt.');
     }
 
     public function destroy(Request $request, PdfAnnotation $annotation): RedirectResponse
     {
         if (! $annotation->attachment->visibleTo($request->user())) abort(403);
-        // Eigene immer loeschbar; fremde nur als Admin oder als Doc-Owner.
+        // Eigene immer löschbar; fremde nur als Admin oder als Doc-Owner.
         $isOwn = $annotation->created_by === $request->user()->id;
         if (! $isOwn && ! $request->user()->hasAnyPermission(['workflows.design', 'documents.search'])) {
             abort(403);

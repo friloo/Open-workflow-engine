@@ -14,7 +14,7 @@
     </div>
 @elseif($user->delegate_user_id)
     <div class="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-        Vertretung geplant fuer {{ $user->delegate_from?->format('d.m.Y') }} – {{ $user->delegate_to?->format('d.m.Y') }}
+        Vertretung geplant für {{ $user->delegate_from?->format('d.m.Y') }} – {{ $user->delegate_to?->format('d.m.Y') }}
         an {{ $user->delegate->name ?? '—' }}.
     </div>
 @endif
@@ -47,7 +47,7 @@
     </div>
 
     <x-primary-button>Speichern</x-primary-button>
-    <p class="text-xs text-slate-500">Neue Aufgaben gehen waehrend des Zeitraums direkt an die Vertretung. Bereits offene Aufgaben bleiben unveraendert; sie kannst du im Aufgaben-Bereich manuell weiterleiten.</p>
+    <p class="text-xs text-slate-500">Neue Aufgaben gehen während des Zeitraums direkt an die Vertretung. Bereits offene Aufgaben bleiben unverändert; sie kannst du im Aufgaben-Bereich manuell weiterleiten.</p>
 </form>
 
 @if($user->delegate_user_id)

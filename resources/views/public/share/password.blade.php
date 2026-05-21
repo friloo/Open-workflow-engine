@@ -13,7 +13,7 @@
 <div class="min-h-full flex items-center justify-center px-4 py-12">
     <div class="w-full max-w-md">
         <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 p-8">
-            <h1 class="text-lg font-semibold text-slate-900">Passwortgeschuetzte Freigabe</h1>
+            <h1 class="text-lg font-semibold text-slate-900">Passwortgeschützte Freigabe</h1>
             <p class="mt-1 text-sm text-slate-500">Bitte gib das Passwort ein, das du erhalten hast.</p>
 
             @if ($errors->any())

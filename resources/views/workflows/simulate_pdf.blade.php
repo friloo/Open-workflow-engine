@@ -80,7 +80,7 @@
     </table>
 @endif
 
-<h2>Ausfuehrungs-Trace ({{ count($trace) }} Schritte)</h2>
+<h2>Ausführungs-Trace ({{ count($trace) }} Schritte)</h2>
 @if(empty($trace))
     <p class="empty">Lauf hat keine Schritte produziert.</p>
 @else
@@ -114,9 +114,9 @@
 <h2>Hinweise zum Pre-Production-Check</h2>
 <p style="font-size: 8.5pt; color: #475569;">
 Dieser Bericht dokumentiert den Trockenlauf des Workflows mit den oben angegebenen Testdaten.
-In der Simulation werden keine Mails versendet, keine HTTP-/Webhook-Calls ausgefuehrt und
+In der Simulation werden keine Mails versendet, keine HTTP-/Webhook-Calls ausgeführt und
 keine Datenbank-Schreiboperationen persistiert. Bei <code>approval</code>-Knoten nimmt die
-Simulation automatisch den Genehmigt-Pfad — fuer Abgelehnt-Pfade muss der Fall ueber
+Simulation automatisch den Genehmigt-Pfad — für Abgelehnt-Pfade muss der Fall über
 Bedingungs-Knoten auf Testfeldern modelliert werden.
 </p>
 

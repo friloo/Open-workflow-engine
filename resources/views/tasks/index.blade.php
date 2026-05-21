@@ -10,8 +10,8 @@
     @php
         $chips = [
             ['key' => 'all', 'label' => 'Alle', 'tone' => 'slate'],
-            ['key' => 'overdue', 'label' => 'Ueberfaellig', 'tone' => 'rose'],
-            ['key' => 'today', 'label' => 'Heute faellig', 'tone' => 'amber'],
+            ['key' => 'overdue', 'label' => 'Überfällig', 'tone' => 'rose'],
+            ['key' => 'today', 'label' => 'Heute fällig', 'tone' => 'amber'],
             ['key' => 'week', 'label' => 'Diese Woche', 'tone' => 'indigo'],
             ['key' => 'mine', 'label' => 'Direkt an mich', 'tone' => 'emerald'],
             ['key' => 'snoozed', 'label' => 'Wiedervorlage', 'tone' => 'slate'],
@@ -68,7 +68,7 @@
                     {{ $s->name }}
                     <form method="POST" action="{{ route('saved_searches.destroy', $s) }}" class="inline"
                           onclick="event.stopPropagation()"
-                          onsubmit="return confirm('Sicht {{ addslashes($s->name) }} loeschen?')">
+                          onsubmit="return confirm('Sicht {{ addslashes($s->name) }} löschen?')">
                         @csrf @method('DELETE')
                         <button type="submit" class="text-indigo-500 hover:text-rose-600">×</button>
                     </form>
@@ -100,7 +100,7 @@
             @php
                 $emptyDescription = $filter !== 'all'
                     ? 'Keine Aufgaben in diesem Filter. Probier "Alle" oben.'
-                    : 'Inbox Zero — nichts wartet auf dich. Schoen.';
+                    : 'Inbox Zero — nichts wartet auf dich. Schön.';
             @endphp
             <x-empty-state icon="inbox" title="Keine Aufgaben" :description="$emptyDescription">
                 @if($filter !== 'all')

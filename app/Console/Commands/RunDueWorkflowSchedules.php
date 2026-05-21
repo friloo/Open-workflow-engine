@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 class RunDueWorkflowSchedules extends Command
 {
     protected $signature = 'workflow:run-schedules {--limit=200}';
-    protected $description = 'Startet wiederkehrende Workflows, deren naechste Faelligkeit erreicht ist.';
+    protected $description = 'Startet wiederkehrende Workflows, deren nächste Fälligkeit erreicht ist.';
 
     public function handle(WorkflowEngine $engine): int
     {
@@ -20,7 +20,7 @@ class RunDueWorkflowSchedules extends Command
             ->get();
 
         if ($due->isEmpty()) {
-            $this->info('Keine faelligen Schedules.');
+            $this->info('Keine fälligen Schedules.');
             return self::SUCCESS;
         }
 
@@ -28,7 +28,7 @@ class RunDueWorkflowSchedules extends Command
         foreach ($due as $schedule) {
             $workflow = $schedule->workflow;
             if (! $workflow || $workflow->status !== 'active' || ! $workflow->current_version_id) {
-                $this->warn("Schedule #{$schedule->id}: Workflow nicht aktiv — uebersprungen.");
+                $this->warn("Schedule #{$schedule->id}: Workflow nicht aktiv — übersprungen.");
                 continue;
             }
 

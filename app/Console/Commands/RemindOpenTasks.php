@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
- * Erinnert Empfaenger an offene Aufgaben.
+ * Erinnert Empfänger an offene Aufgaben.
  *
  * Konfigurierbar via Settings:
  *  - tasks.reminder_after_days   (Default 3): Schwelle bevor zum ersten Mal erinnert wird
@@ -43,7 +43,7 @@ class RemindOpenTasks extends Command
             ->get();
 
         if ($steps->isEmpty()) {
-            $this->info('Keine offenen Aufgaben mit faelliger Erinnerung.');
+            $this->info('Keine offenen Aufgaben mit fälliger Erinnerung.');
             return self::SUCCESS;
         }
 

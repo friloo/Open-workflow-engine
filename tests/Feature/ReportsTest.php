@@ -33,7 +33,7 @@ class ReportsTest extends TestCase
 
         $this->actingAs($admin)->get(route('reports.index'))->assertOk()
             ->assertSeeText('Volumen-Trend')
-            ->assertSeeText('Top-Empfaenger');
+            ->assertSeeText('Top-Empfänger');
     }
 
     public function test_reports_service_computes_volume_summary(): void

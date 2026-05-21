@@ -18,7 +18,7 @@ return new class extends Migration
         });
 
         Schema::table('workflow_step_executions', function (Blueprint $table) {
-            // Fuer For-each-Loops: Anzahl gestarteter Sub-Instances und
+            // Für For-each-Loops: Anzahl gestarteter Sub-Instances und
             // wieviele davon schon fertig sind. Wenn children_completed
             // == children_count, ist der Loop fertig.
             $table->unsignedInteger('children_count')->nullable()->after('data_snapshot');

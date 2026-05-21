@@ -14,7 +14,7 @@
         <div class="grid h-16 w-16 mx-auto place-items-center rounded-full bg-emerald-100 text-emerald-700 text-3xl">✓</div>
         <h1 class="mt-6 text-2xl font-semibold text-slate-900">Vielen Dank!</h1>
         <p class="mt-2 text-sm text-slate-600">
-            Dein Antrag „{{ $workflow->name }}" wurde uebermittelt. Der Workflow laeuft jetzt automatisch weiter — sobald du auf eine Rueckmeldung warten musst, bekommst du eine E-Mail.
+            Dein Antrag „{{ $workflow->name }}" wurde übermittelt. Der Workflow läuft jetzt automatisch weiter — sobald du auf eine Rückmeldung warten musst, bekommst du eine E-Mail.
         </p>
         <a href="{{ route('public.form.show', $workflow->public_slug) }}" class="mt-6 inline-flex text-sm text-indigo-600 hover:text-indigo-500">Neuen Antrag stellen</a>
     </div>

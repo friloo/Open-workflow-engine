@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             // 'stamp' (vordefinierter Stempel-Text mit Farbe),
             // 'note'  (freitext-Anmerkung),
-            // 'highlight' (vorgesehen fuer spaetere Visual-Overlay-Feature)
+            // 'highlight' (vorgesehen für spätere Visual-Overlay-Feature)
             $table->string('kind', 16)->default('note');
             $table->string('text', 500);
             // 'emerald','rose','amber','indigo','slate','violet','sky' — wir

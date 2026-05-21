@@ -22,12 +22,12 @@ class WorkflowVersionsDiffTest extends TestCase
 
         $defA = ['drawflow' => ['Home' => ['data' => [
             'n1' => ['id' => 'n1', 'class' => 'start', 'data' => ['label' => 'Start']],
-            'n2' => ['id' => 'n2', 'class' => 'approval', 'data' => ['label' => 'Pruefung', 'grace_value' => 3]],
+            'n2' => ['id' => 'n2', 'class' => 'approval', 'data' => ['label' => 'Prüfung', 'grace_value' => 3]],
             'n3' => ['id' => 'n3', 'class' => 'end', 'data' => ['label' => 'Ende']],
         ]]]];
         $defB = ['drawflow' => ['Home' => ['data' => [
             'n1' => ['id' => 'n1', 'class' => 'start', 'data' => ['label' => 'Start']],
-            'n2' => ['id' => 'n2', 'class' => 'approval', 'data' => ['label' => 'Pruefung', 'grace_value' => 7]], // modified
+            'n2' => ['id' => 'n2', 'class' => 'approval', 'data' => ['label' => 'Prüfung', 'grace_value' => 7]], // modified
             'n4' => ['id' => 'n4', 'class' => 'notify', 'data' => ['label' => 'Hinweis']], // added
             // n3 removed
         ]]]];
@@ -41,7 +41,7 @@ class WorkflowVersionsDiffTest extends TestCase
         $this->assertSame(1, $diff['counts']['modified']);
         $this->assertSame(1, $diff['counts']['unchanged']);
 
-        // n2 modified — sollte grace_value-Aenderung enthalten
+        // n2 modified — sollte grace_value-Änderung enthalten
         $n2 = collect($diff['nodes'])->firstWhere('step_key', 'n2');
         $this->assertSame('modified', $n2['status']);
         $hasGrace = collect($n2['fields'])->contains(fn ($f) => $f['key'] === 'grace_value');

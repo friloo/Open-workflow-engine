@@ -13,7 +13,7 @@ class PushController extends Controller
     public function __construct(private readonly WebPushSender $sender) {}
 
     /**
-     * Endpoint fuer den Service-Worker: Browser meldet seine
+     * Endpoint für den Service-Worker: Browser meldet seine
      * Subscription-Daten an, wir speichern sie.
      */
     public function subscribe(Request $request): JsonResponse
@@ -48,8 +48,8 @@ class PushController extends Controller
     }
 
     /**
-     * Test-Push fuer User: schickt eine Test-Nachricht an alle aktiven
-     * Subscriptions. Nuetzlich um zu testen ob der Browser-Subscribe
+     * Test-Push für User: schickt eine Test-Nachricht an alle aktiven
+     * Subscriptions. Nützlich um zu testen ob der Browser-Subscribe
      * wirklich durchgeht.
      */
     public function test(Request $request): RedirectResponse

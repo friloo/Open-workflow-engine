@@ -15,7 +15,7 @@
                             <span class="drag-handle cursor-grab select-none text-xs text-slate-400 mt-1 px-1">⋮⋮</span>
                             <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2">
                                 <div class="md:col-span-3">
-                                    <label class="block text-xs font-medium text-slate-600">Schluessel</label>
+                                    <label class="block text-xs font-medium text-slate-600">Schlüssel</label>
                                     <input type="text" :name="`fields[${idx}][key]`" x-model="f.key" placeholder="rechnungsnummer"
                                            class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
                                 </div>
@@ -58,12 +58,12 @@
                                         <label class="block text-xs font-medium text-slate-600">Lookup-Liste (Slug)</label>
                                         <select :name="`fields[${idx}][pattern]`" x-model="f.pattern"
                                                 class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                            <option value="">— Liste waehlen —</option>
+                                            <option value="">— Liste wählen —</option>
                                             @foreach(($lookupLists ?? []) as $ll)
                                                 <option value="{{ $ll->slug }}">{{ $ll->name }} ({{ $ll->slug }})</option>
                                             @endforeach
                                         </select>
-                                        <p class="mt-1 text-xs text-slate-500">Findet alle Schluessel der Liste im OCR-Text. Bei mehreren Treffern gewinnt der laengste (spezifischste).</p>
+                                        <p class="mt-1 text-xs text-slate-500">Findet alle Schlüssel der Liste im OCR-Text. Bei mehreren Treffern gewinnt der längste (spezifischste).</p>
                                     </div>
                                 </template>
                                 <div class="md:col-span-12">
@@ -83,14 +83,14 @@
             </div>
 
             <div class="mt-4 flex items-center justify-between">
-                <a href="{{ route('admin.document_schemas.index') }}" class="text-sm text-slate-600 hover:text-slate-900">Zurueck</a>
+                <a href="{{ route('admin.document_schemas.index') }}" class="text-sm text-slate-600 hover:text-slate-900">Zurück</a>
                 <x-primary-button>Schema speichern</x-primary-button>
             </div>
         </x-card>
     </form>
 
-    <x-card title="Bestehende Anhaenge neu indexieren" description="Liest die Felder fuer alle bereits hochgeladenen {{ $type }}-Dokumente neu aus dem OCR-Text. Bisher mit Feldern: {{ $sampleCount }}.">
-        <form method="POST" action="{{ route('admin.document_schemas.reindex', $type) }}" onsubmit="return confirm('Alle {{ $type }}-Anhaenge neu indexieren?')">
+    <x-card title="Bestehende Anhänge neu indexieren" description="Liest die Felder für alle bereits hochgeladenen {{ $type }}-Dokumente neu aus dem OCR-Text. Bisher mit Feldern: {{ $sampleCount }}.">
+        <form method="POST" action="{{ route('admin.document_schemas.reindex', $type) }}" onsubmit="return confirm('Alle {{ $type }}-Anhänge neu indexieren?')">
             @csrf
             <x-secondary-button>Jetzt neu indexieren</x-secondary-button>
         </form>

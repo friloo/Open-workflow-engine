@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Misst pro Request die Dauer + Anzahl der DB-Queries. Wenn ein
- * Threshold ueberschritten wird, wandert ein Eintrag mit Route,
+ * Threshold überschritten wird, wandert ein Eintrag mit Route,
  * Methode, Dauer und Query-Count ins Laravel-Log (channel: perf).
  *
  * Stellschrauben in config('app.perf_audit'):

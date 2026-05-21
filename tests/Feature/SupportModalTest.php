@@ -64,7 +64,7 @@ class SupportModalTest extends TestCase
 
         $resp->assertOk();
         $resp->assertJsonStructure(['status']);
-        // Audit-Log dokumentiert den Versand — den koennen wir verlaesslich pruefen.
+        // Audit-Log dokumentiert den Versand — den koennen wir verlaesslich prüfen.
         $this->assertDatabaseHas('audit_logs', ['event' => 'support.ticket']);
     }
 }

@@ -29,7 +29,7 @@ class ContractsQuarterlyReviewTest extends TestCase
 
         $n = AppNotification::where('user_id', $owner->id)->where('type', 'contract.quarterly_review')->first();
         $this->assertNotNull($n);
-        $this->assertStringContainsString('2 Vertraege', $n->title);
+        $this->assertStringContainsString('2 Verträge', $n->title);
     }
 
     public function test_review_skips_inactive_owners(): void

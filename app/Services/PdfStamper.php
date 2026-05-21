@@ -7,11 +7,11 @@ use setasign\Fpdi\Fpdi;
 /**
  * Stempelt eine vorhandene PDF mit einem rechteckigen Approval-Stempel
  * unten rechts auf der letzten Seite. Erzeugt eine NEUE PDF-Datei
- * (Original bleibt unveraendert) und liefert die Bytes zurueck.
+ * (Original bleibt unverändert) und liefert die Bytes zurück.
  *
  * Erwartete Stempel-Daten:
  *   [
- *       'title'    => 'Genehmigt',          // grosse Ueberschrift
+ *       'title'    => 'Genehmigt',          // große Überschrift
  *       'lines'    => [                     // einzelne Zeilen im Stempel
  *           'von Max Mustermann',
  *           'am 15.05.2026 14:32',
@@ -21,7 +21,7 @@ use setasign\Fpdi\Fpdi;
  *   ]
  *
  * Der Stempel ist serifenlos, der Rahmen leicht abgerundet (simuliert
- * via Strichstaerke). Wird absichtlich nicht super-realistisch wie ein
+ * via Strichstärke). Wird absichtlich nicht super-realistisch wie ein
  * Gummistempel gemacht — soll als digitaler Audit-Marker erkennbar sein.
  */
 class PdfStamper
@@ -40,7 +40,7 @@ class PdfStamper
         $lines = array_values(array_filter(array_map('strval', $data['lines'] ?? [])));
         $color = self::PALETTE[$data['color'] ?? 'emerald'] ?? self::PALETTE['emerald'];
 
-        // FPDI verlangt eine temporaere Datei zum Importieren — der
+        // FPDI verlangt eine temporäre Datei zum Importieren — der
         // FpdfTcpdfParser kennt keine Speicher-Streams direkt.
         $tmpIn = tempnam(sys_get_temp_dir(), 'owe-pdf-in-');
         file_put_contents($tmpIn, $pdfBytes);
@@ -90,7 +90,7 @@ class PdfStamper
         $pdf->SetDrawColor($color['r'], $color['g'], $color['b']);
         $pdf->SetLineWidth(0.6);
         $pdf->Rect($x, $y, $boxW, $boxH);
-        // Innerer Rahmen fuer "Stempel"-Effekt
+        // Innerer Rahmen für "Stempel"-Effekt
         $pdf->SetLineWidth(0.2);
         $pdf->Rect($x + 1.2, $y + 1.2, $boxW - 2.4, $boxH - 2.4);
 

@@ -23,7 +23,7 @@
 
     <x-card>
         @if($users->isEmpty())
-            <x-empty-state title="Keine Benutzer gefunden" description="Aenderst du gerade Filter, probier sie zurueckzusetzen — oder lege einen ersten Benutzer an." />
+            <x-empty-state title="Keine Benutzer gefunden" description="Aenderst du gerade Filter, probier sie zurückzusetzen — oder lege einen ersten Benutzer an." />
         @else
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200 text-sm">
@@ -67,9 +67,9 @@
                                     <a href="{{ route('admin.users.edit', $u) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
                                 @endif
                                 @if(auth()->user()->hasPermission('users.delete') && $u->id !== auth()->id())
-                                    <form method="POST" action="{{ route('admin.users.destroy', $u) }}" class="inline ms-3" onsubmit="return confirm('Benutzer wirklich loeschen?')">
+                                    <form method="POST" action="{{ route('admin.users.destroy', $u) }}" class="inline ms-3" onsubmit="return confirm('Benutzer wirklich löschen?')">
                                         @csrf @method('DELETE')
-                                        <button class="text-sm font-medium text-rose-600 hover:text-rose-500">Loeschen</button>
+                                        <button class="text-sm font-medium text-rose-600 hover:text-rose-500">Löschen</button>
                                     </form>
                                 @endif
                             </td>

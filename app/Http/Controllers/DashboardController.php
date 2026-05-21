@@ -36,7 +36,7 @@ class DashboardController extends Controller
             ->whereNotNull('due_at')->where('due_at', '<', now())->count();
         $myOpenTasks = $myOpenTasksQuery->orderByRaw('due_at IS NULL, due_at')->limit(5)->get();
 
-        // Meine letzten Vorgaenge
+        // Meine letzten Vorgänge
         $myRecentInstances = WorkflowInstance::query()
             ->with(['workflow'])
             ->where('started_by', $user->id)
@@ -71,12 +71,12 @@ class DashboardController extends Controller
             ];
         }
 
-        // Onboarding-Checkliste fuer Admins — zeigt nur, wenn noch was offen ist.
+        // Onboarding-Checkliste für Admins — zeigt nur, wenn noch was offen ist.
         if ($user->hasPermission('system.settings')) {
             $onboarding = $this->buildOnboarding($user);
         }
 
-        // Persoenliche Statistik fuer jeden User mit completed Steps in den
+        // Persönliche Statistik für jeden User mit completed Steps in den
         // letzten 30 Tagen — sonst weglassen.
         $myStats = $this->buildPersonalStats($user);
 
@@ -94,7 +94,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Persoenliche Mini-Statistik der letzten 30 Tage: was hat dieser User
+     * Persönliche Mini-Statistik der letzten 30 Tage: was hat dieser User
      * abgeschlossen, wie schnell, in welchen Workflows.
      *
      * Liefert null, wenn der User in dem Zeitraum nichts entschieden hat —
@@ -117,7 +117,7 @@ class DashboardController extends Controller
 
         // Durchschnittliche Bearbeitungszeit in Minuten
         // (datediff variant pro DB-Treiber waere robuster, aber wir lesen
-        // einfach und rechnen in PHP — Datensaetze sind klein).
+        // einfach und rechnen in PHP — Datensätze sind klein).
         $rows = (clone $base)
             ->whereNotNull('assigned_at')
             ->whereNotNull('completed_at')
@@ -151,7 +151,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Liefert eine Liste von Konfigurations-Hinweisen fuer Admins —
+     * Liefert eine Liste von Konfigurations-Hinweisen für Admins —
      * leer wenn alle abgeklopft sind. Wird auf dem Dashboard als
      * Erste-Schritte-Karte gerendert.
      */
@@ -175,19 +175,19 @@ class DashboardController extends Controller
                 'label' => 'Dokumenttypen / Archive definieren',
                 'done' => count(DocumentTypes::all()) > 0,
                 'url' => route('admin.settings.documents'),
-                'hint' => 'Klassifiziert Dokumente — Basis fuer Schemas + Retention.',
+                'hint' => 'Klassifiziert Dokumente — Basis für Schemas + Retention.',
             ],
             [
                 'label' => 'Datenquelle anbinden (Mailbox oder Folder-Inbox)',
                 'done' => \App\Models\Mailbox::query()->exists() || \App\Models\FolderInbox::query()->exists(),
                 'url' => route('admin.mailboxes.index'),
-                'hint' => 'IMAP-Postfach oder Scan-Ordner fuer automatischen Ingest.',
+                'hint' => 'IMAP-Postfach oder Scan-Ordner für automatischen Ingest.',
             ],
             [
                 'label' => 'Mindestens einen weiteren Benutzer anlegen',
                 'done' => User::query()->where('id', '!=', $user->id)->exists(),
                 'url' => route('admin.users.index'),
-                'hint' => 'Damit ueberhaupt jemand Aufgaben zugewiesen bekommen kann.',
+                'hint' => 'Damit überhaupt jemand Aufgaben zugewiesen bekommen kann.',
             ],
         ];
 

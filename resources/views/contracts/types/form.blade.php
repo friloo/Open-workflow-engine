@@ -3,7 +3,7 @@
     <x-slot name="subheader">{{ $type->name ?? 'Definition + Default-Frist + Rollen-Berechtigungen' }}</x-slot>
 
     <x-breadcrumbs :items="[
-        ['title' => 'Vertraege', 'url' => route('contracts.index')],
+        ['title' => 'Verträge', 'url' => route('contracts.index')],
         ['title' => 'Vertragsarten', 'url' => route('contract-types.index')],
         ['title' => $type->exists ? $type->name : 'Neu'],
     ]" />
@@ -22,7 +22,7 @@
                     <x-input-error :messages="$errors->get('name')" />
                 </div>
                 <div>
-                    <x-input-label for="default_notice_period_days" value="Default-Kuendigungsfrist (Tage)" />
+                    <x-input-label for="default_notice_period_days" value="Default-Kündigungsfrist (Tage)" />
                     <x-text-input id="default_notice_period_days" name="default_notice_period_days" type="number" min="0" max="3650"
                                   value="{{ old('default_notice_period_days', $type->default_notice_period_days ?? 90) }}" />
                 </div>
@@ -41,8 +41,8 @@
             <div class="rounded-lg border border-slate-200 p-3">
                 <h4 class="text-sm font-semibold text-slate-900 mb-2">Rollen-Berechtigungen</h4>
                 <p class="text-xs text-slate-500 mb-3">
-                    Wer Vertraege dieser Art sehen darf, und wer sie auch bearbeiten/loeschen darf.
-                    Admins haben immer Zugriff (unabhaengig von dieser Liste).
+                    Wer Verträge dieser Art sehen darf, und wer sie auch bearbeiten/löschen darf.
+                    Admins haben immer Zugriff (unabhängig von dieser Liste).
                 </p>
                 @php
                     $assigned = $type->exists ? $type->roles->keyBy('id') : collect();

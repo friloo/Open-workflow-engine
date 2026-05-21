@@ -33,13 +33,13 @@ class DocumentFieldSchema
         'zugferd:amount_net' => 'ZUGFeRD/XRechnung: Netto (XML)',
         'zugferd:amount_tax' => 'ZUGFeRD/XRechnung: USt-Betrag (XML)',
         'zugferd:amount_gross' => 'ZUGFeRD/XRechnung: Brutto (XML)',
-        'zugferd:currency' => 'ZUGFeRD/XRechnung: Waehrung (XML)',
+        'zugferd:currency' => 'ZUGFeRD/XRechnung: Währung (XML)',
         'zugferd:vendor_name' => 'ZUGFeRD/XRechnung: Lieferant (XML)',
         'zugferd:vendor_vat_id' => 'ZUGFeRD/XRechnung: USt-IdNr. Lieferant (XML)',
         'zugferd:iban' => 'ZUGFeRD/XRechnung: IBAN (XML)',
         'zugferd:bic' => 'ZUGFeRD/XRechnung: BIC (XML)',
         'zugferd:buyer_reference' => 'ZUGFeRD/XRechnung: Leitweg-ID (XML)',
-        'lookup' => 'Lookup-Liste (anlernen ueber Listen-Eintraege)',
+        'lookup' => 'Lookup-Liste (anlernen über Listen-Einträge)',
         'regex' => 'Eigener Regex (Capture-Group 1)',
         'ki' => 'KI (OpenAI-kompatibel)',
     ];
@@ -78,15 +78,15 @@ class DocumentFieldSchema
     /**
      * Stellt sicher, dass im Schema des Doku-Typs ein Feld mit dem
      * gegebenen Key vorhanden ist. Wenn ja: nichts tun. Wenn nein:
-     * anhaengen — mit dem mitgegebenen Label/Typ, Extractor 'manual'.
+     * anhängen — mit dem mitgegebenen Label/Typ, Extractor 'manual'.
      *
      * Wird nach einer Approval-Entscheidung aufgerufen, wenn der
-     * Genehmiger ein Zusatzfeld ausgefuellt hat und der Anhang einen
+     * Genehmiger ein Zusatzfeld ausgefüllt hat und der Anhang einen
      * Doku-Typ hat. Damit erscheint das Feld ab dann automatisch in der
      * Suche und im Detail-Editor — der Designer-Eintrag pflegt sich
      * also selbst ins Schema ein.
      *
-     * @return bool true wenn das Schema veraendert wurde
+     * @return bool true wenn das Schema verändert wurde
      */
     public static function ensureField(string $documentType, string $key, string $label, string $type): bool
     {

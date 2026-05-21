@@ -28,7 +28,7 @@
     Zeitraum: <strong>{{ $from->format('d.m.Y H:i') }}</strong> bis
     <strong>{{ $to->format('d.m.Y H:i') }}</strong>
     @if($event) · Event-Filter: <code>{{ $event }}*</code>@endif
-    · {{ $count }} Eintraege · Generiert {{ $generatedAt->format('d.m.Y H:i') }} von {{ $generator }}
+    · {{ $count }} Einträge · Generiert {{ $generatedAt->format('d.m.Y H:i') }} von {{ $generator }}
 </p>
 
 <table>
@@ -65,7 +65,7 @@
 </table>
 
 <div class="footer">
-    <span class="l">{{ config('branding.app_name', config('app.name')) }} · Audit-Export · {{ $count }} Eintraege</span>
+    <span class="l">{{ config('branding.app_name', config('app.name')) }} · Audit-Export · {{ $count }} Einträge</span>
     <span class="r">Seite <span class="page-num"></span></span>
 </div>
 </body>

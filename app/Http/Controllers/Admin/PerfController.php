@@ -6,13 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\View\View;
 
 /**
- * Zeigt die letzten Eintraege aus storage/logs/perf.log — also Routen
- * die in der PerformanceAudit-Middleware die Threshold-Werte fuer
+ * Zeigt die letzten Einträge aus storage/logs/perf.log — also Routen
+ * die in der PerformanceAudit-Middleware die Threshold-Werte für
  * Dauer oder Query-Count gerissen haben.
  *
  * Liest die Datei direkt; bewusst kein Index/DB-Eintrag, weil die
  * Schwellen-Werte ohnehin niedrige Volumes erzeugen. Bei mehr als
- * ~5000 Eintraegen pro Tag → Threshold hochsetzen oder Worker fixen.
+ * ~5000 Einträgen pro Tag → Threshold hochsetzen oder Worker fixen.
  */
 class PerfController extends Controller
 {
@@ -55,7 +55,7 @@ class PerfController extends Controller
         ]);
     }
 
-    /** Lies die letzten N Zeilen einer Datei effizient (rueckwaerts). */
+    /** Lies die letzten N Zeilen einer Datei effizient (rückwärts). */
     private function tail(string $path, int $lines): array
     {
         $f = @fopen($path, 'r');

@@ -8,7 +8,7 @@ use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Liefert die OpenAPI-Spezifikation und die Swagger-UI fuer Admins.
+ * Liefert die OpenAPI-Spezifikation und die Swagger-UI für Admins.
  * Die Spec selber liegt als hand-curiertes YAML in resources/api-docs/openapi.yaml
  * und beschreibt sowohl die eingehende REST-API als auch die Payloads, die
  * OWE nach extern sendet (Webhooks + HTTP-Knoten).

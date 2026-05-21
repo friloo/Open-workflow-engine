@@ -53,8 +53,8 @@ class AuditLogController extends Controller
 
     /**
      * Druckbares Audit-Zertifikat: Beleg dass die Hash-Kette zu einem
-     * bestimmten Zeitpunkt intakt war. Enthaelt Total + Erst-/Letzter
-     * Eintrag + Verifikations-Ergebnis. Fuer Audits.
+     * bestimmten Zeitpunkt intakt war. Enthält Total + Erst-/Letzter
+     * Eintrag + Verifikations-Ergebnis. Für Audits.
      */
     public function verifyPdf(Request $request): Response
     {
@@ -73,13 +73,13 @@ class AuditLogController extends Controller
 
         $this->audit->log('audit.chain_verified', null, null,
             ['result' => $result === null ? 'ok' : 'broken', 'broken_at' => $result['broken_at_id'] ?? null],
-            'Hash-Chain-Pruefung als PDF exportiert', $request->user()->id);
+            'Hash-Chain-Prüfung als PDF exportiert', $request->user()->id);
 
         return $pdf->download('audit-zertifikat-' . now()->format('Ymd-Hi') . '.pdf');
     }
 
     /**
-     * PDF-Export aller Audit-Eintraege im Zeitraum (Default letzte 30 Tage).
+     * PDF-Export aller Audit-Einträge im Zeitraum (Default letzte 30 Tage).
      * Optional Event-Filter.
      */
     public function exportPdf(Request $request): Response
@@ -108,7 +108,7 @@ class AuditLogController extends Controller
 
         $this->audit->log('audit.exported', null, null,
             ['from' => $from->toIso8601String(), 'to' => $to->toIso8601String(), 'count' => $entries->count(), 'event' => $event],
-            "Audit-Log exportiert ({$entries->count()} Eintraege)", $request->user()->id);
+            "Audit-Log exportiert ({$entries->count()} Einträge)", $request->user()->id);
 
         return $pdf->download('audit-log-' . $from->format('Ymd') . '-bis-' . $to->format('Ymd') . '.pdf');
     }

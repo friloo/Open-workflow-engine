@@ -15,7 +15,7 @@ class IcalController extends Controller
 
     /**
      * Token-basierter Feed-Endpoint. Liefert text/calendar.
-     * Kein Login noetig — der Token ist die Auth.
+     * Kein Login nötig — der Token ist die Auth.
      */
     public function feed(string $token): Response
     {
@@ -37,11 +37,11 @@ class IcalController extends Controller
     {
         $user = $request->user();
         $user->forceFill(['ical_token' => Str::random(48)])->save();
-        return back()->with('status', 'Neuer iCal-Token erzeugt. Alter Token ist sofort ungueltig.');
+        return back()->with('status', 'Neuer iCal-Token erzeugt. Alter Token ist sofort ungültig.');
     }
 
     /**
-     * Token wieder loeschen — Feed deaktivieren.
+     * Token wieder löschen — Feed deaktivieren.
      */
     public function revoke(Request $request): RedirectResponse
     {

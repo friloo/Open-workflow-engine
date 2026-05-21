@@ -34,7 +34,7 @@ class LdapUserProvisioner
                 return null;
             }
             if ($email === '') {
-                // ohne E-Mail laesst sich kein konsistentes Profil anlegen
+                // ohne E-Mail lässt sich kein konsistentes Profil anlegen
                 return null;
             }
             $user = User::create([

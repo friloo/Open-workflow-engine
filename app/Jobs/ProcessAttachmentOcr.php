@@ -13,7 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Fuehrt OCR-Extraktion + Feld-Indexierung fuer einen Attachment-
+ * Fuehrt OCR-Extraktion + Feld-Indexierung für einen Attachment-
  * Datensatz aus.
  *
  * Laeuft synchron wenn QUEUE_CONNECTION=sync (Default). Bei Queue-
@@ -41,14 +41,14 @@ class ProcessAttachmentOcr implements ShouldQueue
         try {
             $ocr->extract($att);
         } catch (\Throwable) {
-            // Status bleibt pending/failed — OCR koennen wir spaeter via
+            // Status bleibt pending/failed — OCR koennen wir später via
             // 'ocr:run-pending' nachholen.
         }
 
         try {
             $fields->extractFor($att->refresh());
         } catch (\Throwable) {
-            // Indexierung haengt am Schema-Typ; bei Fehler bleibt
+            // Indexierung hängt am Schema-Typ; bei Fehler bleibt
             // indexed_fields leer.
         }
 

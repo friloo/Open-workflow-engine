@@ -3,7 +3,7 @@
         Systemeinstellungen · Infrastruktur
         <x-help-hint topic="object-storage" label="Anleitung Object-Storage" />
     </x-slot>
-    <x-slot name="subheader">Storage, Queue, Suche und Office-Vorschau direkt aus dem UI konfigurieren. Aenderungen ueberschreiben die .env-Defaults.</x-slot>
+    <x-slot name="subheader">Storage, Queue, Suche und Office-Vorschau direkt aus dem UI konfigurieren. Änderungen überschreiben die .env-Defaults.</x-slot>
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'infrastructure'])
 
@@ -27,7 +27,7 @@
 
         {{-- Storage --}}
         <x-card title="Dokumenten-Storage"
-                description="Wo die Anhaenge gespeichert werden. Bei Wechsel migrierst du bestehende Files via 'php artisan attachments:migrate-disk &lt;ziel&gt;'.">
+                description="Wo die Anhänge gespeichert werden. Bei Wechsel migrierst du bestehende Files via 'php artisan attachments:migrate-disk &lt;ziel&gt;'.">
             <div class="space-y-4">
                 <div>
                     <x-input-label value="Disk" />
@@ -43,7 +43,7 @@
                             <input type="radio" name="attachments_disk" value="s3" x-model="disk" class="mt-1">
                             <div>
                                 <div class="text-sm font-medium text-slate-900">S3 / MinIO / Wasabi</div>
-                                <div class="text-xs text-slate-500">Object-Storage. Pflicht bei Multi-Server-Setups, sinnvoll ab grossen Mengen.</div>
+                                <div class="text-xs text-slate-500">Object-Storage. Pflicht bei Multi-Server-Setups, sinnvoll ab großen Mengen.</div>
                             </div>
                         </label>
                     </div>
@@ -57,8 +57,8 @@
                         </div>
                         <div>
                             <x-input-label for="s3_secret" value="Secret-Access-Key" />
-                            <x-text-input id="s3_secret" name="s3_secret" type="password" value="{{ $stored['s3_secret'] ?? $effective['s3_secret'] }}" placeholder="(unveraendert lassen)" autocomplete="new-password" />
-                            <p class="mt-1 text-[11px] text-slate-500">Mit **** = bleibt unveraendert. Klar-Text neu = wird ueberschrieben.</p>
+                            <x-text-input id="s3_secret" name="s3_secret" type="password" value="{{ $stored['s3_secret'] ?? $effective['s3_secret'] }}" placeholder="(unverändert lassen)" autocomplete="new-password" />
+                            <p class="mt-1 text-[11px] text-slate-500">Mit **** = bleibt unverändert. Klar-Text neu = wird überschrieben.</p>
                         </div>
                         <div>
                             <x-input-label for="s3_region" value="Region" />
@@ -115,7 +115,7 @@
 
         {{-- Suche --}}
         <x-card title="Volltext-Suche"
-                description="Standard ist LIKE-Suche ueber MySQL/Postgres. Bei grossen Datenmengen (>50k Docs) MeiliSearch zuschalten.">
+                description="Standard ist LIKE-Suche über MySQL/Postgres. Bei großen Datenmengen (>50k Docs) MeiliSearch zuschalten.">
             <div class="space-y-3">
                 <div>
                     <x-input-label for="search_driver" value="Such-Backend" />
@@ -132,10 +132,10 @@
                     </div>
                     <div>
                         <x-input-label for="meilisearch_key" value="Master-/API-Key" />
-                        <x-text-input id="meilisearch_key" name="meilisearch_key" type="password" value="{{ $stored['meilisearch_key'] ?? $effective['meilisearch_key'] }}" placeholder="(unveraendert lassen)" autocomplete="new-password" />
+                        <x-text-input id="meilisearch_key" name="meilisearch_key" type="password" value="{{ $stored['meilisearch_key'] ?? $effective['meilisearch_key'] }}" placeholder="(unverändert lassen)" autocomplete="new-password" />
                     </div>
                     <div class="sm:col-span-2 text-[11px] text-slate-500">
-                        Nach dem Aktivieren einmalig <code>php artisan search:reindex</code> ausfuehren.
+                        Nach dem Aktivieren einmalig <code>php artisan search:reindex</code> ausführen.
                     </div>
                 </div>
             </div>
@@ -164,7 +164,7 @@
         </x-card>
 
         {{-- Verbindungs-Test --}}
-        <x-card title="Verbindungs-Test" description="Klick prueft S3, MeiliSearch, Queue und LibreOffice mit den oben gespeicherten Werten.">
+        <x-card title="Verbindungs-Test" description="Klick prüft S3, MeiliSearch, Queue und LibreOffice mit den oben gespeicherten Werten.">
             <button type="button" @click="runTest()" :disabled="testing"
                 class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60">
                 <svg x-show="testing" x-cloak class="h-3.5 w-3.5 animate-spin text-slate-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
@@ -186,7 +186,7 @@
         <div class="flex items-center justify-between">
             <p class="text-xs text-slate-500">
                 Nicht gesetzte Felder verwenden die .env-Defaults. Damit bleibt eine
-                frische Installation ohne Admin-Zugriff funktionsfaehig.
+                frische Installation ohne Admin-Zugriff funktionsfähig.
             </p>
             <x-primary-button>Speichern</x-primary-button>
         </div>

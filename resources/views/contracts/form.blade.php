@@ -1,9 +1,9 @@
 <x-app-layout>
     <x-slot name="header">{{ $contract->exists ? 'Vertrag bearbeiten' : 'Neuer Vertrag' }}</x-slot>
-    <x-slot name="subheader">{{ $contract->name ?? 'Stammdaten + Laufzeit + Kuendigungsfrist' }}</x-slot>
+    <x-slot name="subheader">{{ $contract->name ?? 'Stammdaten + Laufzeit + Kündigungsfrist' }}</x-slot>
 
     <x-breadcrumbs :items="[
-        ['title' => 'Vertraege', 'url' => route('contracts.index')],
+        ['title' => 'Verträge', 'url' => route('contracts.index')],
         ['title' => $contract->exists ? $contract->name : 'Neu'],
     ]" />
 
@@ -44,7 +44,7 @@
                         @endforeach
                     </select>
                     <p class="mt-1 text-xs text-slate-500">
-                        Bestimmt Default-Kuendigungsfrist + welche Rollen den Vertrag sehen duerfen.
+                        Bestimmt Default-Kündigungsfrist + welche Rollen den Vertrag sehen dürfen.
                         <a href="{{ route('contract-types.index') }}" class="text-indigo-600 hover:text-indigo-500">Vertragsarten verwalten</a>.
                     </p>
                 </div>
@@ -66,7 +66,7 @@
                     <x-input-error :messages="$errors->get('end_date')" />
                 </div>
                 <div>
-                    <x-input-label for="notice_period_days" value="Kuendigungsfrist (Tage vor Ende)" />
+                    <x-input-label for="notice_period_days" value="Kündigungsfrist (Tage vor Ende)" />
                     <x-text-input id="notice_period_days" name="notice_period_days" type="number" min="0" max="3650"
                                   value="{{ old('notice_period_days', $contract->notice_period_days ?? 90) }}" required />
                     <p class="mt-1 text-xs text-slate-500">OWE erinnert dich pro Vertrag X Tage vorher.</p>
@@ -87,10 +87,10 @@
                         <input type="hidden" name="auto_renew" value="0">
                         <input type="checkbox" name="auto_renew" value="1" @checked(old('auto_renew', $contract->auto_renew))
                                class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                        Vertrag verlaengert sich automatisch, wenn nicht gekuendigt
+                        Vertrag verlängert sich automatisch, wenn nicht gekündigt
                     </label>
                     <div class="mt-2 max-w-xs">
-                        <x-input-label for="auto_renew_months" value="Verlaengerung um Monate" />
+                        <x-input-label for="auto_renew_months" value="Verlängerung um Monate" />
                         <x-text-input id="auto_renew_months" name="auto_renew_months" type="number" min="1" max="120"
                                       value="{{ old('auto_renew_months', $contract->auto_renew_months ?? 12) }}" />
                     </div>
@@ -100,9 +100,9 @@
                 <div class="sm:col-span-2 rounded-lg border border-slate-200 p-3">
                     <h4 class="text-sm font-semibold text-slate-900 mb-2">Zusaetzliche Berechtigungen pro Rolle</h4>
                     <p class="text-xs text-slate-500 mb-3">
-                        Der <strong>Verantwortliche</strong> und alle ueber den <strong>Vertragstyp</strong>
+                        Der <strong>Verantwortliche</strong> und alle über den <strong>Vertragstyp</strong>
                         berechtigten Rollen sehen den Vertrag automatisch. Hier kannst du weitere Rollen
-                        nur fuer DIESEN Vertrag freischalten.
+                        nur für DIESEN Vertrag freischalten.
                     </p>
                     @php
                         $assigned = $contract->exists ? $contract->roles->keyBy('id') : collect();

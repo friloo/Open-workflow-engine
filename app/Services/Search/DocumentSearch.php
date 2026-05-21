@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 /**
  * Such-Service mit zwei Backends:
  *
- * - 'database' (Default): klassisches LIKE %q% ueber original_name, label
+ * - 'database' (Default): klassisches LIKE %q% über original_name, label
  *   und ocr_text. Skaliert bis ~50k Dokumente passabel, danach lahm.
  * - 'meilisearch': delegiert an einen externen MeiliSearch-Server. Liefert
  *   IDs der Treffer, die wir dann in der Eloquent-Query als whereIn
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Http;
  *   Permission-Scope) erhalten.
  *
  * Wenn MeiliSearch konfiguriert ist aber unreachable, fallen wir
- * stillschweigend auf 'database' zurueck — die Seite funktioniert weiter,
+ * stillschweigend auf 'database' zurück — die Seite funktioniert weiter,
  * nur langsamer.
  */
 class DocumentSearch
@@ -29,7 +29,7 @@ class DocumentSearch
 
     /**
      * Wendet die Volltext-Suche auf die gegebene Eloquent-Query an. Andere
-     * Filter (Typ, Status, etc.) sind bereits angewendet — wir muessen also
+     * Filter (Typ, Status, etc.) sind bereits angewendet — wir müssen also
      * nur 'q' einarbeiten.
      */
     public function applyFulltext(\Illuminate\Database\Eloquent\Builder $query, string $q): void
@@ -82,7 +82,7 @@ class DocumentSearch
     }
 
     /**
-     * Re-Index aller Anhaenge. Wird vom 'search:reindex'-Command benutzt.
+     * Re-Index aller Anhänge. Wird vom 'search:reindex'-Command benutzt.
      */
     public function reindexAll(int $batch = 200, ?\Closure $onProgress = null): int
     {

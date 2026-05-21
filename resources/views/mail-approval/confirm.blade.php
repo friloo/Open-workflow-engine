@@ -5,11 +5,11 @@
         $nodeLabel = data_get($node, 'data.label', 'Aufgabe');
         $isApprove = $decision === 'approved';
         $color = $isApprove ? 'emerald' : 'rose';
-        $title = $isApprove ? 'Genehmigung bestaetigen' : 'Ablehnung bestaetigen';
+        $title = $isApprove ? 'Genehmigung bestätigen' : 'Ablehnung bestätigen';
     @endphp
 
     <h1 class="text-xl font-semibold text-slate-900 mb-1">{{ $title }}</h1>
-    <p class="text-sm text-slate-500 mb-6">Pruefe die Angaben und bestaetige die Entscheidung — ohne Login.</p>
+    <p class="text-sm text-slate-500 mb-6">Pruefe die Angaben und bestätige die Entscheidung — ohne Login.</p>
 
     <div class="rounded-lg border border-slate-200 bg-white p-4 mb-4 text-sm">
         <div class="grid grid-cols-3 gap-2">
@@ -23,7 +23,7 @@
                 <div class="text-slate-500">Frist</div>
                 <div class="col-span-2 text-slate-700">{{ $step->due_at->format('d.m.Y H:i') }}</div>
             @endif
-            <div class="text-slate-500">Empfaenger</div>
+            <div class="text-slate-500">Empfänger</div>
             <div class="col-span-2 text-slate-700">{{ $user->name }} <span class="text-slate-500">({{ $user->email }})</span></div>
         </div>
     </div>
@@ -60,7 +60,7 @@
         @csrf
         <div>
             <label for="comment" class="block text-sm font-medium text-slate-700">
-                {{ $isApprove ? 'Kommentar' : 'Begruendung' }}
+                {{ $isApprove ? 'Kommentar' : 'Begründung' }}
                 @if($commentRequired)<span class="text-rose-600">*</span>@else (optional)@endif
             </label>
             <textarea id="comment" name="comment" rows="3" @if($commentRequired) required @endif
@@ -74,6 +74,6 @@
     </form>
 
     <p class="mt-6 text-center text-xs text-slate-500">
-        Dieser Link ist nur fuer dich gueltig und laeuft automatisch ab. Wenn du den Link nicht erwartet hast, ignoriere die Mail.
+        Dieser Link ist nur für dich gültig und läuft automatisch ab. Wenn du den Link nicht erwartet hast, ignoriere die Mail.
     </p>
 </x-guest-layout>

@@ -12,10 +12,10 @@ use Symfony\Component\Process\Process;
  *
  *   1. Channel + aktuelle SHA bestimmen.
  *   2. Remote /version -> Soll-SHA.
- *   3. Bei Aenderung: ZIP herunterladen, in Staging entpacken.
+ *   3. Bei Änderung: ZIP herunterladen, in Staging entpacken.
  *   4. Maintenance aktivieren.
  *   5. Atomar in das Projekt kopieren, dabei PROTECTED_PATHS nie anfassen.
- *   6. composer install --no-dev und php artisan migrate --force ausfuehren.
+ *   6. composer install --no-dev und php artisan migrate --force ausführen.
  *   7. .version aktualisieren, Maintenance IMMER deaktivieren (finally).
  *
  * Fortschritt landet in storage/app/.update-progress (JSON) und kann von
@@ -29,7 +29,7 @@ class UpdateManager
     public const MAINTENANCE_FILE = '.maintenance';
     public const STAGING_DIR = '.update-staging';
 
-    /** Pfade RELATIV zum Projekt-Root, die beim Update NIE ueberschrieben werden. */
+    /** Pfade RELATIV zum Projekt-Root, die beim Update NIE überschrieben werden. */
     public const PROTECTED_PATHS = [
         '.env',
         '.env.backup',
@@ -74,7 +74,7 @@ class UpdateManager
             $latest = $this->extractSha($body);
             if ($latest === null) {
                 return ['current' => $current, 'latest' => null, 'has_update' => false, 'channel' => $channel->slug, 'label' => $channel->label,
-                    'error' => 'Antwort vom Proxy enthaelt keine 40-stellige SHA (URL: '.$channel->baseUrl.'/version, HTTP '.$resp->status().'): '.\Illuminate\Support\Str::limit(trim($body), 120)];
+                    'error' => 'Antwort vom Proxy enthält keine 40-stellige SHA (URL: '.$channel->baseUrl.'/version, HTTP '.$resp->status().'): '.\Illuminate\Support\Str::limit(trim($body), 120)];
             }
             return [
                 'current' => $current,
@@ -163,7 +163,7 @@ class UpdateManager
 
     /**
      * Wendet ein manuell hochgeladenes Update-ZIP an — selbe Pipeline
-     * wie run(), aber ohne Proxy-Roundtrip. Nuetzlich wenn der Proxy
+     * wie run(), aber ohne Proxy-Roundtrip. Nützlich wenn der Proxy
      * gerade nicht antwortet oder man eine bestimmte Version
      * ausserhalb der Channels einspielen will.
      *
@@ -227,7 +227,7 @@ class UpdateManager
         $url = $channel->baseUrl.'/zip?ref='.urlencode($sha);
         $resp = Http::withUserAgent(self::USER_AGENT)->timeout(180)->get($url);
         if (! $resp->successful()) {
-            throw new \RuntimeException("ZIP-Download HTTP {$resp->status()} fuer {$sha}");
+            throw new \RuntimeException("ZIP-Download HTTP {$resp->status()} für {$sha}");
         }
         $path = storage_path('app/'.self::STAGING_DIR.'.zip');
         @mkdir(dirname($path), 0775, true);
@@ -245,7 +245,7 @@ class UpdateManager
 
         $zip = new \ZipArchive();
         if ($zip->open($zipPath) !== true) {
-            throw new \RuntimeException('ZIP konnte nicht geoeffnet werden.');
+            throw new \RuntimeException('ZIP konnte nicht geöffnet werden.');
         }
         $zip->extractTo($staging);
         $zip->close();
@@ -348,19 +348,19 @@ class UpdateManager
     /**
      * Versucht `composer install --no-dev` — schluckt aber Fehler, weil
      * Shared Hosts oft kein proc_open / kein composer im PATH haben. Das
-     * Release-ZIP enthaelt vendor/ ohnehin vorgebaut, daher ist composer
-     * im Normalfall unnoetig.
+     * Release-ZIP enthält vendor/ ohnehin vorgebaut, daher ist composer
+     * im Normalfall unnötig.
      */
     private function runComposerIfPossible(): void
     {
         if (! function_exists('proc_open')) {
-            $this->progress('composer', 'composer install uebersprungen (proc_open deaktiviert). vendor/ aus dem Release-ZIP wird verwendet.');
+            $this->progress('composer', 'composer install übersprungen (proc_open deaktiviert). vendor/ aus dem Release-ZIP wird verwendet.');
             return;
         }
         try {
             $this->runProcess(['composer', 'install', '--no-dev', '--optimize-autoloader', '--no-interaction'], 600);
         } catch (\Throwable $e) {
-            $this->progress('composer', 'composer install uebersprungen ('.\Illuminate\Support\Str::limit($e->getMessage(), 120).'). vendor/ aus dem Release-ZIP wird verwendet.');
+            $this->progress('composer', 'composer install übersprungen ('.\Illuminate\Support\Str::limit($e->getMessage(), 120).'). vendor/ aus dem Release-ZIP wird verwendet.');
         }
     }
 

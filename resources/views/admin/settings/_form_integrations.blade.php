@@ -1,7 +1,7 @@
 {{-- Wird sowohl von admin/settings/integrations.blade.php als auch von der konsolidierten
      Kommunikation-Seite eingebunden. Erwartet Variable $integrations. --}}
 <x-card title="Microsoft Teams"
-        description="Channel-Connector fuer Benachrichtigungen aus Workflow-Approvals.">
+        description="Channel-Connector für Benachrichtigungen aus Workflow-Approvals.">
     <form method="POST" action="{{ route('admin.settings.integrations.update') }}" class="space-y-3 max-w-3xl">
         @csrf
         <div>
@@ -10,7 +10,7 @@
                 value="{{ $integrations['teams_webhook_url'] ?? '' }}"
                 placeholder="https://outlook.office.com/webhook/..." />
             <p class="mt-1 text-xs text-slate-500">
-                In Teams: <strong>Channel → Verbindungen → Eingehender Webhook</strong> hinzufuegen,
+                In Teams: <strong>Channel → Verbindungen → Eingehender Webhook</strong> hinzufügen,
                 Namen vergeben, die generierte URL hier eintragen.
                 Sobald gesetzt, bekommt der Channel bei jedem Approval-Step
                 eine Adaptive-Card mit Link zur Aufgabe.
@@ -31,7 +31,7 @@
 </x-card>
 
 <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 mt-3">
-    Pro Approval-Knoten kannst du das im Designer individuell ueberschreiben
+    Pro Approval-Knoten kannst du das im Designer individuell überschreiben
     (eigener Channel pro Workflow) — Feld <code>teams_webhook_url</code> bzw.
     <code>notify_teams</code> in den Knoten-Daten.
     Siehe <a href="{{ route('help.show', 'teams') }}" class="text-indigo-600 hover:text-indigo-500">Anleitung Teams</a>.

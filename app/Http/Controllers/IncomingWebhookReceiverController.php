@@ -25,16 +25,16 @@ class IncomingWebhookReceiverController extends Controller
     {
         $webhook = IncomingWebhook::where('token', $token)->where('is_active', true)->first();
         if (! $webhook) {
-            return response()->json(['message' => 'Token ungueltig oder inaktiv.'], 404);
+            return response()->json(['message' => 'Token ungültig oder inaktiv.'], 404);
         }
 
-        // HMAC-Pruefung wenn Secret konfiguriert.
+        // HMAC-Prüfung wenn Secret konfiguriert.
         if ($secret = $webhook->secret) {
             $sigHeader = (string) $request->header('X-OWE-Signature', '');
             $expected = 'sha256='.hash_hmac('sha256', $request->getContent(), $secret);
             if (! hash_equals($expected, $sigHeader)) {
                 $this->bumpFailure($webhook, 'Bad signature');
-                return response()->json(['message' => 'Signatur ungueltig.'], 401);
+                return response()->json(['message' => 'Signatur ungültig.'], 401);
             }
         }
 
@@ -55,7 +55,7 @@ class IncomingWebhookReceiverController extends Controller
             $value = data_get($json, $path);
             if ($value !== null) $form[$field] = is_scalar($value) ? $value : json_encode($value);
         }
-        // Zusatz: vollstaendigen Payload in `webhook_payload` ablegen
+        // Zusatz: vollständigen Payload in `webhook_payload` ablegen
         $form['webhook_payload'] = $json;
 
         try {

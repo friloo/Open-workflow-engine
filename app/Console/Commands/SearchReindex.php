@@ -6,7 +6,7 @@ use App\Services\Search\DocumentSearch;
 use Illuminate\Console\Command;
 
 /**
- * Schiebt alle vorhandenen Anhaenge in den externen Such-Index
+ * Schiebt alle vorhandenen Anhänge in den externen Such-Index
  * (MeiliSearch). Wird einmal nach Aktivierung des Backends gebraucht
  * oder wenn der Index korrupt / verloren ist.
  *
@@ -16,7 +16,7 @@ use Illuminate\Console\Command;
 class SearchReindex extends Command
 {
     protected $signature = 'search:reindex';
-    protected $description = 'Befuellt den externen Such-Index (MeiliSearch) komplett neu.';
+    protected $description = 'Befüllt den externen Such-Index (MeiliSearch) komplett neu.';
 
     public function handle(DocumentSearch $search): int
     {
@@ -33,10 +33,10 @@ class SearchReindex extends Command
         $this->info('Starte Re-Index ...');
         $start = microtime(true);
         $count = $search->reindexAll(200, function ($n) {
-            $this->line("  {$n} Anhaenge indexiert ...");
+            $this->line("  {$n} Anhänge indexiert ...");
         });
         $dur = round(microtime(true) - $start, 1);
-        $this->info("Fertig: {$count} Anhaenge in {$dur}s.");
+        $this->info("Fertig: {$count} Anhänge in {$dur}s.");
         return self::SUCCESS;
     }
 }

@@ -59,7 +59,7 @@ class ContractAclTest extends TestCase
         $personal->roles()->sync([$this->hrRole->id => ['can_manage' => true]]);
 
         $wartung = ContractType::create(['name' => 'Wartung', 'slug' => 'wartung', 'default_notice_period_days' => 60]);
-        // Wartung NICHT fuer HR freigeschaltet
+        // Wartung NICHT für HR freigeschaltet
 
         $a = Contract::create(['name' => 'Personalvertrag X', 'contract_type_id' => $personal->id, 'notice_period_days' => 90, 'status' => 'active', 'created_by' => $this->admin->id]);
         $b = Contract::create(['name' => 'Heizungswartung', 'contract_type_id' => $wartung->id, 'notice_period_days' => 60, 'status' => 'active', 'created_by' => $this->admin->id]);

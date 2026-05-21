@@ -69,7 +69,7 @@ Route::middleware('token.auth')->prefix('v1')->group(function () {
         Route::post('/contracts/{contract}/attachments', [\App\Http\Controllers\Api\V1\ContractsApiController::class, 'uploadAttachment']);
     });
 
-    // Akten (Aktendeckel) — Sichtbarkeit ueber documents.search
+    // Akten (Aktendeckel) — Sichtbarkeit über documents.search
     Route::middleware('token.ability:documents.search')->group(function () {
         Route::get('/cases', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'index']);
         Route::get('/cases/{case}', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'show']);
@@ -79,11 +79,11 @@ Route::middleware('token.auth')->prefix('v1')->group(function () {
         Route::post('/cases/{case}/notes', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'addNote']);
     });
 
-    // Reports (read-only) — fuer BI-Tools
+    // Reports (read-only) — für BI-Tools
     Route::middleware('token.ability:reports.view')
         ->get('/reports/kpis', [\App\Http\Controllers\Api\V1\ReportsApiController::class, 'kpis']);
 
-    // Audit-Log (read-only) — fuer SIEM/Compliance
+    // Audit-Log (read-only) — für SIEM/Compliance
     Route::middleware('token.ability:audit.view')
         ->get('/audit-logs', [\App\Http\Controllers\Api\V1\AuditLogsApiController::class, 'index']);
 
@@ -107,10 +107,10 @@ Route::middleware('token.auth')->prefix('v1')->group(function () {
     Route::post('/notifications/{notification}/read', [\App\Http\Controllers\Api\V1\NotificationsApiController::class, 'markRead']);
     Route::post('/notifications/read-all', [\App\Http\Controllers\Api\V1\NotificationsApiController::class, 'markAllRead']);
 
-    // Globale Suche (Permissions werden im Controller gehaertet)
+    // Globale Suche (Permissions werden im Controller gehärtet)
     Route::get('/search', [\App\Http\Controllers\Api\V1\SearchApiController::class, 'search']);
 });
 
-// Incoming-Webhook: oeffentlicher Endpoint, Auth via Token in URL (+ optional HMAC).
+// Incoming-Webhook: öffentlicher Endpoint, Auth via Token in URL (+ optional HMAC).
 Route::post('/incoming/{token}', [\App\Http\Controllers\IncomingWebhookReceiverController::class, 'receive'])
     ->name('incoming.receive');

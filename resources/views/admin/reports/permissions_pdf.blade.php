@@ -104,7 +104,7 @@
     <p class="meta">
         Erstellt durch {{ config('branding.app_name', config('app.name')) }} ·
         Audit-Event: report.permissions.exported<br>
-        Bei Rueckfragen: Administrator dieser Instanz
+        Bei Rückfragen: Administrator dieser Instanz
     </p>
 </div>
 

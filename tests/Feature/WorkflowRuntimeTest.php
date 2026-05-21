@@ -74,7 +74,7 @@ class WorkflowRuntimeTest extends TestCase
             '1' => ['id' => 1, 'name' => 'start', 'class' => 'start', 'data' => ['label' => 'Start'],
                 'inputs' => [], 'outputs' => ['output_1' => ['connections' => [['node' => '2', 'output' => 'input_1']]]]],
             '2' => ['id' => 2, 'name' => 'approval', 'class' => 'approval',
-                'data' => ['label' => 'Vorgesetzter pruefen', 'recipient_type' => 'supervisor_of_initiator', 'grace_value' => 2, 'grace_unit' => 'days'],
+                'data' => ['label' => 'Vorgesetzter prüfen', 'recipient_type' => 'supervisor_of_initiator', 'grace_value' => 2, 'grace_unit' => 'days'],
                 'inputs' => ['input_1' => []], 'outputs' => [
                     'output_1' => ['connections' => [['node' => '3', 'output' => 'input_1']]],
                     'output_2' => ['connections' => [['node' => '3', 'output' => 'input_1']]],
