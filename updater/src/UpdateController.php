@@ -95,6 +95,35 @@ final class UpdateController
     public function migrationStatus(): JsonResponse
     {
         $runner = new MigrationsRunner(DB::connection(), dirname(__DIR__).'/migrations');
-        return response()->json(['ok' => true, 'data' => $runner->status()]);
+        return response()->json(['ok' => true, 'data' => [
+            'updater' => $runner->status(),
+            'app' => $this->manager()->laravelMigrationStatus(),
+        ]]);
+    }
+
+    public function runMigrations(Request $request): JsonResponse
+    {
+        try {
+            $manager = $this->manager();
+            $runner = new MigrationsRunner(DB::connection(), dirname(__DIR__).'/migrations');
+            $updaterApplied = $runner->migrate();
+            $appApplied = $manager->runLaravelMigrations();
+            return response()->json(['ok' => true, 'data' => [
+                'updater_applied' => $updaterApplied,
+                'app_applied' => $appApplied,
+            ]]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function clearCaches(Request $request): JsonResponse
+    {
+        try {
+            $results = $this->manager()->clearAppCaches();
+            return response()->json(['ok' => true, 'data' => $results]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 }
