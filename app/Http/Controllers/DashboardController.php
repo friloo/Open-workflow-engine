@@ -90,6 +90,7 @@ class DashboardController extends Controller
             'adminInfo' => $adminInfo,
             'onboarding' => $onboarding,
             'myStats' => $myStats,
+            'activityFeed' => app(\App\Services\ActivityFeed::class)->for($user, 15),
         ]);
     }
 

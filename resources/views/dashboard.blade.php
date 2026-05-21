@@ -142,6 +142,54 @@
         </x-card>
     @endif
 
+    @if(! empty($activityFeed))
+        <x-card title="Aktivität" description="Was zuletzt für dich passiert ist oder bald wichtig wird.">
+            <ul class="divide-y divide-slate-100">
+                @foreach($activityFeed as $item)
+                    @php
+                        $toneCls = [
+                            'rose' => 'bg-rose-50 text-rose-600',
+                            'amber' => 'bg-amber-50 text-amber-600',
+                            'indigo' => 'bg-indigo-50 text-indigo-600',
+                            'emerald' => 'bg-emerald-50 text-emerald-600',
+                            'slate' => 'bg-slate-100 text-slate-600',
+                        ][$item['tone'] ?? 'slate'] ?? 'bg-slate-100 text-slate-600';
+                        $iconSvg = [
+                            'bell' => '<path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>',
+                            'alert' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>',
+                            'clock' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>',
+                            'document' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.232 13.5L15 16.5m0 0 1.5 1.5M15 16.5v-3M9 11.25v6.75M5.625 6.375a3 3 0 0 1 3-3h6.75M5.625 6.375A3.375 3.375 0 0 1 9 3"/>',
+                            'check' => '<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>',
+                        ][$item['icon'] ?? 'bell'] ?? '<circle cx="12" cy="12" r="9"/>';
+                    @endphp
+                    <li class="py-3 flex items-start gap-3">
+                        <div class="grid h-8 w-8 shrink-0 place-items-center rounded-full {{ $toneCls }}">
+                            <svg class="h-4 w-4" fill="none" stroke-width="1.8" stroke="currentColor" viewBox="0 0 24 24">{!! $iconSvg !!}</svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-baseline gap-2">
+                                @if($item['url'])
+                                    <a href="{{ $item['url'] }}" class="text-sm font-medium text-slate-900 hover:text-indigo-600 truncate">{{ $item['title'] }}</a>
+                                @else
+                                    <span class="text-sm font-medium text-slate-900 truncate">{{ $item['title'] }}</span>
+                                @endif
+                                @if(! empty($item['unread']))
+                                    <span class="inline-flex items-center rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700">neu</span>
+                                @endif
+                            </div>
+                            @if(! empty($item['body']))
+                                <div class="text-xs text-slate-500 truncate">{{ $item['body'] }}</div>
+                            @endif
+                        </div>
+                        <div class="text-xs text-slate-400 shrink-0 whitespace-nowrap">
+                            <x-fmt-date :value="$item['at']" format="relative" />
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        </x-card>
+    @endif
+
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <x-card title="Meine offenen Aufgaben" description="Direkt zugewiesen oder via Rolle. Sortiert nach Frist.">
             @if($myOpenTasks->isEmpty())
