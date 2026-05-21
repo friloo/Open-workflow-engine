@@ -159,11 +159,14 @@ class SettingsServiceProvider extends ServiceProvider
     private function applyBrandingConfig(): void
     {
         $b = Settings::group('branding');
-        if ($b === []) return;
         config(['branding' => [
             'app_name' => $b['app_name'] ?? config('app.name'),
             'primary_color' => $b['primary_color'] ?? '#6366f1',
             'logo_text' => $b['logo_text'] ?? 'W',
+            'login_bg_from' => $b['login_bg_from'] ?? '#eef2ff',
+            'login_bg_to' => $b['login_bg_to'] ?? '#f1f5f9',
+            'login_bg_image' => $b['login_bg_image'] ?? null,
+            'login_subtitle' => $b['login_subtitle'] ?? null,
         ]]);
         if (! empty($b['app_name'])) config(['app.name' => $b['app_name']]);
     }

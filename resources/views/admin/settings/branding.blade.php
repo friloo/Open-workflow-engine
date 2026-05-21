@@ -5,20 +5,49 @@
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'branding'])
 
     <x-card title="Branding" description="Wird zur Laufzeit auf das Layout angewendet.">
-        <form method="POST" action="{{ route('admin.settings.branding.update') }}" class="space-y-3 max-w-xl">
+        <form method="POST" action="{{ route('admin.settings.branding.update') }}" class="space-y-6 max-w-xl">
             @csrf
-            <div>
-                <x-input-label for="app_name" value="App-Name" />
-                <x-text-input id="app_name" name="app_name" value="{{ $branding['app_name'] }}" />
+            <div class="space-y-3">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">App</h4>
+                <div>
+                    <x-input-label for="app_name" value="App-Name" />
+                    <x-text-input id="app_name" name="app_name" value="{{ $branding['app_name'] }}" />
+                </div>
+                <div>
+                    <x-input-label for="logo_text" value="Logo-Text (1-4 Buchstaben)" />
+                    <x-text-input id="logo_text" name="logo_text" maxlength="4" value="{{ $branding['logo_text'] }}" />
+                </div>
+                <div>
+                    <x-input-label for="primary_color" value="Primaerfarbe (#hex)" />
+                    <x-text-input id="primary_color" name="primary_color" type="color" value="{{ $branding['primary_color'] }}" />
+                </div>
             </div>
-            <div>
-                <x-input-label for="logo_text" value="Logo-Text (1-4 Buchstaben)" />
-                <x-text-input id="logo_text" name="logo_text" maxlength="4" value="{{ $branding['logo_text'] }}" />
+
+            <div class="space-y-3 pt-2 border-t border-slate-200">
+                <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Login-Seite</h4>
+                <p class="text-xs text-slate-500">
+                    Wenn ein Hintergrund-Bild URL gesetzt ist, ueberschreibt es den Farbverlauf.
+                </p>
+                <div>
+                    <x-input-label for="login_subtitle" value="Untertitel (z.B. Firmenname)" />
+                    <x-text-input id="login_subtitle" name="login_subtitle" maxlength="255" value="{{ $branding['login_subtitle'] ?? '' }}" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <x-input-label for="login_bg_from" value="Verlauf Start (#hex)" />
+                        <x-text-input id="login_bg_from" name="login_bg_from" type="color" value="{{ $branding['login_bg_from'] ?? '#eef2ff' }}" />
+                    </div>
+                    <div>
+                        <x-input-label for="login_bg_to" value="Verlauf Ende (#hex)" />
+                        <x-text-input id="login_bg_to" name="login_bg_to" type="color" value="{{ $branding['login_bg_to'] ?? '#f1f5f9' }}" />
+                    </div>
+                </div>
+                <div>
+                    <x-input-label for="login_bg_image" value="Hintergrund-Bild URL (optional)" />
+                    <x-text-input id="login_bg_image" name="login_bg_image" maxlength="1024" value="{{ $branding['login_bg_image'] ?? '' }}" placeholder="https://...jpg" />
+                </div>
             </div>
-            <div>
-                <x-input-label for="primary_color" value="Primaerfarbe (#hex)" />
-                <x-text-input id="primary_color" name="primary_color" type="color" value="{{ $branding['primary_color'] }}" />
-            </div>
+
             <x-primary-button>Speichern</x-primary-button>
         </form>
     </x-card>

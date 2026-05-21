@@ -499,6 +499,10 @@ class SystemSettingsController extends Controller
             'app_name' => ['nullable', 'string', 'max:128'],
             'primary_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'logo_text' => ['nullable', 'string', 'max:4'],
+            'login_bg_from' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'login_bg_to' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'login_bg_image' => ['nullable', 'string', 'max:1024'],
+            'login_subtitle' => ['nullable', 'string', 'max:255'],
         ]);
         foreach ($data as $k => $v) Settings::set("branding.{$k}", $v ?: null, $request->user()->id);
         $this->audit->log('settings.branding.updated', null, null, $data, 'Branding aktualisiert', $request->user()->id);
@@ -531,6 +535,10 @@ class SystemSettingsController extends Controller
             'app_name' => config('app.name'),
             'primary_color' => '#6366f1',
             'logo_text' => 'W',
+            'login_bg_from' => '#eef2ff',
+            'login_bg_to' => '#f1f5f9',
+            'login_bg_image' => '',
+            'login_subtitle' => '',
         ];
     }
 

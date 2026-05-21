@@ -2,7 +2,7 @@
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <h1 class="text-xl font-semibold text-slate-900 mb-1">Anmelden</h1>
-    <p class="text-sm text-slate-500 mb-6">Open Workflow Engine</p>
+    <p class="text-sm text-slate-500 mb-6">{{ config('branding.app_name', config('app.name', 'Open Workflow Engine')) }}</p>
 
     @if ($errors->any())
         <div class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
