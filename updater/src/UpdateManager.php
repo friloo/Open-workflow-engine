@@ -107,6 +107,15 @@ final class UpdateManager
         return is_array($j) ? $j : null;
     }
 
+    /**
+     * Loescht das Progress-File. Wird nach Auto-Reload aufgerufen, damit
+     * der 'done'/'error'-Status nicht dauerhaft auf der Seite bleibt.
+     */
+    public function clearProgress(): void
+    {
+        @unlink($this->projectRoot.'/.update-progress');
+    }
+
     public function installUpdate(?int $userId = null): array
     {
         $this->setProgress('start', 'Update beginnt', 0);
