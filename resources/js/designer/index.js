@@ -306,6 +306,9 @@ window.designerApp = function designerApp() {
         saveMessage: '',
         saveError: false,
         changeSummary: '',
+        miniMapOpen: true,
+        _mmScale: null,
+        _mmTimer: null,
         // KI-Workflow-Generierung
         aiOpen: false,
         aiDesc: '',
@@ -347,7 +350,23 @@ window.designerApp = function designerApp() {
 
             this.editor.on('nodeSelected', (id) => this.onNodeSelected(id));
             this.editor.on('nodeUnselected', () => { this.selectedNode = null; });
-            this.editor.on('nodeRemoved', () => { this.selectedNode = null; });
+            this.editor.on('nodeRemoved', () => { this.selectedNode = null; this.renderMiniMap(); });
+            this.editor.on('nodeMoved', () => this.renderMiniMap());
+            this.editor.on('nodeCreated', () => this.renderMiniMap());
+            this.editor.on('connectionCreated', () => this.renderMiniMap());
+            this.editor.on('connectionRemoved', () => this.renderMiniMap());
+
+            // Mini-Map waehrend Pan/Drag aktualisieren — Drawflow emittiert
+            // dafuer keine eigenen Events, also pollen wir solange die Maus
+            // ueber dem Canvas gehalten wird.
+            container.addEventListener('mousedown', () => {
+                if (this._mmTimer) clearInterval(this._mmTimer);
+                this._mmTimer = setInterval(() => this.renderMiniMap(), 80);
+            });
+            window.addEventListener('mouseup', () => {
+                if (this._mmTimer) { clearInterval(this._mmTimer); this._mmTimer = null; }
+                this.renderMiniMap();
+            });
 
             // Restore previous definition or insert a start node
             const def = this.payload.definition;
@@ -356,6 +375,87 @@ window.designerApp = function designerApp() {
             } else {
                 this.addNodeAt('start', 80, 120);
             }
+            this.$nextTick(() => this.renderMiniMap());
+        },
+
+        renderMiniMap() {
+            if (!this.editor || !this.miniMapOpen) return;
+            const canvas = document.getElementById('mini-map');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height;
+            ctx.clearRect(0, 0, W, H);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, W, H);
+
+            const data = this.editor.drawflow?.drawflow?.Home?.data || {};
+            const nodes = Object.values(data);
+            const containerEl = document.getElementById('drawflow');
+            if (!containerEl) return;
+            const cw = containerEl.clientWidth;
+            const ch = containerEl.clientHeight;
+            const z = this.editor.zoom || 1;
+            const vx = -(this.editor.canvas_x || 0) / z;
+            const vy = -(this.editor.canvas_y || 0) / z;
+            const vw = cw / z;
+            const vh = ch / z;
+
+            const NODE_W = 200, NODE_H = 80;
+            let minX = vx, minY = vy, maxX = vx + vw, maxY = vy + vh;
+            nodes.forEach(n => {
+                minX = Math.min(minX, n.pos_x);
+                minY = Math.min(minY, n.pos_y);
+                maxX = Math.max(maxX, n.pos_x + NODE_W);
+                maxY = Math.max(maxY, n.pos_y + NODE_H);
+            });
+            const pad = 60;
+            minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+            const span = Math.max(maxX - minX, 1);
+            const spanY = Math.max(maxY - minY, 1);
+            const scale = Math.min(W / span, H / spanY);
+
+            const colors = {
+                start: '#fef3c7', form: '#dbeafe', http: '#dcfce7',
+                email: '#d1fae5', condition: '#fae8ff', approval: '#fce7f3',
+                end: '#e0e7ff', delay: '#fed7aa', script: '#cffafe',
+            };
+            nodes.forEach(n => {
+                const x = (n.pos_x - minX) * scale;
+                const y = (n.pos_y - minY) * scale;
+                const w = Math.max(NODE_W * scale, 3);
+                const h = Math.max(NODE_H * scale, 3);
+                ctx.fillStyle = colors[n.class] || '#e2e8f0';
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 0.5;
+                ctx.fillRect(x, y, w, h);
+                ctx.strokeRect(x, y, w, h);
+            });
+
+            const vxs = (vx - minX) * scale;
+            const vys = (vy - minY) * scale;
+            ctx.strokeStyle = '#4f46e5';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(vxs, vys, vw * scale, vh * scale);
+
+            this._mmScale = { minX, minY, scale };
+        },
+
+        onMiniMapClick(event) {
+            if (!this._mmScale || !this.editor) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const cx = x / this._mmScale.scale + this._mmScale.minX;
+            const cy = y / this._mmScale.scale + this._mmScale.minY;
+            const containerEl = document.getElementById('drawflow');
+            const z = this.editor.zoom || 1;
+            this.editor.canvas_x = -cx * z + containerEl.clientWidth / 2;
+            this.editor.canvas_y = -cy * z + containerEl.clientHeight / 2;
+            const pre = this.editor.precanvas;
+            if (pre) {
+                pre.style.transform = `translate(${this.editor.canvas_x}px, ${this.editor.canvas_y}px) scale(${z})`;
+            }
+            this.renderMiniMap();
         },
 
         paletteFor(type) {
@@ -464,6 +564,7 @@ window.designerApp = function designerApp() {
             if (dir === 'in') this.editor.zoom_in();
             else if (dir === 'out') this.editor.zoom_out();
             else this.editor.zoom_reset();
+            this.renderMiniMap();
         },
 
         // -- Form schema -----------------------------------------------------

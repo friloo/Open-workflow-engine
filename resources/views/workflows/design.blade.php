@@ -127,6 +127,20 @@
             <div class="relative flex-1 bg-slate-50">
                 <div id="drawflow" class="absolute inset-0"
                     @drop="onDrop($event)" @dragover.prevent></div>
+
+                {{-- Mini-Map fuer grosse Workflows --}}
+                <div class="pointer-events-none absolute left-3 bottom-3 flex flex-col items-start gap-2">
+                    <button type="button"
+                        @click="miniMapOpen = !miniMapOpen; if (miniMapOpen) $nextTick(() => renderMiniMap())"
+                        class="pointer-events-auto rounded-md bg-white px-2 py-1 text-xs text-slate-600 shadow ring-1 ring-slate-200 hover:bg-slate-50"
+                        x-text="miniMapOpen ? 'Mini-Map ausblenden' : 'Mini-Map einblenden'"></button>
+                    <canvas id="mini-map" width="200" height="130"
+                        x-show="miniMapOpen"
+                        @click="onMiniMapClick($event)"
+                        class="pointer-events-auto rounded-md bg-white shadow ring-1 ring-slate-200 cursor-crosshair"
+                        title="Klicken, um dorthin zu schwenken"></canvas>
+                </div>
+
                 <div class="pointer-events-none absolute right-3 bottom-3 flex gap-2">
                     <button type="button" @click="zoom('in')" class="pointer-events-auto rounded-md bg-white p-2 shadow ring-1 ring-slate-200 hover:bg-slate-50" title="Zoom +">+</button>
                     <button type="button" @click="zoom('out')" class="pointer-events-auto rounded-md bg-white p-2 shadow ring-1 ring-slate-200 hover:bg-slate-50" title="Zoom -">−</button>
