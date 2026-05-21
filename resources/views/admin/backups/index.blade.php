@@ -24,7 +24,8 @@
         @if(empty($backups))
             <x-empty-state title="Noch keine Backups" description="Wird taeglich um 01:30 erstellt — oder per Klick auf 'Backup jetzt'." />
         @else
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                     <th class="py-2 pr-4">Datei</th>
                     <th class="py-2 pr-4 text-right">Groesse</th>
@@ -48,6 +49,7 @@
                     @endforeach
                 </tbody>
             </table>
+</div>
         @endif
     </x-card>
 

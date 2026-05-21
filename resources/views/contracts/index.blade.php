@@ -102,6 +102,7 @@
                 <a href="{{ route('help.show', 'contracts') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>
             </x-empty-state>
         @else
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
             <table class="min-w-full text-sm divide-y divide-slate-200">
                 <thead>
                     <tr class="text-left text-xs uppercase text-slate-500">
@@ -159,6 +160,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         @endif
     </x-card>
 

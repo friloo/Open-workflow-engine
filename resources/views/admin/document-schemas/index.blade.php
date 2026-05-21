@@ -10,7 +10,8 @@
                 <a href="{{ route('admin.settings.index') }}"><x-secondary-button type="button">Zu den Einstellungen</x-secondary-button></a>
             </x-empty-state>
         @else
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                     <th class="py-2 pr-4">Dokumenttyp</th>
                     <th class="py-2 pr-4">Felder</th>
@@ -38,6 +39,7 @@
                     @endforeach
                 </tbody>
             </table>
+</div>
         @endif
     </x-card>
 </x-app-layout>

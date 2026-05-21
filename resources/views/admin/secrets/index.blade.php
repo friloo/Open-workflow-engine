@@ -8,7 +8,8 @@
                 @if($secrets->isEmpty())
                     <x-empty-state title="Noch keine Secrets" description="Lege oben einen verschluesselten Wert an (API-Keys, Tokens) — in HTTP-Knoten als @{{ secret.NAME }} verwendbar." />
                 @else
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                             <th class="py-2 pr-4">Key</th>
                             <th class="py-2 pr-4">Beschreibung</th>
@@ -37,6 +38,7 @@
                             @endforeach
                         </tbody>
                     </table>
+</div>
                 @endif
                 <div class="mt-4">{{ $secrets->links() }}</div>
             </x-card>

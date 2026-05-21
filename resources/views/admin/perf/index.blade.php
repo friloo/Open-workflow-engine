@@ -10,7 +10,8 @@
             <div class="lg:col-span-2">
                 <x-card title="Letzte Eintraege" description="Sortiert vom neuesten zum aeltesten. Bis zu 200 Eintraege.">
                     <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm">
+                        <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full text-sm">
                             <thead>
                                 <tr class="text-left text-xs font-semibold uppercase text-slate-500">
                                     <th class="py-2 pr-4">Zeit</th>
@@ -36,6 +37,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+</div>
                     </div>
                 </x-card>
             </div>

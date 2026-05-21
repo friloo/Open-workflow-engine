@@ -51,7 +51,8 @@
     @if($recent_failed->isNotEmpty())
         <x-card title="Letzte Fehlschlaege" description="Aus failed_jobs. Per CLI nachschauen mit 'php artisan queue:failed'.">
             <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
+                <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full text-sm">
                     <thead>
                         <tr class="text-left text-xs font-semibold uppercase text-slate-500">
                             <th class="py-2 pr-4">ID</th>
@@ -73,6 +74,7 @@
                         @endforeach
                     </tbody>
                 </table>
+</div>
             </div>
             <p class="mt-3 text-xs text-slate-500">
                 Retry per CLI: <code>php artisan queue:retry all</code> (alle), oder

@@ -10,7 +10,8 @@
         @if($webhooks->isEmpty())
             <x-empty-state title="Noch keine Webhooks" description="Lege oben einen Endpunkt an, um Events aus Workflows nach extern zu schicken." />
         @else
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                     <th class="py-2 pr-4">Name</th>
                     <th class="py-2 pr-4">URL</th>
@@ -48,6 +49,7 @@
                     @endforeach
                 </tbody>
             </table>
+</div>
         @endif
         <div class="mt-4">{{ $webhooks->links() }}</div>
     </x-card>

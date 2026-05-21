@@ -58,7 +58,8 @@
                 <x-empty-state title="Noch keine Wiedervorlagen" description="Plane oben einen wiederkehrenden Trigger fuer einen Workflow." />
             @else
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead>
                             <tr class="text-left text-xs font-semibold uppercase text-slate-500">
                                 <th class="py-2 pr-4">Person</th>
@@ -93,6 +94,7 @@
                             @endforeach
                         </tbody>
                     </table>
+</div>
                 </div>
                 <div class="mt-4">{{ $schedules->links() }}</div>
             @endif

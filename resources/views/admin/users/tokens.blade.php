@@ -55,7 +55,8 @@
         @if($tokens->isEmpty())
             <p class="text-sm text-slate-500">Noch keine Tokens fuer diesen Benutzer.</p>
         @else
-            <table class="min-w-full text-sm divide-y divide-slate-200">
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full text-sm divide-y divide-slate-200">
                 <thead>
                     <tr class="text-left text-xs uppercase text-slate-500">
                         <th class="py-2 pr-4">Name</th>
@@ -105,6 +106,7 @@
                     @endforeach
                 </tbody>
             </table>
+</div>
         @endif
     </x-card>
 </x-app-layout>

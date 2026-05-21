@@ -43,7 +43,8 @@
                 description="Lege oben ein Asset an oder importiere per CSV. CSV-Spalten: user_email;name;type;valid_until;lead_time_days;notes" />
         @else
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                     <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                         <th class="py-2 pr-4">Asset</th>
                         <th class="py-2 pr-4">Typ</th>
@@ -96,6 +97,7 @@
                         @endforeach
                     </tbody>
                 </table>
+</div>
             </div>
             <div class="mt-4">{{ $assets->links() }}</div>
         @endif
