@@ -163,7 +163,7 @@
                                 </div>
                                 <div class="shrink-0 text-right text-xs {{ $overdue ? 'text-rose-700 font-semibold' : 'text-slate-500' }}">
                                     @if($step->due_at)
-                                        {{ $overdue ? 'ueberfaellig' : 'bis' }} {{ $step->due_at->format('d.m.Y') }}
+                                        {{ $overdue ? 'ueberfaellig' : 'bis' }} <x-fmt-date :value="$step->due_at" />
                                     @else
                                         ohne Frist
                                     @endif
@@ -187,7 +187,7 @@
                                 <a href="{{ route('workflow-instances.show', $i) }}" class="font-medium text-slate-900 hover:text-indigo-600">
                                     {{ $i->workflow?->name }} <span class="text-xs text-slate-500">#{{ $i->id }}</span>
                                 </a>
-                                <div class="text-xs text-slate-500">{{ $i->started_at?->diffForHumans() }}</div>
+                                <div class="text-xs text-slate-500"><x-fmt-date :value="$i->started_at" format="relative" /></div>
                             </div>
                             @php $tone = ['running' => 'indigo', 'completed' => 'emerald', 'failed' => 'rose', 'cancelled' => 'slate'][$i->status] ?? 'slate'; @endphp
                             <span class="inline-flex items-center rounded-full bg-{{ $tone }}-50 px-2 py-0.5 text-xs font-medium text-{{ $tone }}-700">{{ $i->status }}</span>

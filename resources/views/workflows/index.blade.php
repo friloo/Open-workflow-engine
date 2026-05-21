@@ -100,7 +100,7 @@
                                 @endif
                             </td>
                             <td class="py-3 pr-4 text-xs text-slate-500">
-                                {{ $w->updated_at?->diffForHumans() }}
+                                <x-fmt-date :value="$w->updated_at" format="relative" />
                                 @if($w->updater)
                                     <div>von {{ $w->updater->name }}</div>
                                 @endif

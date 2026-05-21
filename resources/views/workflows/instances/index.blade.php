@@ -74,7 +74,7 @@
                             </td>
                             <td class="py-3 pr-4 text-slate-700">{{ $nodeLabel ?? '—' }}</td>
                             <td class="py-3 pr-4 text-slate-700">{{ $i->starter?->name ?? 'oeffentlich' }}</td>
-                            <td class="py-3 pr-4 text-xs text-slate-500">{{ $i->started_at?->diffForHumans() }}</td>
+                            <td class="py-3 pr-4 text-xs text-slate-500"><x-fmt-date :value="$i->started_at" format="relative" /></td>
                             <td class="py-3 text-right">
                                 <a href="{{ route('workflow-instances.show', $i) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Details</a>
                             </td>

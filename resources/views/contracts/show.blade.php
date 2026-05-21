@@ -58,11 +58,11 @@
                     </div>
                     <div>
                         <dt class="text-xs uppercase text-slate-500">Beginn</dt>
-                        <dd class="text-slate-900">{{ $contract->start_date?->format('d.m.Y') ?: '—' }}</dd>
+                        <dd class="text-slate-900"><x-fmt-date :value="$contract->start_date" /></dd>
                     </div>
                     <div>
                         <dt class="text-xs uppercase text-slate-500">Ende</dt>
-                        <dd class="text-slate-900">{{ $contract->end_date?->format('d.m.Y') ?: '—' }}</dd>
+                        <dd class="text-slate-900"><x-fmt-date :value="$contract->end_date" /></dd>
                     </div>
                     <div>
                         <dt class="text-xs uppercase text-slate-500">Kuendigungsfrist</dt>
@@ -70,7 +70,7 @@
                     </div>
                     <div>
                         <dt class="text-xs uppercase text-slate-500">Frist erreicht am</dt>
-                        <dd class="text-slate-900">{{ $contract->noticeDeadline()?->format('d.m.Y') ?: '—' }}</dd>
+                        <dd class="text-slate-900"><x-fmt-date :value="$contract->noticeDeadline()" /></dd>
                     </div>
                 </dl>
             </x-card>
@@ -181,9 +181,9 @@
                                         {{ $a->label ?: $a->original_name }}
                                     </a>
                                     <div class="text-xs text-slate-500">
-                                        {{ $a->original_name }} · {{ number_format($a->size / 1024, 0, ',', '.') }} kB
+                                        {{ $a->original_name }} · <x-fmt-bytes :value="$a->size" />
                                         · {{ strtoupper(explode('/', $a->mime_type)[1] ?? $a->mime_type) }}
-                                        · {{ $a->created_at?->format('d.m.Y') }}
+                                        · <x-fmt-date :value="$a->created_at" />
                                         @if($a->uploader) · von {{ $a->uploader->name }} @endif
                                     </div>
                                 </div>
@@ -209,7 +209,7 @@
                     @endif
                 </p>
                 <p class="mt-3 text-xs text-slate-500">
-                    Angelegt {{ $contract->created_at?->diffForHumans() }}
+                    Angelegt <x-fmt-date :value="$contract->created_at" format="relative" />
                     @if($contract->creator) von {{ $contract->creator->name }} @endif
                 </p>
             </x-card>
@@ -219,8 +219,8 @@
             @if($contract->last_reminder_at)
                 <x-card title="Letzte Erinnerung">
                     <p class="text-sm text-slate-700">
-                        {{ $contract->last_reminder_at->format('d.m.Y H:i') }}
-                        <span class="text-slate-500">({{ $contract->last_reminder_at->diffForHumans() }})</span>
+                        <x-fmt-date :value="$contract->last_reminder_at" format="d.m.Y H:i" />
+                        <span class="text-slate-500">(<x-fmt-date :value="$contract->last_reminder_at" format="relative" />)</span>
                     </p>
                 </x-card>
             @endif

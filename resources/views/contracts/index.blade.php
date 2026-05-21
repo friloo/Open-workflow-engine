@@ -149,14 +149,10 @@
                                 @endswitch
                             </td>
                             <td class="py-3 pr-4 text-slate-700">
-                                {{ $c->end_date?->format('d.m.Y') ?: '—' }}
+                                <x-fmt-date :value="$c->end_date" />
                             </td>
                             <td class="py-3 pr-4 text-slate-700 text-xs">
-                                @if($c->noticeDeadline())
-                                    {{ $c->noticeDeadline()->format('d.m.Y') }}
-                                @else
-                                    —
-                                @endif
+                                <x-fmt-date :value="$c->noticeDeadline()" />
                             </td>
                             <td class="py-3 pr-4 text-xs text-slate-600">{{ $c->owner?->name ?? '—' }}</td>
                         </tr>

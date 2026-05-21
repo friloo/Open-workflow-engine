@@ -48,7 +48,7 @@
                                         @endif
                                     </div>
                                     <div class="mt-1 text-xs text-slate-500">
-                                        {{ $d->sizeFormatted() }} · eingegangen {{ $d->created_at->diffForHumans() }}
+                                        {{ $d->sizeFormatted() }} · eingegangen <x-fmt-date :value="$d->created_at" format="relative" />
                                         @if($d->label) · <em>{{ $d->label }}</em>@endif
                                     </div>
                                     @if(! empty($d->indexed_fields))

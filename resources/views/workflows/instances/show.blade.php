@@ -10,9 +10,9 @@
             <div>
                 <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Vorgang #{{ $instance->id }} · {{ $instance->workflow->name }}</h1>
                 <p class="mt-1 text-sm text-slate-500">
-                    Gestartet {{ $instance->started_at?->format('d.m.Y H:i') }}
+                    Gestartet <x-fmt-date :value="$instance->started_at" format="d.m.Y H:i" />
                     @if($instance->starter) von {{ $instance->starter->name }} @else (oeffentlich) @endif
-                    @if($instance->completed_at) · beendet {{ $instance->completed_at->format('d.m.Y H:i') }} @endif
+                    @if($instance->completed_at) · beendet <x-fmt-date :value="$instance->completed_at" format="d.m.Y H:i" /> @endif
                 </p>
             </div>
             <div class="flex items-center gap-3">
@@ -63,7 +63,7 @@
                                     <div class="flex-1 rounded-lg bg-slate-50 p-3">
                                         <div class="flex items-baseline justify-between gap-2 text-xs">
                                             <span class="font-medium text-slate-900">{{ $c->user?->name ?? 'System' }}</span>
-                                            <span class="text-slate-500">{{ $c->created_at->diffForHumans() }}</span>
+                                            <span class="text-slate-500"><x-fmt-date :value="$c->created_at" format="relative" /></span>
                                         </div>
                                         <p class="mt-1 whitespace-pre-wrap text-sm text-slate-800">{{ $c->body }}</p>
                                     </div>
@@ -102,13 +102,13 @@
                                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                                         <h3 class="text-sm font-semibold text-slate-900">{{ $nodeLabel }}</h3>
                                         <span class="text-xs text-slate-500">
-                                            {{ $step->assigned_at?->format('d.m.Y H:i') }}
-                                            @if($step->completed_at) → {{ $step->completed_at->format('d.m.Y H:i') }}@endif
+                                            <x-fmt-date :value="$step->assigned_at" format="d.m.Y H:i" />
+                                            @if($step->completed_at) → <x-fmt-date :value="$step->completed_at" format="d.m.Y H:i" />@endif
                                         </span>
                                     </div>
                                     <div class="mt-1 text-xs text-slate-600">
                                         Zugewiesen an: {{ $step->assignedUser?->name ?? $step->assignedRole?->name ?? '—' }}
-                                        @if($step->due_at) · Frist {{ $step->due_at->format('d.m.Y H:i') }}@endif
+                                        @if($step->due_at) · Frist <x-fmt-date :value="$step->due_at" format="d.m.Y H:i" />@endif
                                     </div>
                                     @if($step->decision)
                                         <div class="mt-2 inline-flex items-center rounded-md

@@ -40,7 +40,7 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($entries as $e)
                         <tr>
-                            <td class="py-3 pr-4 text-slate-700 whitespace-nowrap">{{ $e->created_at?->format('d.m.Y H:i:s') }}</td>
+                            <td class="py-3 pr-4 text-slate-700 whitespace-nowrap"><x-fmt-date :value="$e->created_at" format="d.m.Y H:i:s" /></td>
                             <td class="py-3 pr-4 text-slate-700">{{ $e->user?->name ?? '—' }}</td>
                             <td class="py-3 pr-4"><span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ $e->event }}</span></td>
                             <td class="py-3 pr-4 text-slate-700">{{ $e->description }}</td>

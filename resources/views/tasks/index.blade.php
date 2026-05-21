@@ -139,20 +139,20 @@
                                     @if($assignedRole)
                                         <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5">an Rolle <strong class="text-slate-700">{{ $assignedRole }}</strong></span>
                                     @endif
-                                    <span>eingegangen {{ $step->assigned_at?->diffForHumans() }}</span>
+                                    <span>eingegangen <x-fmt-date :value="$step->assigned_at" format="relative" /></span>
                                 </div>
                             </div>
                             <div class="text-right text-xs whitespace-nowrap">
                                 @if($step->snoozed_until && $step->snoozed_until->isFuture())
                                     <div class="text-slate-700 font-medium">Wiedervorlage</div>
-                                    <div class="text-slate-500">{{ $step->snoozed_until->format('d.m.Y H:i') }}</div>
+                                    <div class="text-slate-500"><x-fmt-date :value="$step->snoozed_until" format="d.m.Y H:i" /></div>
                                 @elseif($step->due_at)
                                     <div class="{{ $overdue ? 'text-rose-600 font-semibold' : 'text-slate-700' }}">
-                                        {{ $step->due_at->format('d.m.Y H:i') }}
+                                        <x-fmt-date :value="$step->due_at" format="d.m.Y H:i" />
                                     </div>
                                     <div class="{{ $overdue ? 'text-rose-500' : 'text-slate-400' }}">
                                         @if($overdue)
-                                            {{ $step->due_at->diffForHumans() }}
+                                            <x-fmt-date :value="$step->due_at" format="relative" />
                                         @else
                                             in {{ $step->due_at->diffForHumans(null, true) }}
                                         @endif
@@ -176,7 +176,7 @@
                     <li class="py-3 flex items-start justify-between gap-4 text-sm">
                         <div>
                             <div class="text-slate-900">{{ $step->instance->workflow->name }}</div>
-                            <div class="text-xs text-slate-500">{{ $step->completed_at?->diffForHumans() }} — {{ $step->decision }}</div>
+                            <div class="text-xs text-slate-500"><x-fmt-date :value="$step->completed_at" format="relative" /> — {{ $step->decision }}</div>
                         </div>
                         <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium
                             @switch($step->decision)

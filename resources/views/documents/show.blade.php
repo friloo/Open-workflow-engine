@@ -3,7 +3,7 @@
     <x-slot name="subheader">
         {{ $attachment->document_type ?: 'Ohne Dokumenttyp' }}
         · v{{ $attachment->version_number }}{{ $attachment->is_current_version ? ' (aktuell)' : ' (ueberholt)' }}
-        · {{ $attachment->sizeFormatted() }} · {{ $attachment->created_at->format('d.m.Y H:i') }}
+        · {{ $attachment->sizeFormatted() }} · <x-fmt-date :value="$attachment->created_at" format="d.m.Y H:i" />
     </x-slot>
 
     <x-breadcrumbs :items="[
@@ -146,7 +146,7 @@
                         </div>
                         <div class="flex items-center justify-between">
                             @if($attachment->indexed_at)
-                                <p class="text-xs text-slate-500">Indexiert {{ $attachment->indexed_at->diffForHumans() }}.</p>
+                                <p class="text-xs text-slate-500">Indexiert <x-fmt-date :value="$attachment->indexed_at" format="relative" />.</p>
                             @else
                                 <span></span>
                             @endif
@@ -228,7 +228,7 @@
                                         {{ $kindLabel }}
                                         @if($a->page) · Seite {{ $a->page }} @endif
                                         @if($a->creator) · {{ $a->creator->name }} @endif
-                                        · {{ $a->created_at->diffForHumans() }}
+                                        · <x-fmt-date :value="$a->created_at" format="relative" />
                                     </div>
                                 </div>
                                 @if(auth()->id() === $a->created_by || auth()->user()->hasAnyPermission(['workflows.design']))
@@ -294,7 +294,7 @@
                                 </div>
                                 <div class="text-xs text-slate-500">
                                     {{ $v->original_name }} · {{ $v->sizeFormatted() }} ·
-                                    {{ $v->created_at->format('d.m.Y H:i') }}@if($v->uploader) · {{ $v->uploader->name }}@endif
+                                    <x-fmt-date :value="$v->created_at" format="d.m.Y H:i" />@if($v->uploader) · {{ $v->uploader->name }}@endif
                                 </div>
                             </div>
                             <a href="{{ route('attachments.download', $v) }}" class="text-xs text-indigo-600 hover:text-indigo-500 shrink-0">Download</a>
@@ -357,7 +357,7 @@
                     <div><dt class="text-slate-500">Original-Name</dt><dd class="text-slate-900">{{ $attachment->original_name }}</dd></div>
                     <div><dt class="text-slate-500">Mime-Type</dt><dd class="text-slate-900">{{ $attachment->mime_type }}</dd></div>
                     <div><dt class="text-slate-500">Groesse</dt><dd class="text-slate-900">{{ $attachment->sizeFormatted() }}</dd></div>
-                    <div><dt class="text-slate-500">Hochgeladen</dt><dd class="text-slate-900">{{ $attachment->created_at->format('d.m.Y H:i:s') }} von {{ $attachment->uploader?->name ?? 'System' }}</dd></div>
+                    <div><dt class="text-slate-500">Hochgeladen</dt><dd class="text-slate-900"><x-fmt-date :value="$attachment->created_at" format="d.m.Y H:i:s" /> von {{ $attachment->uploader?->name ?? 'System' }}</dd></div>
                     <div><dt class="text-slate-500">Version</dt><dd class="text-slate-900">v{{ $attachment->version_number }} in Chain <code class="text-xs">{{ \Illuminate\Support\Str::limit($attachment->version_chain_id, 8, '') }}</code></dd></div>
                     <div><dt class="text-slate-500">OCR</dt><dd class="text-slate-900">{{ $attachment->ocr_status }}@if($attachment->ocr_tool) · {{ $attachment->ocr_tool }}@endif</dd></div>
                     <div><dt class="text-slate-500">SHA-256</dt><dd class="text-slate-900 font-mono text-xs break-all">{{ $attachment->content_hash }}</dd></div>

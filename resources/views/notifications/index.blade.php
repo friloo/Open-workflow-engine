@@ -24,7 +24,7 @@
                                 <span class="font-medium text-slate-900">{{ $n->title }}</span>
                             @endif
                             @if($n->body)<div class="text-sm text-slate-600">{{ $n->body }}</div>@endif
-                            <div class="text-xs text-slate-500 mt-0.5">{{ $n->created_at->diffForHumans() }}</div>
+                            <div class="text-xs text-slate-500 mt-0.5"><x-fmt-date :value="$n->created_at" format="relative" /></div>
                         </div>
                     </li>
                 @endforeach
