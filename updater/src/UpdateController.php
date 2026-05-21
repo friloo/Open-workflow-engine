@@ -36,6 +36,16 @@ final class UpdateController
         ViewFacade::addNamespace('updater', dirname(__DIR__).'/ui');
 
         $manager = $this->manager();
+
+        // Terminale Progress-States ('done'/'error') sollen nach dem
+        // Auto-Reload nicht mehr stehen bleiben — beim Rendern der
+        // Index-Seite weglöschen. Aktive Installs landen NICHT hier
+        // (die laufen ueber den XHR-Endpoint /install).
+        $p = $manager->getProgress();
+        if ($p && in_array($p['step'] ?? '', ['done', 'error'], true)) {
+            $manager->clearProgress();
+        }
+
         return view('updater::index', [
             'currentSha' => $manager->getCurrentVersion(),
             'channel' => $manager->channel(),
