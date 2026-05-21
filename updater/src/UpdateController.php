@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View as ViewFacade;
 use Illuminate\View\View;
 
 /**
@@ -29,8 +30,10 @@ final class UpdateController
     public function index(Request $request): View
     {
         // Blade-Namespace 'updater' lazy registrieren — kein
-        // ServiceProvider noetig, weiter isoliert.
-        \View::addNamespace('updater', dirname(__DIR__).'/ui');
+        // ServiceProvider noetig, weiter isoliert. Facade explizit
+        // qualifizieren, weil der globale '\View'-Alias je nach
+        // Laravel-Setup nicht garantiert ist.
+        ViewFacade::addNamespace('updater', dirname(__DIR__).'/ui');
 
         $manager = $this->manager();
         return view('updater::index', [
