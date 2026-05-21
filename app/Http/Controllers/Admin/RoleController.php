@@ -55,6 +55,7 @@ class RoleController extends Controller
             'slug' => Str::slug($data['name']),
             'description' => $data['description'] ?? null,
             'is_system' => false,
+            'requires_2fa' => ! empty($data['requires_2fa']),
         ]);
 
         $role->permissions()->sync($data['permissions'] ?? []);
@@ -102,6 +103,7 @@ class RoleController extends Controller
         $role->update([
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
+            'requires_2fa' => ! empty($data['requires_2fa']),
         ]);
 
         if (! $role->is_system || $role->slug !== 'admin') {
@@ -129,6 +131,7 @@ class RoleController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'requires_2fa' => ['nullable', 'in:1'],
             'permissions' => ['array'],
             'permissions.*' => ['integer', Rule::exists('permissions', 'id')],
             'document_types' => ['array'],

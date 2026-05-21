@@ -19,6 +19,18 @@
     </div>
 </div>
 
+<div class="mt-6 rounded-lg border border-slate-200 p-4 bg-slate-50">
+    <label class="flex items-start gap-3 cursor-pointer">
+        <input type="checkbox" name="requires_2fa" value="1"
+               class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+               @checked(old('requires_2fa', isset($role) ? $role->requires_2fa : ($copyFrom->requires_2fa ?? false)))>
+        <span>
+            <span class="block text-sm font-medium text-slate-900">2FA fuer diese Rolle erzwingen</span>
+            <span class="block text-xs text-slate-500">User mit dieser Rolle muessen Zwei-Faktor-Authentifizierung einrichten, bevor sie weiter mit der Anwendung arbeiten koennen. Audit-relevant.</span>
+        </span>
+    </label>
+</div>
+
 <div class="mt-8">
     <h3 class="text-sm font-semibold text-slate-900">Berechtigungen</h3>
     <p class="text-xs text-slate-500 mb-3">Waehle alle Permissions aus, die zu dieser Rolle gehoeren.</p>

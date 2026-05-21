@@ -18,6 +18,9 @@
                             @if($r->is_system)
                                 <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">System</span>
                             @endif
+                            @if($r->requires_2fa)
+                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700" title="Mitglieder dieser Rolle muessen 2FA aktivieren">2FA Pflicht</span>
+                            @endif
                         </div>
                         <p class="text-sm text-slate-500">{{ $r->description ?? '—' }}</p>
                         <p class="mt-2 text-xs text-slate-500">{{ $r->users_count }} zugewiesene Benutzer</p>
