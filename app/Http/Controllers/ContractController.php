@@ -181,6 +181,67 @@ class ContractController extends Controller
     }
 
     /**
+     * Bulk-Aktion: mehrere Vertraege in einem Schritt aendern.
+     * Erlaubt: Owner setzen, an Akte heften, Status forcen (Admin).
+     */
+    public function bulk(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'contract_ids' => ['required', 'array', 'min:1'],
+            'contract_ids.*' => ['integer', 'exists:contracts,id'],
+            'action' => ['required', 'in:set_owner,attach_case,detach_case,recompute_status,delete'],
+            'owner_user_id' => ['nullable', 'exists:users,id'],
+            'document_case_id' => ['nullable', 'exists:document_cases,id'],
+        ]);
+
+        $user = $request->user();
+        $contracts = Contract::query()->visibleTo($user)->whereIn('id', $data['contract_ids'])->get();
+        if ($contracts->isEmpty()) {
+            return back()->withErrors(['contract_ids' => 'Keine sichtbaren/erreichbaren Vertraege.']);
+        }
+
+        $touched = 0;
+        $skipped = 0;
+        foreach ($contracts as $c) {
+            if (! $c->userCanManage($user)) { $skipped++; continue; }
+            switch ($data['action']) {
+                case 'set_owner':
+                    $c->update(['owner_user_id' => $data['owner_user_id'] ?: null]);
+                    $touched++;
+                    break;
+                case 'attach_case':
+                    if (! empty($data['document_case_id'])) {
+                        $c->cases()->syncWithoutDetaching([$data['document_case_id']]);
+                        $touched++;
+                    }
+                    break;
+                case 'detach_case':
+                    if (! empty($data['document_case_id'])) {
+                        $c->cases()->detach($data['document_case_id']);
+                        $touched++;
+                    }
+                    break;
+                case 'recompute_status':
+                    $c->update(['status' => $c->computedStatus()]);
+                    $touched++;
+                    break;
+                case 'delete':
+                    $c->delete();
+                    $touched++;
+                    break;
+            }
+        }
+
+        $this->audit->log('contract.bulk.' . $data['action'], null, null, [
+            'count' => $touched, 'skipped' => $skipped, 'ids' => $contracts->pluck('id')->all(),
+        ], "Bulk-Aktion '{$data['action']}' auf {$touched} Vertraegen", $user->id);
+
+        $msg = "Bulk-Aktion abgeschlossen: {$touched} bearbeitet.";
+        if ($skipped > 0) $msg .= " {$skipped} uebersprungen (keine Bearbeitungsrechte).";
+        return back()->with('status', $msg);
+    }
+
+    /**
      * Vom Vertrag aus eine Akte anhaengen — Gegenstueck zu
      * DocumentCaseController::attachContract.
      */

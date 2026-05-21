@@ -310,6 +310,9 @@ Route::middleware(['auth', 'permission:contracts.view,contracts.manage'])->group
     // Akten-Verknuepfung vom Vertrag aus
     Route::post('contracts/{contract}/cases', [\App\Http\Controllers\ContractController::class, 'attachCase'])->name('contracts.cases.attach');
     Route::delete('contracts/{contract}/cases/{caseId}', [\App\Http\Controllers\ContractController::class, 'detachCase'])->name('contracts.cases.detach');
+    // Bulk-Aktionen — nur fuer Manage-Berechtigte
+    Route::middleware('permission:contracts.manage')
+        ->post('contracts-bulk', [\App\Http\Controllers\ContractController::class, 'bulk'])->name('contracts.bulk');
 });
 // Vertragsarten-Verwaltung — nur fuer Admins/Manage-Berechtigte
 Route::middleware(['auth', 'permission:contracts.manage'])->group(function () {

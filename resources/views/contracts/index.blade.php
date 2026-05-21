@@ -49,7 +49,49 @@
         </div>
     </form>
 
+    @php($canManage = auth()->user()->hasPermission('contracts.manage'))
+
     <x-card>
+        @if($canManage && $contracts->isNotEmpty())
+            <form id="contracts-bulk-form" method="POST" action="{{ route('contracts.bulk') }}"
+                  x-data="{ action: '', count: 0, refreshCount() { this.count = document.querySelectorAll('input[name=&quot;contract_ids[]&quot;]:checked').length; } }"
+                  @change="refreshCount"
+                  class="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs">
+                @csrf
+                <span class="text-slate-700"><strong x-text="count"></strong> ausgewaehlt</span>
+                <select name="action" x-model="action"
+                        class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">— Bulk-Aktion —</option>
+                    <option value="set_owner">Verantwortlichen setzen</option>
+                    <option value="attach_case">An Akte heften</option>
+                    <option value="detach_case">Aus Akte entfernen</option>
+                    <option value="recompute_status">Status neu berechnen</option>
+                    <option value="delete">Loeschen (Soft-Delete)</option>
+                </select>
+
+                <select name="owner_user_id" x-show="action === 'set_owner'" x-cloak
+                        class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">— Niemand —</option>
+                    @foreach(\App\Models\User::humans()->where('is_active', true)->orderBy('name')->get(['id', 'name']) as $u)
+                        <option value="{{ $u->id }}">{{ $u->name }}</option>
+                    @endforeach
+                </select>
+
+                <select name="document_case_id" x-show="action === 'attach_case' || action === 'detach_case'" x-cloak
+                        class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">— Akte waehlen —</option>
+                    @foreach(\App\Models\DocumentCase::whereNull('closed_at')->orderBy('name')->limit(200)->get(['id', 'name']) as $a)
+                        <option value="{{ $a->id }}">{{ $a->name }}</option>
+                    @endforeach
+                </select>
+
+                <button type="submit" :disabled="count === 0 || ! action"
+                        class="rounded-lg bg-indigo-600 px-3 py-1 font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
+                    Ausfuehren
+                </button>
+            </form>
+        @endif
+
         @if($contracts->isEmpty())
             <x-empty-state icon="document" title="Noch keine Vertraege"
                 description="Lege Wartungs-, Miet- und Versicherungsvertraege an — OWE erinnert dich rechtzeitig vor Ablauf der Kuendigungsfrist.">
@@ -62,6 +104,13 @@
             <table class="min-w-full text-sm divide-y divide-slate-200">
                 <thead>
                     <tr class="text-left text-xs uppercase text-slate-500">
+                        @if($canManage)
+                            <th class="py-2 pr-2 w-8">
+                                <input type="checkbox"
+                                       @click="document.querySelectorAll('input[name=&quot;contract_ids[]&quot;]').forEach(c => c.checked = $event.target.checked); $event.target.dispatchEvent(new Event('change', {bubbles:true}))"
+                                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                            </th>
+                        @endif
                         <th class="py-2 pr-4">Vertrag</th>
                         <th class="py-2 pr-4">Partner</th>
                         <th class="py-2 pr-4">Status</th>
@@ -73,6 +122,12 @@
                 <tbody class="divide-y divide-slate-100">
                     @foreach($contracts as $c)
                         <tr class="hover:bg-slate-50">
+                            @if($canManage)
+                                <td class="py-3 pr-2">
+                                    <input type="checkbox" name="contract_ids[]" value="{{ $c->id }}" form="contracts-bulk-form"
+                                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                </td>
+                            @endif
                             <td class="py-3 pr-4">
                                 <a href="{{ route('contracts.show', $c) }}" class="font-medium text-slate-900 hover:text-indigo-600">{{ $c->name }}</a>
                                 @if($c->type)
