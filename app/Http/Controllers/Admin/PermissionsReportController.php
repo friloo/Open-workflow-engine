@@ -10,7 +10,6 @@ use App\Services\AuditLogger;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -35,19 +34,34 @@ class PermissionsReportController extends Controller
         $this->audit->log('report.permissions.exported', null, null, ['format' => 'csv'],
             'Berechtigungs-Report als CSV exportiert', $request->user()->id);
 
-        $rows = $this->flatRows();
+        $data = $this->loadData();
         $filename = 'berechtigungen-' . now()->format('Ymd-Hi') . '.csv';
 
-        return response()->streamDownload(function () use ($rows) {
+        return response()->streamDownload(function () use ($data) {
             $out = fopen('php://output', 'wb');
             fputs($out, "\xEF\xBB\xBF"); // BOM fuer Excel/Umlaute
-            fputcsv($out, ['User', 'E-Mail', 'Aktiv', 'Service-Account', 'Rolle', 'Permission-Slug', 'Permission-Name', 'Gruppe'], ';');
-            foreach ($rows as $r) {
-                fputcsv($out, [
-                    $r['user_name'], $r['user_email'], $r['user_active'] ? 'ja' : 'nein',
-                    $r['user_service'] ? 'ja' : 'nein',
-                    $r['role'], $r['permission_slug'], $r['permission_name'], $r['permission_group'],
-                ], ';');
+
+            // Abschnitt 1: User -> Rollen
+            fputcsv($out, ['Abschnitt 1: Benutzer und Rollen'], ';');
+            fputcsv($out, ['User', 'E-Mail', 'Status', 'Rollen'], ';');
+            foreach ($data['users'] as $u) {
+                $status = $u->is_service_account ? 'Service' : (! $u->is_active ? 'inaktiv' : 'aktiv');
+                $roles = $u->roles->pluck('name')->join(', ');
+                fputcsv($out, [$u->name, $u->email, $status, $roles ?: '—'], ';');
+            }
+            fputcsv($out, [], ';'); // Leerzeile
+
+            // Abschnitt 2: Rollen -> Permissions
+            fputcsv($out, ['Abschnitt 2: Rollen und Permissions'], ';');
+            fputcsv($out, ['Rolle', 'Slug', 'User-Anzahl', 'Permission-Gruppe', 'Permission-Slug', 'Permission-Name'], ';');
+            foreach ($data['roles'] as $r) {
+                if ($r->permissions->isEmpty()) {
+                    fputcsv($out, [$r->name, $r->slug, $r->users_count, '—', '', '— keine Permissions —'], ';');
+                    continue;
+                }
+                foreach ($r->permissions as $p) {
+                    fputcsv($out, [$r->name, $r->slug, $r->users_count, $p->group ?? '', $p->slug, $p->name], ';');
+                }
             }
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
@@ -58,7 +72,21 @@ class PermissionsReportController extends Controller
         $data = $this->loadData();
         $data['generatedAt'] = now();
         $data['generator'] = $request->user()->name;
-        $this->audit->log('report.permissions.exported', null, null, ['format' => 'pdf'],
+        // SHA-256-Fingerprint ueber die Daten — fuer Audit-Trailer im PDF.
+        $data['dataHash'] = substr(hash('sha256', json_encode([
+            'users' => $data['users']->map(fn ($u) => [
+                'id' => $u->id, 'email' => $u->email,
+                'roles' => $u->roles->pluck('slug')->all(),
+            ])->all(),
+            'roles' => $data['roles']->map(fn ($r) => [
+                'slug' => $r->slug,
+                'permissions' => $r->permissions->pluck('slug')->all(),
+            ])->all(),
+            'at' => $data['generatedAt']->toIso8601String(),
+        ])), 0, 16) . '…';
+
+        $this->audit->log('report.permissions.exported', null, null,
+            ['format' => 'pdf', 'data_hash' => $data['dataHash']],
             'Berechtigungs-Report als PDF exportiert', $request->user()->id);
 
         $pdf = Pdf::loadView('admin.reports.permissions_pdf', $data)
@@ -85,51 +113,4 @@ class PermissionsReportController extends Controller
         return compact('users', 'roles', 'totalPermissions');
     }
 
-    /**
-     * Flache Tabelle User x Rolle x Permission — eine Zeile pro Tripel,
-     * fuer CSV-Export und maschinelle Weiterverarbeitung.
-     */
-    private function flatRows(): Collection
-    {
-        $rows = collect();
-        $users = User::query()->with('roles.permissions')->orderBy('name')->get();
-
-        foreach ($users as $u) {
-            if ($u->roles->isEmpty()) {
-                $rows->push([
-                    'user_name' => $u->name,
-                    'user_email' => $u->email,
-                    'user_active' => (bool) $u->is_active,
-                    'user_service' => (bool) $u->is_service_account,
-                    'role' => '— keine Rolle —',
-                    'permission_slug' => '',
-                    'permission_name' => '',
-                    'permission_group' => '',
-                ]);
-                continue;
-            }
-            foreach ($u->roles as $r) {
-                if ($r->permissions->isEmpty()) {
-                    $rows->push([
-                        'user_name' => $u->name, 'user_email' => $u->email,
-                        'user_active' => (bool) $u->is_active, 'user_service' => (bool) $u->is_service_account,
-                        'role' => $r->name,
-                        'permission_slug' => '', 'permission_name' => '— keine Permissions —', 'permission_group' => '',
-                    ]);
-                    continue;
-                }
-                foreach ($r->permissions as $p) {
-                    $rows->push([
-                        'user_name' => $u->name, 'user_email' => $u->email,
-                        'user_active' => (bool) $u->is_active, 'user_service' => (bool) $u->is_service_account,
-                        'role' => $r->name,
-                        'permission_slug' => $p->slug,
-                        'permission_name' => $p->name,
-                        'permission_group' => $p->group ?? '',
-                    ]);
-                }
-            }
-        }
-        return $rows;
-    }
 }
