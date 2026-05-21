@@ -20,7 +20,12 @@
             </div>
         @endif
 
-        <a href="{{ route('admin.audit.index') }}" class="mt-4 inline-flex text-sm text-indigo-600 hover:text-indigo-500">&larr; Zurueck zum Audit-Log</a>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+            <a href="{{ route('admin.audit.index') }}" class="text-sm text-indigo-600 hover:text-indigo-500">&larr; Zurueck zum Audit-Log</a>
+            <a href="{{ route('admin.audit.verify_pdf') }}" class="ms-auto rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                ⬇ Audit-Zertifikat (PDF) erzeugen
+            </a>
+        </div>
     </x-card>
 
     <div class="mt-6">

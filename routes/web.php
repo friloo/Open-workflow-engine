@@ -372,8 +372,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::middleware('permission:audit.view')->group(function () {
         Route::get('audit', [AuditLogController::class, 'index'])->name('audit.index');
+        Route::get('audit/export.pdf', [AuditLogController::class, 'exportPdf'])->name('audit.export_pdf');
         Route::get('audit/verify', [AuditLogController::class, 'verify'])
             ->name('audit.verify')
+            ->middleware('permission:audit.verify');
+        Route::get('audit/verify.pdf', [AuditLogController::class, 'verifyPdf'])
+            ->name('audit.verify_pdf')
             ->middleware('permission:audit.verify');
     });
 

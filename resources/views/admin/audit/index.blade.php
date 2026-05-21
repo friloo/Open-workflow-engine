@@ -13,9 +13,15 @@
             </select>
             <x-secondary-button type="submit">Filtern</x-secondary-button>
         </form>
-        @if(auth()->user()->hasPermission('audit.verify'))
-            <a href="{{ route('admin.audit.verify') }}"><x-primary-button type="button">Integritaetskette pruefen</x-primary-button></a>
-        @endif
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('admin.audit.export_pdf', ['from' => now()->subDays(30)->format('Y-m-d'), 'to' => now()->format('Y-m-d'), 'event' => $filterEvent]) }}"
+               class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                ⬇ PDF-Export (letzte 30 Tage)
+            </a>
+            @if(auth()->user()->hasPermission('audit.verify'))
+                <a href="{{ route('admin.audit.verify') }}"><x-primary-button type="button">Integritaetskette pruefen</x-primary-button></a>
+            @endif
+        </div>
     </div>
 
     <x-card>
