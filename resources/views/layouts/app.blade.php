@@ -58,6 +58,7 @@
     @auth
         @include('layouts.partials.global-search')
         @include('layouts.partials.shortcuts-help')
+        @include('layouts.partials.onboarding-wizard')
         @if((bool) \App\Support\Settings::get('support.enabled', false))
             @include('layouts.partials.support-modal')
         @endif

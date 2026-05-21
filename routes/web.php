@@ -84,6 +84,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/delegation', [\App\Http\Controllers\DelegationController::class, 'update'])->name('profile.delegation.update');
     Route::delete('/profile/delegation', [\App\Http\Controllers\DelegationController::class, 'clear'])->name('profile.delegation.clear');
     Route::post('/profile/notifications', [\App\Http\Controllers\ProfileController::class, 'updateNotificationPreferences'])->name('profile.notifications.update');
+
+    Route::post('/onboarding/dismiss', [\App\Http\Controllers\OnboardingController::class, 'dismiss'])->name('onboarding.dismiss');
+    Route::post('/onboarding/complete', [\App\Http\Controllers\OnboardingController::class, 'complete'])->name('onboarding.complete');
+
     Route::post('/profile/ical/rotate', [\App\Http\Controllers\IcalController::class, 'rotate'])->name('profile.ical.rotate');
     Route::post('/profile/ical/revoke', [\App\Http\Controllers\IcalController::class, 'revoke'])->name('profile.ical.revoke');
     Route::post('/profile/push/subscribe', [\App\Http\Controllers\PushController::class, 'subscribe'])->name('push.subscribe');
