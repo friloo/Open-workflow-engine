@@ -139,6 +139,31 @@
                         </div>
                         <x-secondary-button type="submit">Hochladen</x-secondary-button>
                     </form>
+
+                    {{-- PDF aus Vorlage erzeugen --}}
+                    @php($templates = \App\Models\ContractTemplate::query()
+                        ->where(function ($q) use ($contract) {
+                            $q->whereNull('contract_type_id');
+                            if ($contract->contract_type_id) $q->orWhere('contract_type_id', $contract->contract_type_id);
+                        })->orderBy('name')->get(['id', 'name']))
+                    @if($templates->isNotEmpty())
+                        <form method="POST" action="{{ route('contracts.template.generate', $contract) }}"
+                              class="mb-4 flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                            @csrf
+                            <div class="flex-1 min-w-[220px]">
+                                <x-input-label for="template_id" value="PDF aus Vorlage erzeugen" />
+                                <select id="template_id" name="template_id" required
+                                        class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">— Vorlage waehlen —</option>
+                                    @foreach($templates as $t)
+                                        <option value="{{ $t->id }}">{{ $t->name }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="mt-1 text-xs text-slate-500">Platzhalter werden aus den Vertragsdaten gefuellt, PDF als Anhang gespeichert.</p>
+                            </div>
+                            <x-secondary-button type="submit">PDF erzeugen</x-secondary-button>
+                        </form>
+                    @endif
                 @endif
 
                 @if($contract->attachments->isEmpty())

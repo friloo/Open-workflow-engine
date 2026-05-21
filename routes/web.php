@@ -319,6 +319,12 @@ Route::middleware(['auth', 'permission:contracts.manage'])->group(function () {
     Route::resource('contract-types', \App\Http\Controllers\ContractTypeController::class)
         ->parameters(['contract-types' => 'contractType'])
         ->except(['show']);
+
+    // Vertrags-Vorlagen mit Mustache-Platzhaltern
+    Route::resource('contract-templates', \App\Http\Controllers\ContractTemplateController::class)
+        ->parameters(['contract-templates' => 'contractTemplate'])
+        ->except(['show']);
+    Route::post('contracts/{contract}/generate-from-template', [\App\Http\Controllers\ContractTemplateController::class, 'generate'])->name('contracts.template.generate');
 });
 
 // Tasks-Inbox (jeder authentifizierte aktive Benutzer)

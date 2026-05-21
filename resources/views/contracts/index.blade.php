@@ -44,6 +44,7 @@
                    class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
             @if(auth()->user()->hasPermission('contracts.manage'))
                 <a href="{{ route('contract-types.index') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Arten</a>
+                <a href="{{ route('contract-templates.index') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Vorlagen</a>
                 <a href="{{ route('contracts.create') }}"><x-primary-button type="button">Neuer Vertrag</x-primary-button></a>
             @endif
         </div>
