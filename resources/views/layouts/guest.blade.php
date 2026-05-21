@@ -19,7 +19,16 @@
         <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 p-8">
             {{ $slot }}
         </div>
-        <p class="mt-6 text-center text-xs text-slate-400">© {{ date('Y') }} Open Workflow Engine</p>
+        <div class="mt-6 text-center space-y-1">
+            <p class="text-xs text-slate-500">
+                © {{ date('Y') }} Open Workflow Engine ·
+                entwickelt von <a href="https://loheide.eu" target="_blank" rel="noopener" class="font-medium text-indigo-600 hover:text-indigo-500">Friederich Loheide</a>
+            </p>
+            <p class="text-[10px] text-slate-400 max-w-sm mx-auto">
+                Teilweise mit KI generiert. Nutzung auf eigene Gefahr — keine Gewaehr fuer Fehlerfreiheit,
+                Datensicherheit oder regulatorische Konformitaet.
+            </p>
+        </div>
     </div>
 </div>
 </body>

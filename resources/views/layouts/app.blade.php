@@ -84,6 +84,19 @@
                     {{ $slot }}
                 </div>
             </div>
+
+            {{-- Footer mit Autor + Disclaimer-Link --}}
+            <footer class="mt-12 border-t border-slate-200 px-4 py-4 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                    <p>
+                        © {{ date('Y') }} Open Workflow Engine · entwickelt von
+                        <a href="https://loheide.eu" target="_blank" rel="noopener" class="font-medium text-indigo-600 hover:text-indigo-500">Friederich Loheide</a>
+                    </p>
+                    <p>
+                        <a href="{{ route('help.show', 'about') }}" class="hover:text-slate-700">Ueber dieses Tool / Disclaimer</a>
+                    </p>
+                </div>
+            </footer>
         </main>
     </div>
     <x-toast />

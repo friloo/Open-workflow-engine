@@ -27,6 +27,7 @@ class HelpController extends Controller
     private array $sections = [
         'Einstieg' => [
             'index' => 'Uebersicht',
+            'about' => 'Ueber dieses Tool & Disclaimer',
             'install' => ['label' => 'Erstinstallation (Web-Installer)', 'any' => ['system.settings']],
             'first-steps' => ['label' => 'Erste Schritte als Admin', 'any' => ['system.settings']],
             'dashboard' => 'Dashboard / Startseite',

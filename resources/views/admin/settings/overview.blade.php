@@ -4,6 +4,21 @@
 
     @include('admin.settings._tabs', ['sections' => $sections, 'current' => 'overview'])
 
+    <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+        <p class="font-semibold text-amber-900">⚠️ Hinweis fuer Administratoren</p>
+        <p class="mt-1 text-amber-800">
+            Open Workflow Engine wurde von
+            <a href="https://loheide.eu" target="_blank" rel="noopener" class="font-medium text-amber-900 underline">Friederich Loheide (loheide.eu)</a>
+            entwickelt — u. a. unter Mithilfe von KI-Code-Generierung.
+        </p>
+        <p class="mt-2 text-amber-800">
+            <strong>Nutzung auf eigenes Risiko.</strong> Keine Gewaehr fuer Fehlerfreiheit, DSGVO-/GoBD-Konformitaet,
+            Datensicherheit oder Folgeschaeden. Vor produktivem Einsatz Backups einrichten, Audit-Trail testen,
+            Berechtigungen prüfen, ggf. extern auditieren lassen.
+            <a href="{{ route('help.show', 'about') }}" class="font-medium text-amber-900 underline">Vollstaendiger Disclaimer →</a>
+        </p>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <a href="{{ route('admin.settings.communication') }}" class="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
             <div class="flex items-center justify-between mb-2">

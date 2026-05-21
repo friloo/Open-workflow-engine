@@ -17,11 +17,23 @@ Eingehende Rechnung per Mail → Kostenstelle automatisch erkannt → richtige P
 
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white&style=flat-square)]()
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white&style=flat-square)]()
-[![Tests](https://img.shields.io/badge/Tests-238%20passing-10B981?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-324%20passing-10B981?style=flat-square)]()
 [![Self-hosted](https://img.shields.io/badge/Self--hosted-✓-0EA5E9?style=flat-square)]()
 [![DSGVO](https://img.shields.io/badge/DSGVO-by%20design-7C3AED?style=flat-square)]()
 [![Revisionssicher](https://img.shields.io/badge/Revisionssicher-SHA--256-F59E0B?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-475569?style=flat-square)]()
+
+**Entwickelt von [Friederich Loheide](https://loheide.eu) · loheide.eu**
+
+> ⚠️ **Wichtiger Hinweis / Haftungsausschluss**
+> Dieses Tool wurde u. a. mit Hilfe von KI-Assistenten generiert.
+> Es wird ohne jegliche Gewaehrleistung bereitgestellt — keine
+> Garantie auf Fehlerfreiheit, keine Haftung fuer Datenverluste,
+> Sicherheitsluecken, regulatorische Konformitaet oder
+> Folgeschaeden aus dem Einsatz. **Vor produktivem Einsatz
+> selbst pruefen, Backups einrichten, Audit-Trail kontrollieren,
+> ggf. extern auditieren lassen.** Mit dem Einsatz akzeptierst du,
+> dass die Verantwortung bei dir liegt.
 
 [**Was kann es?**](#-was-owe-kann) · [**Use-Cases**](#-was-kannst-du-damit-konkret-bauen) · [**Installation**](#-installation-nur-eine-datei-hochladen) · [**Live-Beispiel**](#-live-beispiel-rechnungseingang) · [**Vergleich**](#%EF%B8%8F-owe-vs-saas-vs-selbst-zusammenstecken) · [**Architektur**](#%EF%B8%8F-architektur) · [**Roadmap**](#%EF%B8%8F-roadmap)
 
@@ -866,3 +878,36 @@ Gebaut fuer Mittelstand und Vereine, die ihre Dokumente und Workflows behalten w
 <sub>Wenn dir OWE Zeit oder Cloud-Kosten spart, **freuen wir uns ueber einen Stern ⭐** — und ueber Feedback noch mehr.</sub>
 
 </div>
+
+---
+
+## 👤 Autor & Kontakt
+
+Entwickelt von **[Friederich Loheide](https://loheide.eu)** — `loheide.eu`.
+
+Fragen, Lob, Bug-Reports, Mitarbeit: gerne per Issue oder direkt
+an loheide.eu.
+
+## ⚖️ Disclaimer / Haftungsausschluss
+
+Dieses Tool wurde **u. a. mit Hilfe von KI-Assistenten (Code-Generierung)**
+erstellt. Die Verwendung erfolgt auf eigene Gefahr.
+
+- **Keine Gewaehrleistung** auf Fehlerfreiheit, Vollstaendigkeit oder
+  Eignung fuer einen bestimmten Zweck.
+- **Keine Haftung** fuer Datenverluste, Datenpannen, regulatorische
+  Mangel (DSGVO, GoBD, Auditierbarkeit etc.), Sicherheitsluecken oder
+  Folgeschaeden, die aus dem Betrieb dieser Software entstehen.
+- **Code wurde von KI mit-generiert** und kann subtile Bugs, falsche
+  Annahmen oder unsichere Pattern enthalten — selbst wenn die Test-Suite
+  gruen ist und manuell reviewt wurde.
+- **Du bist verantwortlich** fuer: regelmaessige Backups, Update-Hygiene,
+  Patch-Management, Berechtigungs-Audit, Penetrationstests vor produktivem
+  Einsatz, ggf. externe Auditierung. MIT-Lizenz heisst nicht „garantiert
+  sicher" — sie heisst „nutze auf eigenes Risiko".
+
+Wenn du das Tool fuer GoBD-/Audit-/Compliance-pflichtige Daten
+einsetzt: das ist moeglich (das Tool hat die Bausteine — Hash-Kette,
+Aufbewahrungs-Regeln, Audit-Log, signierte PDFs), aber **die
+Zertifizierungs- und Verfahrensdokumentations-Pflicht liegt bei dir
+und ggf. deinem Wirtschaftspruefer**.
