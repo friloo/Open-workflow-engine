@@ -57,6 +57,28 @@ Accept: application/json
 | GET | `/api/v1/documents/{id}/download` | `documents.read` | Datei-Stream |
 | POST | `/api/v1/documents` | `documents.write` | Multipart-Upload |
 | PATCH | `/api/v1/documents/{id}` | `documents.write` | Indexfelder / Label / Typ updaten |
+| GET | `/api/v1/contracts` | `contracts.view` | Vertraege (visibleTo-Filter) |
+| GET | `/api/v1/contracts/{id}` | `contracts.view` | Vertragsdetail + Anhaenge + Rollen |
+| POST | `/api/v1/contracts` | `contracts.manage` | Vertrag anlegen |
+| PATCH | `/api/v1/contracts/{id}` | `contracts.manage` | Vertrag aktualisieren |
+| POST | `/api/v1/contracts/{id}/attachments` | `contracts.manage` | PDF/Datei am Vertrag anhaengen |
+| GET | `/api/v1/cases` | `documents.search` | Akten-Liste |
+| GET | `/api/v1/cases/{id}` | `documents.search` | Akten-Detail mit Inhalten |
+| POST | `/api/v1/cases` | `documents.search` | Akte anlegen |
+| POST | `/api/v1/cases/{id}/contracts` | `documents.search` | Vertrag an Akte heften |
+| POST | `/api/v1/cases/{id}/workflow-instances` | `documents.search` | Vorgang an Akte heften |
+| POST | `/api/v1/cases/{id}/notes` | `documents.search` | Notiz anlegen |
+| GET | `/api/v1/reports/kpis` | `reports.view` | KPI-Snapshot fuer BI-Tools |
+| GET | `/api/v1/audit-logs` | `audit.view` | Audit-Log lesen (Compliance/SIEM) |
+| GET | `/api/v1/users` | `users.view` | Benutzerliste (Sync mit HR-System) |
+| GET | `/api/v1/users/{id}` | `users.view` | User-Detail |
+| GET | `/api/v1/lists` | `lists.view` | Alle Lookup-Listen |
+| GET | `/api/v1/lists/{slug}/entries` | `lists.view` | Eintraege lesen |
+| POST | `/api/v1/lists/{slug}/entries` | `lists.manage` | Eintrag upserten (z. B. Kostenstelle aus DATEV) |
+| GET | `/api/v1/notifications` | — (eigene) | Eigene In-App-Notifications |
+| POST | `/api/v1/notifications/{id}/read` | — (eigene) | Als gelesen markieren |
+| POST | `/api/v1/notifications/read-all` | — (eigene) | Alle als gelesen |
+| GET | `/api/v1/search?q=…` | — (interne ACL) | Globale Suche ueber alle Bereiche, permission-gehaertet |
 
 Plus der oeffentliche Incoming-Webhook (ohne Token-Auth, aber mit
 HMAC + Token in der URL):

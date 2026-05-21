@@ -57,6 +57,58 @@ Route::middleware('token.auth')->prefix('v1')->group(function () {
         Route::post('/documents', [\App\Http\Controllers\Api\V1\DocumentsApiController::class, 'upload']);
         Route::patch('/documents/{attachment}', [\App\Http\Controllers\Api\V1\DocumentsApiController::class, 'update']);
     });
+
+    // Contracts (read/write via contracts.view / contracts.manage)
+    Route::middleware('token.ability:contracts.view')->group(function () {
+        Route::get('/contracts', [\App\Http\Controllers\Api\V1\ContractsApiController::class, 'index']);
+        Route::get('/contracts/{contract}', [\App\Http\Controllers\Api\V1\ContractsApiController::class, 'show']);
+    });
+    Route::middleware('token.ability:contracts.manage')->group(function () {
+        Route::post('/contracts', [\App\Http\Controllers\Api\V1\ContractsApiController::class, 'store']);
+        Route::patch('/contracts/{contract}', [\App\Http\Controllers\Api\V1\ContractsApiController::class, 'update']);
+        Route::post('/contracts/{contract}/attachments', [\App\Http\Controllers\Api\V1\ContractsApiController::class, 'uploadAttachment']);
+    });
+
+    // Akten (Aktendeckel) — Sichtbarkeit ueber documents.search
+    Route::middleware('token.ability:documents.search')->group(function () {
+        Route::get('/cases', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'index']);
+        Route::get('/cases/{case}', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'show']);
+        Route::post('/cases', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'store']);
+        Route::post('/cases/{case}/contracts', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'attachContract']);
+        Route::post('/cases/{case}/workflow-instances', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'attachWorkflowInstance']);
+        Route::post('/cases/{case}/notes', [\App\Http\Controllers\Api\V1\CasesApiController::class, 'addNote']);
+    });
+
+    // Reports (read-only) — fuer BI-Tools
+    Route::middleware('token.ability:reports.view')
+        ->get('/reports/kpis', [\App\Http\Controllers\Api\V1\ReportsApiController::class, 'kpis']);
+
+    // Audit-Log (read-only) — fuer SIEM/Compliance
+    Route::middleware('token.ability:audit.view')
+        ->get('/audit-logs', [\App\Http\Controllers\Api\V1\AuditLogsApiController::class, 'index']);
+
+    // Users (read-only)
+    Route::middleware('token.ability:users.view')->group(function () {
+        Route::get('/users', [\App\Http\Controllers\Api\V1\UsersApiController::class, 'index']);
+        Route::get('/users/{user}', [\App\Http\Controllers\Api\V1\UsersApiController::class, 'show']);
+    });
+
+    // Lookup-Listen
+    Route::middleware('token.ability:lists.view')->group(function () {
+        Route::get('/lists', [\App\Http\Controllers\Api\V1\ListsApiController::class, 'index']);
+        Route::get('/lists/{list:slug}', [\App\Http\Controllers\Api\V1\ListsApiController::class, 'show']);
+        Route::get('/lists/{list:slug}/entries', [\App\Http\Controllers\Api\V1\ListsApiController::class, 'entries']);
+    });
+    Route::middleware('token.ability:lists.manage')
+        ->post('/lists/{list:slug}/entries', [\App\Http\Controllers\Api\V1\ListsApiController::class, 'storeEntry']);
+
+    // Notifications (eigene)
+    Route::get('/notifications', [\App\Http\Controllers\Api\V1\NotificationsApiController::class, 'index']);
+    Route::post('/notifications/{notification}/read', [\App\Http\Controllers\Api\V1\NotificationsApiController::class, 'markRead']);
+    Route::post('/notifications/read-all', [\App\Http\Controllers\Api\V1\NotificationsApiController::class, 'markAllRead']);
+
+    // Globale Suche (Permissions werden im Controller gehaertet)
+    Route::get('/search', [\App\Http\Controllers\Api\V1\SearchApiController::class, 'search']);
 });
 
 // Incoming-Webhook: oeffentlicher Endpoint, Auth via Token in URL (+ optional HMAC).

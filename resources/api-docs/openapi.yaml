@@ -394,6 +394,322 @@ paths:
         "200":
           description: Detail
 
+  /api/v1/contracts:
+    get:
+      summary: Liste aller fuer den Token-User sichtbaren Vertraege
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.view] }]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string, enum: [active, notice_due, expired] }
+        - in: query
+          name: type_id
+          schema: { type: integer }
+      responses:
+        "200": { description: Vertragsliste }
+    post:
+      summary: Neuen Vertrag anlegen
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.manage] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                party: { type: string }
+                contract_type_id: { type: integer, nullable: true }
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+                notice_period_days: { type: integer }
+                owner_user_id: { type: integer }
+      responses:
+        "201": { description: Angelegt }
+
+  /api/v1/contracts/{contract}:
+    get:
+      summary: Vertragsdetail
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.view] }]
+      parameters:
+        - { in: path, name: contract, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Detail mit Anhaengen + Rollen }
+        "403": { description: Keine Sichtbarkeit }
+    patch:
+      summary: Vertrag aktualisieren
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.manage] }]
+      parameters:
+        - { in: path, name: contract, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Aktualisiert }
+
+  /api/v1/contracts/{contract}/attachments:
+    post:
+      summary: PDF/Datei am Vertrag anhaengen
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.manage] }]
+      parameters:
+        - { in: path, name: contract, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                label: { type: string }
+      responses:
+        "201": { description: Hochgeladen }
+
+  /api/v1/cases:
+    get:
+      summary: Akten-Liste
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      responses:
+        "200": { description: Liste }
+    post:
+      summary: Akte anlegen
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                reference: { type: string }
+                description: { type: string }
+      responses:
+        "201": { description: Angelegt }
+
+  /api/v1/cases/{case}:
+    get:
+      summary: Akten-Detail inkl. verknuepfter Dokumente/Vorgaenge/Vertraege/Notizen
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      parameters:
+        - { in: path, name: case, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Detail }
+
+  /api/v1/cases/{case}/contracts:
+    post:
+      summary: Vertrag an Akte heften
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      parameters:
+        - { in: path, name: case, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contract_id]
+              properties: { contract_id: { type: integer } }
+      responses:
+        "201": { description: Geheftet }
+
+  /api/v1/cases/{case}/workflow-instances:
+    post:
+      summary: Workflow-Vorgang an Akte heften
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      parameters:
+        - { in: path, name: case, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [workflow_instance_id]
+              properties: { workflow_instance_id: { type: integer } }
+      responses:
+        "201": { description: Geheftet }
+
+  /api/v1/cases/{case}/notes:
+    post:
+      summary: Notiz an Akte anfuegen
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      parameters:
+        - { in: path, name: case, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties: { body: { type: string } }
+      responses:
+        "201": { description: Notiz erstellt }
+
+  /api/v1/reports/kpis:
+    get:
+      summary: KPI-Snapshot (Volumen, Lead-Times, SLA, Bottlenecks, Top-Empfaenger)
+      tags: [Reports]
+      security: [{ apiToken: [reports.view] }]
+      parameters:
+        - in: query
+          name: days
+          schema: { type: integer, default: 30, minimum: 7, maximum: 365 }
+      responses:
+        "200": { description: KPI-Objekt }
+
+  /api/v1/audit-logs:
+    get:
+      summary: Audit-Log lesen (Compliance / SIEM)
+      tags: [Audit]
+      security: [{ apiToken: [audit.view] }]
+      parameters:
+        - { in: query, name: event,        schema: { type: string }, description: "Prefix-Filter, z. B. contract." }
+        - { in: query, name: user_id,      schema: { type: integer } }
+        - { in: query, name: from,         schema: { type: string, format: date-time } }
+        - { in: query, name: to,           schema: { type: string, format: date-time } }
+        - { in: query, name: subject_type, schema: { type: string } }
+        - { in: query, name: subject_id,   schema: { type: integer } }
+        - { in: query, name: per_page,     schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        "200": { description: Paginierte Audit-Eintraege }
+
+  /api/v1/users:
+    get:
+      summary: Benutzerliste (read-only)
+      tags: [Users]
+      security: [{ apiToken: [users.view] }]
+      parameters:
+        - { in: query, name: q,           schema: { type: string } }
+        - { in: query, name: role,        schema: { type: string } }
+        - { in: query, name: active_only, schema: { type: boolean } }
+        - { in: query, name: per_page,    schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        "200": { description: Liste }
+
+  /api/v1/users/{user}:
+    get:
+      summary: User-Detail
+      tags: [Users]
+      security: [{ apiToken: [users.view] }]
+      parameters:
+        - { in: path, name: user, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: User-Objekt }
+
+  /api/v1/lists:
+    get:
+      summary: Alle Lookup-Listen
+      tags: [Lists]
+      security: [{ apiToken: [lists.view] }]
+      responses:
+        "200": { description: Listen-Metadaten }
+
+  /api/v1/lists/{slug}:
+    get:
+      summary: Listen-Definition (Spalten)
+      tags: [Lists]
+      security: [{ apiToken: [lists.view] }]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Liste }
+
+  /api/v1/lists/{slug}/entries:
+    get:
+      summary: Eintraege einer Liste
+      tags: [Lists]
+      security: [{ apiToken: [lists.view] }]
+      parameters:
+        - { in: path,  name: slug,     required: true, schema: { type: string } }
+        - { in: query, name: q,        schema: { type: string } }
+        - { in: query, name: per_page, schema: { type: integer, default: 100, maximum: 500 } }
+      responses:
+        "200": { description: Eintraege }
+    post:
+      summary: Eintrag anlegen oder aktualisieren (upsert via key)
+      tags: [Lists]
+      security: [{ apiToken: [lists.manage] }]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key]
+              properties:
+                key:  { type: string }
+                data: { type: object, additionalProperties: true }
+      responses:
+        "200": { description: Aktualisiert }
+        "201": { description: Neu angelegt }
+
+  /api/v1/notifications:
+    get:
+      summary: Eigene In-App-Notifications
+      tags: [Notifications]
+      security: [{ apiToken: [] }]
+      parameters:
+        - { in: query, name: unread_only, schema: { type: boolean } }
+        - { in: query, name: per_page,    schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        "200": { description: Liste }
+
+  /api/v1/notifications/{notification}/read:
+    post:
+      summary: Eigene Notification als gelesen markieren
+      tags: [Notifications]
+      security: [{ apiToken: [] }]
+      parameters:
+        - { in: path, name: notification, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: OK }
+        "403": { description: Fremde Notification }
+
+  /api/v1/notifications/read-all:
+    post:
+      summary: Alle eigenen Notifications als gelesen markieren
+      tags: [Notifications]
+      security: [{ apiToken: [] }]
+      responses:
+        "200": { description: OK }
+
+  /api/v1/search:
+    get:
+      summary: Globale Suche ueber Dokumente, Vertraege, Akten, Workflows, Benutzer
+      description: |
+        Permission-gehaertet: pro Bereich wird nur dann gesucht, wenn der
+        User die entsprechende Permission hat. Liefert pro Bereich max
+        10 Treffer mit URL fuer Deep-Link.
+      tags: [Search]
+      security: [{ apiToken: [] }]
+      parameters:
+        - { in: query, name: q,     required: true, schema: { type: string, minLength: 2, maxLength: 128 } }
+        - { in: query, name: limit, schema: { type: integer, default: 10, minimum: 1, maximum: 50 } }
+      responses:
+        "200":
+          description: |
+            JSON mit den Buckets `documents`, `contracts`, `cases`,
+            `workflows`, `users`. Leere Bucket-Arrays bedeuten "keine
+            Treffer ODER fehlende Permission".
+
 components:
   securitySchemes:
     apiToken:

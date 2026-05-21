@@ -801,7 +801,7 @@ Was schon laeuft (Stand: 303 Tests gruen):
 ✅ **Integrationen**: IMAP-Eingang, Folder-Inbox, Webhooks (in + out), HTTP-Knoten, Microsoft 365 SSO, OIDC (Keycloak/Authentik/Auth0/Okta), Google Workspace SSO, SAML 2.0, LDAP/Active-Directory, Microsoft Teams Notifications, DATEV-Export, KI-Import aus curl/OpenAPI
 ✅ **Mobile / Kalender**: PWA mit Web-Push, iCal-Feed pro User (Outlook/Apple Calendar/Google)
 ✅ **Skalierung optional**: Object-Storage (S3/MinIO/Wasabi), Queue-Worker mit OCR im Hintergrund, MeiliSearch fuer Volltext bei grossen Datenmengen — komplett ueber Admin-UI konfigurierbar
-✅ **API**: REST mit Token-Auth fuer Tasks, Documents, Workflows, Workflow-Instances; OpenAPI/Swagger-Doku im Admin-UI
+✅ **API**: REST mit Token-Auth fuer Tasks, Documents, Workflows, Workflow-Instances, **Vertraege, Akten, Reports/KPIs, Audit-Log, Users, Lookup-Listen, Notifications, globale Suche**; OpenAPI/Swagger-Doku im Admin-UI
 ✅ **DSGVO**: Auskunft (Art. 15) + Anonymisierung (Art. 17) inkl. Audit-Trail
 ✅ **Compliance**: Audit-Hashkette, GoBD-Verfahrensdokumentations-Geruest, Retention-Regeln, immutable Versions
 ✅ **Benachrichtigungen**: pro User Event x Channel Matrix (Mail / In-App / Push), Kontext-Hilfe-Icons, Keyboard-Shortcuts (g+t/g+d/g+w/g+h/?), IT-Support-Modal
