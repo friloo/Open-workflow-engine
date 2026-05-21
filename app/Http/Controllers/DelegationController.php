@@ -21,7 +21,7 @@ class DelegationController extends Controller
             'delegate_reason' => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Wenn der Vertreter geleert wird, raeumen wir die Felder mit.
+        // Wenn der Vertreter geleert wird, räumen wir die Felder mit.
         if (empty($data['delegate_user_id'])) {
             $data = ['delegate_user_id' => null, 'delegate_from' => null, 'delegate_to' => null, 'delegate_reason' => null];
         }

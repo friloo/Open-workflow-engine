@@ -10,7 +10,7 @@
     @include('install._header', ['step' => 2])
 
     <h2>Aus Backup wiederherstellen</h2>
-    <p class="sub">Lade ein <strong>OWE-Backup-ZIP</strong> hoch. DB-Inhalte und alle Anhaenge werden eingespielt — perfekt fuer Umzug auf einen neuen Host.</p>
+    <p class="sub">Lade ein <strong>OWE-Backup-ZIP</strong> hoch. DB-Inhalte und alle Anhänge werden eingespielt — perfekt für Umzug auf einen neuen Host.</p>
 
     @if($error)
         <div class="alert-error">{{ $error }}</div>
@@ -59,25 +59,25 @@
         </div>
 
         <h2>Backup-Datei</h2>
-        <label for="backup_file">ZIP-Datei auswaehlen</label>
+        <label for="backup_file">ZIP-Datei auswählen</label>
         <input id="backup_file" name="backup_file" type="file" accept=".zip" required>
         <p class="sub" style="margin-top:6px;">
-            Max. Upload-Groesse auf diesem Server: <strong>{{ $uploadMaxMb }} MB</strong>
+            Max. Upload-Größe auf diesem Server: <strong>{{ $uploadMaxMb }} MB</strong>
             (begrenzt durch PHP <code>upload_max_filesize</code> / <code>post_max_size</code>).
-            Bei groesseren Backups bitte den Server-Admin um eine hoehere Grenze, oder Backup
-            per FTP nach <code>storage/app/backups/</code> kopieren und ueber CLI
+            Bei größeren Backups bitte den Server-Admin um eine höhere Grenze, oder Backup
+            per FTP nach <code>storage/app/backups/</code> kopieren und über CLI
             <code>php artisan backup:restore &lt;datei&gt;</code> restoren.
         </p>
 
         <div class="alert-error" style="margin-top:12px;">
             <label style="display:flex; gap:8px; align-items:flex-start; margin:0; color:#7f1d1d;">
                 <input type="checkbox" name="confirm" value="1" style="width:auto; margin-top:3px;" required>
-                <span><strong>Mir ist klar:</strong> bestehende Daten (DB und Anhaenge) auf diesem Server werden <u>ueberschrieben</u>.</span>
+                <span><strong>Mir ist klar:</strong> bestehende Daten (DB und Anhänge) auf diesem Server werden <u>überschrieben</u>.</span>
             </label>
         </div>
 
         <div style="margin-top:20px; text-align: right;">
-            <a class="link" href="{{ route('install.welcome') }}">← Zurueck</a>
+            <a class="link" href="{{ route('install.welcome') }}">← Zurück</a>
             &nbsp;&nbsp;
             <button type="submit" class="primary">Backup einspielen →</button>
         </div>

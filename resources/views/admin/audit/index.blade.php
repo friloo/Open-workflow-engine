@@ -13,9 +13,15 @@
             </select>
             <x-secondary-button type="submit">Filtern</x-secondary-button>
         </form>
-        @if(auth()->user()->hasPermission('audit.verify'))
-            <a href="{{ route('admin.audit.verify') }}"><x-primary-button type="button">Integritaetskette pruefen</x-primary-button></a>
-        @endif
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('admin.audit.export_pdf', ['from' => now()->subDays(30)->format('Y-m-d'), 'to' => now()->format('Y-m-d'), 'event' => $filterEvent]) }}"
+               class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                ⬇ PDF-Export (letzte 30 Tage)
+            </a>
+            @if(auth()->user()->hasPermission('audit.verify'))
+                <a href="{{ route('admin.audit.verify') }}"><x-primary-button type="button">Integritätskette prüfen</x-primary-button></a>
+            @endif
+        </div>
     </div>
 
     <x-card>
@@ -34,7 +40,7 @@
                 <tbody class="divide-y divide-slate-100">
                     @forelse($entries as $e)
                         <tr>
-                            <td class="py-3 pr-4 text-slate-700 whitespace-nowrap">{{ $e->created_at?->format('d.m.Y H:i:s') }}</td>
+                            <td class="py-3 pr-4 text-slate-700 whitespace-nowrap"><x-fmt-date :value="$e->created_at" format="d.m.Y H:i:s" /></td>
                             <td class="py-3 pr-4 text-slate-700">{{ $e->user?->name ?? '—' }}</td>
                             <td class="py-3 pr-4"><span class="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ $e->event }}</span></td>
                             <td class="py-3 pr-4 text-slate-700">{{ $e->description }}</td>
@@ -46,7 +52,7 @@
                             <td class="py-3 text-xs font-mono text-slate-500" title="{{ $e->hash }}">{{ \Illuminate\Support\Str::limit($e->hash, 12, '…') }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="py-6 text-center text-slate-500">Keine Eintraege.</td></tr>
+                        <tr><td colspan="6" class="py-6 text-center text-slate-500">Keine Einträge.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -26,6 +26,7 @@ class ProfileUpdateRequest extends FormRequest
             ],
             'phone' => ['nullable', 'string', 'max:64'],
             'email_notifications_enabled' => ['nullable', 'boolean'],
+            'locale' => ['nullable', 'string', Rule::in(array_keys(config('app.available_locales', ['de' => 'Deutsch'])))],
         ];
     }
 

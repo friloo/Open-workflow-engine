@@ -39,7 +39,7 @@
         <h2>Datenbank</h2>
         <label for="driver">Datenbank-Treiber</label>
         <select id="driver" name="driver" onchange="document.getElementById('mysql').style.display = this.value === 'mysql' ? 'block' : 'none';">
-            <option value="sqlite" @selected(old('driver', $defaults['driver']) === 'sqlite')>SQLite (Datei) — empfohlen fuer Shared Hosting</option>
+            <option value="sqlite" @selected(old('driver', $defaults['driver']) === 'sqlite')>SQLite (Datei) — empfohlen für Shared Hosting</option>
             <option value="mysql" @selected(old('driver', $defaults['driver']) === 'mysql')>MySQL / MariaDB</option>
         </select>
 
@@ -69,11 +69,11 @@
         </div>
 
         <div class="alert-info" style="margin-top:16px;">
-            Beim Speichern werden Migrationen + Seed automatisch ausgefuehrt. Das kann ein paar Sekunden dauern.
+            Beim Speichern werden Migrationen + Seed automatisch ausgeführt. Das kann ein paar Sekunden dauern.
         </div>
 
         <div style="margin-top:20px; text-align: right;">
-            <a class="link" href="{{ route('install.welcome') }}">← Zurueck</a>
+            <a class="link" href="{{ route('install.welcome') }}">← Zurück</a>
             &nbsp;&nbsp;
             <button type="submit" class="primary">Speichern & Migrieren →</button>
         </div>

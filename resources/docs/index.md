@@ -1,103 +1,141 @@
-# Open Workflow Engine — Anleitung
+# Open Workflow Engine
 
 Selbst-gehostete Plattform fuer Workflows, Formulare und revisionssichere
-Dokumenten-Ablage.
+Dokumenten-Ablage. Diese Anleitung erklaert, was du mit OWE machen
+kannst und wie alles zusammenpasst.
 
-## Was kannst du damit machen?
+> [!TIP]
+> Wenn du gerade frisch installiert hast, geh direkt zur Seite
+> **[Erste Schritte als Admin](app:help.show?topic=first-steps)** — die
+> fuehrt dich Hand-am-Steuer durch SMTP, Benutzer, Rollen, ersten
+> Workflow.
 
-- **Workflows** automatisieren Genehmigungen und wiederkehrende Pruefungen
-  (z. B. Bestellantrag, Fuehrerschein-Sichtung).
-- **Formulare** sammeln Daten — intern oder oeffentlich ohne Login,
-  mit bedingten Feldern.
-- **Listen** mappen Schluessel (z. B. Kostenstellen) auf Verantwortliche
-  und Eskalations-Personen.
-- **Assets** sind nutzerbezogene Dokumente mit Ablaufdatum (Fuehrerschein,
-  Unterweisung, Zertifikat).
-- **Dokumente** koennen massenhaft hochgeladen, klassifiziert, versioniert
-  und per OCR-Volltext durchsucht werden.
-- **HTTP-Knoten** integriert externe Systeme (Ticketsysteme, ERP, HR) —
-  inkl. **KI-Unterstuetzung** beim Konfigurieren.
-- **PDF-Knoten** erzeugt am Workflow-Ende einen PDF-Beleg aus einem
-  HTML-Template — wird als revisionssicheres Attachment angehaengt.
-- **E-Mail-Eingang** (IMAP) zieht eingehende Mails automatisch in das
-  System: Anhaenge werden klassifiziert und optional starten sie einen
-  Workflow.
-- **Aufbewahrungsregeln** pro Dokumenttyp — taeglich angewendet.
-- **Felder-Schemas pro Dokumenttyp**: pro Dokumenttyp definierst du
-  Felder (Rechnungsnummer, Datum, Kostenstelle, IBAN, ...) und wie sie
-  erkannt werden — Heuristik, Lookup-Liste, Regex oder optional KI.
-- **Postkorb** + **Lookup-Routing**: eingehende Dokumente werden
-  klassifiziert, Kostenstellen aus deiner Liste erkannt, Workflows
-  routen automatisch zum Verantwortlichen.
-- **Vertretungsregelung** pro Benutzer (Urlaubs-tauglich).
-- **Workflow-Statistik**: Durchlaufzeiten, Engpaesse, Throughput.
-- **Genehmigung per Mail** ueber signierten Link — kein Login noetig.
-- **System-Health**-Seite + JSON-Endpoint fuer Monitoring.
-- **2FA**, **API-Tokens**, **In-App-Benachrichtigungen** (Glocke in der
-  Topbar) — Produktiv-Basis.
-- **System-Update** direkt aus der UI (Channel-Factory, signierte
-  Maintenance, atomar).
-- **KI-Workflow-Designer**: gib der KI eine Beschreibung, sie liefert
-  einen kompletten Workflow-Entwurf.
-- **Webhooks** benachrichtigen externe Systeme bei Workflow-Ereignissen.
-- **Secrets-Vault** verwahrt API-Tokens verschluesselt.
-- **Audit-Log** ist hashverkettet und revisionssicher.
+## Was kann OWE?
 
-## Erste Schritte
+OWE besteht aus mehreren Bausteinen, die einzeln nuetzlich sind und
+zusammen mehr ergeben:
 
-Siehe Abschnitt **Erste Schritte**.
+### Genehmigungen automatisieren
 
-## Themen
+- **[Workflows](app:help.show?topic=workflows)** sind Diagramme aus Knoten
+  (Genehmigung, Bedingung, HTTP, PDF, Wait, ...) die du im
+  Drag-and-Drop-Designer baust.
+- **[Formulare](app:help.show?topic=forms)** sammeln Daten — intern mit
+  Login oder oeffentlich ohne. Felder koennen bedingt sein.
+- **[Genehmigung per Mail](app:help.show?topic=mail-approval)** —
+  signierter Link, der Empfaenger klickt „Genehmigen" oder „Ablehnen"
+  ohne sich anzumelden.
+- **[Vertretungsregelung](app:help.show?topic=delegation)** — pro Benutzer
+  konfigurierbar, fuer Urlaub.
+- **[Sub-Workflows & Loops](app:help.show?topic=sub-workflows)** — komplexe
+  Prozesse aus wiederverwendbaren Bausteinen. Plus Switch-Knoten und
+  Aggregator-Knoten fuer Multi-Branch-Routing und Listen-Faltung.
+- **[Benachrichtigungen anpassen](app:help.show?topic=notifications)** —
+  pro Event und Kanal selber entscheiden, was du wann bekommst.
 
-### Einstieg
+### Dokumente verwalten
 
-- **Erstinstallation** — Web-Installer ohne SSH (Wizard)
-- Erste Schritte — Login, Benutzer, erste Liste, erster Workflow
-- **Dashboard / Startseite** — was du beim Login siehst (Tasks,
-  Postkorb, System-Health)
-- **Cookbook: Rechnungseingang einrichten** — Setup von Liste, Schema,
-  IMAP und Workflow in 30 Minuten (Schritt-fuer-Schritt)
+- **[Dokumente](app:help.show?topic=documents)** — Versionierung, OCR-
+  Volltextsuche, Bulk-Upload, Klassifizierung in Archive.
+- **[Felder-Schemas](app:help.show?topic=document-schemas)** — pro
+  Dokumenttyp definierst du Indexfelder (Rechnungsnummer, Betrag, ...)
+  und wie sie aus dem OCR-Text extrahiert werden: Heuristik, Lookup,
+  Regex oder KI.
+- **[Postkorb & Lookup-Routing](app:help.show?topic=inbox-routing)** —
+  eingehende Dokumente werden automatisch klassifiziert und an den
+  richtigen Bearbeiter geroutet.
+- **[ZUGFeRD / XRechnung](app:help.show?topic=zugferd)** — strukturierte
+  E-Rechnungen werden geparsed und ihre Felder direkt nutzbar.
+- **[Aufbewahrungsregeln](app:help.show?topic=retention)** — pro
+  Dokumenttyp Min/Max-Jahre und automatische Aktion nach Ablauf.
+- **[Sharing-Links](app:help.show?topic=sharing)** — externe Freigabe mit
+  Ablauf, Passwort, Audit-Trail.
 
-### Workflows
+### Datenquellen
 
-- Workflows entwerfen — Knotentypen, Bedingungen, doc.\*-Routing, KI-Entwurf
-- **Workflow-Vorlagen** — Import/Export, 3 eingebaute Cookbooks
-  (Rechnungseingang, Urlaubsantrag, Bestellfreigabe)
-- **Workflow-Simulation** — Trockenlauf mit Testdaten vor Aktivierung
-- Workflow-Statistik — Durchlaufzeiten, Engpaesse, Throughput
-- Vertretungsregelung — Urlaubs-Vertretung pro Benutzer
-- Genehmigung per Mail — signierter Link, kein Login noetig
-- KI im Designer — OpenAI/DeepSeek/Ollama als Assistenz
-- Formulare — bedingte Felder, Datei-Uploads, oeffentliche Forms
-
-### Daten
-
-- Listen — Kostenstellen-Mappings, Lookup-Quelle fuer Schemas und Routing
-- Assets — Fuehrerschein/Unterweisung mit Wiedervorlage
-- Dokumente — Versionierung, OCR-Suche, Bulk-Upload, Postkorb
-- **Felder-Schemas pro Dokumenttyp** — Heuristik / Lookup / Regex / KI
-- **Postkorb + Lookup-Routing** — `doc.*` im Workflow, Routing zum
-  Verantwortlichen aus der Liste
-- Aufbewahrungsregeln — Min-/Max-Jahre pro Dokumenttyp, Auto-Aktion
-- Sharing-Links — externe Freigaben mit Cap und Auto-Review
+- **[E-Mail-Eingang (IMAP)](app:help.show?topic=mailbox)** — Postfach
+  abfragen, Anhaenge in Postkorb, optional Workflow starten.
+- **[Folder-Inboxen](app:help.show?topic=folder-inbox)** — Scan-Ordner
+  vom Multifunktionsgeraet, OWE indexiert automatisch.
+- **[Eingehende Webhooks](app:help.show?topic=incoming-webhooks)** —
+  externe Systeme triggern Workflows per HTTP-POST mit HMAC.
 
 ### Integration
 
-- HTTP-Knoten — externe API-Calls mit Secrets, Body-Templates, Response-Mapping
-- PDF-Knoten — HTML-Template am Workflow-Ende, revisionssicher abgelegt
-- E-Mail-Eingang — IMAP-Postfaecher, Anhang -> Dokument, optional Workflow-Trigger
-- Webhooks (outgoing) — HTTP-Events bei Workflow-Aktionen
-- **Eingehende Webhooks** — externe Systeme starten Workflows per POST
-- Microsoft 365 — SSO und Benutzer-Sync
-- API-Tokens — persoenliche Tokens fuer die JSON-API
-- Secrets-Vault — API-Tokens verschluesselt
+- **[HTTP-Knoten](app:help.show?topic=http-node)** — externe APIs aus
+  einem Workflow heraus aufrufen. Mit Body-Templates, Response-Mapping
+  und Secrets.
+- **[PDF-Knoten](app:help.show?topic=pdf-node)** — am Workflow-Ende einen
+  PDF-Beleg aus HTML rendern und revisionssicher anhaengen.
+- **[Webhooks (outgoing)](app:help.show?topic=webhooks)** — Events aus
+  dem Workflow an externe URLs schicken, mit HMAC-Signatur.
+- **[Secrets-Vault](app:help.show?topic=secrets)** — API-Tokens
+  verschluesselt, in HTTP-Knoten als `{{ secret.NAME }}` verwendbar.
+- **[Anmeldung & SSO](app:help.show?topic=sso)** — Microsoft 365,
+  OIDC, Google Workspace, SAML 2.0, LDAP/AD und Benutzer-Sync.
+- **[API-Tokens](app:help.show?topic=api-tokens)** — fuer die JSON-API.
 
-### Betrieb
+### Betrieb & Sicherheit
 
-- Administration — Benutzer, Rollen, Cron, Custom Fields, Branding, DSGVO
-- System-Health — Statusseite + JSON-Endpoint fuer Monitoring
-- System-Update — Update aus der UI, Channel-Factory, atomar
-- **Backup & Restore** — taegliche ZIP-Sicherung, Restore via CLI
-- Zwei-Faktor-Anmeldung — TOTP per Authenticator-App
-- Revisionssicherheit — Audit-Hashkette, immutable Versionen, Datei-Hash
-- Platzhalter-Referenz — alle verfuegbaren `{{ ... }}`-Variablen
+- **[2FA](app:help.show?topic=2fa)** — TOTP per Authenticator-App.
+- **[Revisionssicherheit](app:help.show?topic=revisionssicher)** —
+  Audit-Hashkette, immutable Datei-Versionen, SHA-256 pro Datei.
+- **[System-Health](app:help.show?topic=health)** — Statusseite +
+  JSON-Endpoint fuer Monitoring.
+- **[System-Update](app:help.show?topic=update)** — Update direkt aus
+  der UI, signiert, atomar.
+- **[Backup & Restore](app:help.show?topic=backup)** — taegliche
+  ZIP-Sicherung, Restore via CLI.
+- **[GoBD-Konformitaet](app:help.show?topic=gobd)** — Verfahrens-
+  dokumentation, was deckt OWE technisch ab, was muss der Betreiber
+  selbst tun, WP-Pruefung.
+- **[DSGVO-Anfragen](app:help.show?topic=dsgvo)** — Auskunft + Anonymisierung
+  ueber Admin-UI mit Audit-Trail.
+
+### Skalierung & Performance
+
+- **[Object-Storage](app:help.show?topic=object-storage)** — S3 / MinIO /
+  Wasabi als Anhang-Storage. Pflicht bei Multi-Server-Setups.
+- **[Queue-Worker](app:help.show?topic=queue-worker)** — OCR + schwere
+  Verarbeitung im Hintergrund statt synchron im Upload-Request.
+- **[Volltext-Suche skalieren](app:help.show?topic=search-meilisearch)** —
+  MeiliSearch fuer fuzzy + sub-10ms-Suche bei 100k+ Dokumenten.
+- **[Office-Vorschau](app:help.show?topic=office-preview)** — DOCX / XLSX /
+  PPTX im Browser anzeigen via LibreOffice.
+
+## Wo fange ich an?
+
+Je nachdem wo du stehst:
+
+> [!NOTE]
+> **Du installierst gerade neu** → Geh zu
+> [Erstinstallation](app:help.show?topic=install). Wenn der Installer
+> durchgelaufen ist, kommst du auf das Login.
+
+> [!NOTE]
+> **Frisch eingeloggt, leere Instanz** →
+> [Erste Schritte als Admin](app:help.show?topic=first-steps). 10 Punkte,
+> ein gutes Drittel davon optional.
+
+> [!TIP]
+> **Du willst einen konkreten Use-Case sehen** →
+> [Cookbook: Rechnungseingang](app:help.show?topic=cookbook-rechnungseingang).
+> Zeigt End-to-End wie eine Rechnung per Mail reinkommt, klassifiziert
+> wird und an den Kostenstellen-Verantwortlichen geht — in ca. 30
+> Minuten Setup.
+
+> [!TIP]
+> **Du brauchst eine konkrete Platzhalter-Variable** im Designer →
+> [Platzhalter-Referenz](app:help.show?topic=placeholders).
+
+## Tastatur-Shortcuts
+
+Drueck **Strg+K** (Linux/Windows) oder **Cmd+K** (Mac) irgendwo in der
+App und du bekommst eine **Schnellsuche** ueber Dokumente, Workflows,
+Aufgaben und Benutzer. Druecke **?** fuer die volle Tastatur-Uebersicht.
+
+## Hilfe & Konzepte verlinkt
+
+Links die hier in den Anleitungen auf interne Seiten zeigen
+(z. B. „Geh zu Einstellungen → Mail-Versand") sind echte App-Links —
+ein Klick und du bist da, ohne in der Sidebar zu suchen.

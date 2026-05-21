@@ -17,11 +17,23 @@ Eingehende Rechnung per Mail → Kostenstelle automatisch erkannt → richtige P
 
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white&style=flat-square)]()
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white&style=flat-square)]()
-[![Tests](https://img.shields.io/badge/Tests-190%20passing-10B981?style=flat-square)]()
+[![Tests](https://img.shields.io/badge/Tests-324%20passing-10B981?style=flat-square)]()
 [![Self-hosted](https://img.shields.io/badge/Self--hosted-✓-0EA5E9?style=flat-square)]()
 [![DSGVO](https://img.shields.io/badge/DSGVO-by%20design-7C3AED?style=flat-square)]()
 [![Revisionssicher](https://img.shields.io/badge/Revisionssicher-SHA--256-F59E0B?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-475569?style=flat-square)]()
+
+**Entwickelt von [Friederich Loheide](https://loheide.eu) · loheide.eu**
+
+> ⚠️ **Wichtiger Hinweis / Haftungsausschluss**
+> Dieses Tool wurde u. a. mit Hilfe von KI-Assistenten generiert.
+> Es wird ohne jegliche Gewaehrleistung bereitgestellt — keine
+> Garantie auf Fehlerfreiheit, keine Haftung fuer Datenverluste,
+> Sicherheitsluecken, regulatorische Konformitaet oder
+> Folgeschaeden aus dem Einsatz. **Vor produktivem Einsatz
+> selbst pruefen, Backups einrichten, Audit-Trail kontrollieren,
+> ggf. extern auditieren lassen.** Mit dem Einsatz akzeptierst du,
+> dass die Verantwortung bei dir liegt.
 
 [**Was kann es?**](#-was-owe-kann) · [**Use-Cases**](#-was-kannst-du-damit-konkret-bauen) · [**Installation**](#-installation-nur-eine-datei-hochladen) · [**Live-Beispiel**](#-live-beispiel-rechnungseingang) · [**Vergleich**](#%EF%B8%8F-owe-vs-saas-vs-selbst-zusammenstecken) · [**Architektur**](#%EF%B8%8F-architektur) · [**Roadmap**](#%EF%B8%8F-roadmap)
 
@@ -243,8 +255,13 @@ bauen lassen:
 - 🧪 **Trockenlauf** vor Aktivierung mit Testdaten
 - 📦 **3 Cookbook-Vorlagen** zum Import: Rechnung · Urlaub · Bestellung
 - 🤖 **KI-Designer-Assistent** (OpenAI/DeepSeek/Ollama) — optional
-- 📊 **Statistik**: Durchlaufzeiten · Engpaesse · Throughput
+- 📊 **Reports**: Durchlaufzeiten · SLA-Verletzungen · Bottleneck-Knoten · Top-Empfaenger
 - 🗳️ **Genehmigung per Mail** ueber signierten Link (kein Login noetig)
+- 🖋️ **Auto-PDF-Stempel** ("Genehmigt von X am Y") direkt in die Vertragsdatei
+- 📑 **Vertragsmanagement** mit Vertragsarten, granularer ACL, Frist-Reminder, PDF-Anhaengen
+- 🗂️ **E-Akten** buendeln Dokumente + Vorgaenge + Vertraege + Notizen
+- 📱 **PWA + Web-Push** — Genehmigen unterwegs
+- 📅 **iCal-Feed** pro User — Aufgaben + Vertrags-Fristen im Outlook/Apple Calendar
 
 </td>
 </tr>
@@ -257,6 +274,7 @@ bauen lassen:
 - 📨 **Incoming Webhooks** unter `POST /api/incoming/<token>`
 - 🌐 **HTTP-Knoten** mit Body-Templates, Response-Mapping, **KI-Assistent**
 - 🪟 **Microsoft 365** SSO + Benutzer-Sync (App-only Graph)
+- 🔐 **SSO weiter**: OpenID Connect (Keycloak/Authentik/Auth0/Okta), Google Workspace, SAML 2.0, LDAP / Active Directory
 - 🔑 **JSON-API** unter `/api/v1` mit persoenlichen API-Tokens (Abilities!)
 - 📄 **PDF-Render-Knoten** (HTML → revisionssicheres Attachment)
 - ✅ **Genehmigung per Mail** ueber signierten Link (kein Login noetig)
@@ -754,6 +772,7 @@ Komplette Online-Hilfe in der App unter `/hilfe` (Topbar-Fragezeichen-Icon).
 - Webhooks (outgoing, mit HMAC)
 - Eingehende Webhooks (`/api/incoming/<token>`)
 - Microsoft 365 SSO + Benutzer-Sync
+- OIDC (Keycloak/Authentik/Auth0/Okta), Google Workspace, SAML 2.0, LDAP/AD-Direktbindung
 - API-Tokens (persoenlich, Abilities, Ablauf)
 - Secrets-Vault (Tokens verschluesselt)
 
@@ -779,20 +798,31 @@ und damit auch ausserhalb der App lesbar.
 
 ## 🗺️ Roadmap
 
-Was schon laeuft (Stand: 190 Tests gruen):
+Was schon laeuft (Stand: 303 Tests gruen):
 
-✅ Workflow-Engine, Designer, Versionierung, Vorlagen, Simulation, Statistik
-✅ Approval-Mechaniken (Eskalation, Vertretung, Quorum, Mail-Approval)
-✅ Light-DMS (OCR, Versionen, Schemas, Lookup-Anlernen, Postkorb)
-✅ IMAP-Eingang, Webhooks (in + out), HTTP-Knoten, PDF-Knoten, API
-✅ M365 SSO, KI optional, Secrets-Vault, Sharing-Links
-✅ Web-Installer, UI-Update, Backup/Restore, Audit-Hashkette, 2FA, Health
+✅ **Workflow-Engine** mit Drag-Drop-Designer, Versionen, Simulation, Statistik
+✅ **Knotenpalette** Start/Ende, Approval (mit Quorum + Zusatzfeldern + Auto-Schema + Auto-Stempel), Bedingung, Switch, Aggregator, Notify, HTTP, PDF, Wait, Set-Field, Sub-Workflow, For-each-Loop
+✅ **Approval-Power**: Eskalation, Vertretung, Quorum (all / n-of-m / single), Mail-Approval, konfigurierbare Zusatzfelder beim Genehmigen, **Auto-PDF-Stempel** auf der Vertragsdatei
+✅ **DMS-Kern**: OCR, Versionen, Felder-Schemas, Lookup-Anlernen, Postkorb, Tags, Akten, Sharing-Links mit Auto-Review
+✅ **E-Akten**: Aktendeckel buendeln Dokumente + Workflow-Vorgaenge + Vertraege + Notizen an einem Ort
+✅ **Vertragsmanagement**: Vertragsarten mit eigenen Berechtigungen, pro-Vertrag-ACL, Fristen-Auto-Reminder, PDF-Anhaenge am Vertrag
+✅ **Doku-UI**: Split-View mit Pfeil-Navigation + Preview-Headern + Workflow-Quick-Start, Saved-Searches (auch fuer Tasks), Bulk-Operationen, Notizen + Stempel
+✅ **Mein Eingang**: vereinheitlichte Inbox mit Tabs Aufgaben / Posteingang / Wiedervorlagen + Topbar-Badge
+✅ **Reports & KPIs**: Durchlaufzeiten pro Workflow, SLA-Verletzungen, Top-Verzoegerer-Knoten, Top-Empfaenger, Volumen-Trend
+✅ **Dateiformate**: PDF, Bilder, ZUGFeRD/XRechnung — plus Office (DOCX/XLSX/PPTX) via LibreOffice (optional)
+✅ **Integrationen**: IMAP-Eingang, Folder-Inbox, Webhooks (in + out), HTTP-Knoten, Microsoft 365 SSO, OIDC (Keycloak/Authentik/Auth0/Okta), Google Workspace SSO, SAML 2.0, LDAP/Active-Directory, Microsoft Teams Notifications, DATEV-Export, KI-Import aus curl/OpenAPI
+✅ **Mobile / Kalender**: PWA mit Web-Push, iCal-Feed pro User (Outlook/Apple Calendar/Google)
+✅ **Skalierung optional**: Object-Storage (S3/MinIO/Wasabi), Queue-Worker mit OCR im Hintergrund, MeiliSearch fuer Volltext bei grossen Datenmengen — komplett ueber Admin-UI konfigurierbar
+✅ **API**: REST mit Token-Auth fuer Tasks, Documents, Workflows, Workflow-Instances, **Vertraege, Akten, Reports/KPIs, Audit-Log, Users, Lookup-Listen, Notifications, globale Suche**; OpenAPI/Swagger-Doku im Admin-UI
+✅ **DSGVO**: Auskunft (Art. 15) + Anonymisierung (Art. 17) inkl. Audit-Trail
+✅ **Compliance**: Audit-Hashkette, GoBD-Verfahrensdokumentations-Geruest, Retention-Regeln, immutable Versions
+✅ **Benachrichtigungen**: pro User Event x Channel Matrix (Mail / In-App / Push), Kontext-Hilfe-Icons, Keyboard-Shortcuts (g+t/g+d/g+w/g+h/?), IT-Support-Modal
+✅ **Betrieb**: Web-Installer, UI-Update, Backup/Restore, 2FA, Health, Performance-Audit, Queue-Status
 
 Was noch kommen koennte (Diskussion willkommen):
 
 🌐 i18n / mehrsprachige Oberflaeche (heute: Deutsch)
-📱 Mobile PWA mit Push-Notifications
-🔍 Audit-Log-Suche mit Filtern (User, Event-Typ, Zeitraum)
+🔐 QES-Integration (qualifizierte elektronische Signatur)
 📊 Workflow-Versions-Diff (visueller Vergleich)
 🌃 Dark Mode
 
@@ -821,8 +851,8 @@ php artisan test
 ```
 
 ```
-Tests:    190 passed (595 assertions)
-Duration: ~8 Sekunden
+Tests:    238 passed (747 assertions)
+Duration: ~10 Sekunden
 ```
 
 SQLite `:memory:` in `phpunit.xml` · `RefreshDatabase` pro Test ·
@@ -848,3 +878,36 @@ Gebaut fuer Mittelstand und Vereine, die ihre Dokumente und Workflows behalten w
 <sub>Wenn dir OWE Zeit oder Cloud-Kosten spart, **freuen wir uns ueber einen Stern ⭐** — und ueber Feedback noch mehr.</sub>
 
 </div>
+
+---
+
+## 👤 Autor & Kontakt
+
+Entwickelt von **[Friederich Loheide](https://loheide.eu)** — `loheide.eu`.
+
+Fragen, Lob, Bug-Reports, Mitarbeit: gerne per Issue oder direkt
+an loheide.eu.
+
+## ⚖️ Disclaimer / Haftungsausschluss
+
+Dieses Tool wurde **u. a. mit Hilfe von KI-Assistenten (Code-Generierung)**
+erstellt. Die Verwendung erfolgt auf eigene Gefahr.
+
+- **Keine Gewaehrleistung** auf Fehlerfreiheit, Vollstaendigkeit oder
+  Eignung fuer einen bestimmten Zweck.
+- **Keine Haftung** fuer Datenverluste, Datenpannen, regulatorische
+  Mangel (DSGVO, GoBD, Auditierbarkeit etc.), Sicherheitsluecken oder
+  Folgeschaeden, die aus dem Betrieb dieser Software entstehen.
+- **Code wurde von KI mit-generiert** und kann subtile Bugs, falsche
+  Annahmen oder unsichere Pattern enthalten — selbst wenn die Test-Suite
+  gruen ist und manuell reviewt wurde.
+- **Du bist verantwortlich** fuer: regelmaessige Backups, Update-Hygiene,
+  Patch-Management, Berechtigungs-Audit, Penetrationstests vor produktivem
+  Einsatz, ggf. externe Auditierung. MIT-Lizenz heisst nicht „garantiert
+  sicher" — sie heisst „nutze auf eigenes Risiko".
+
+Wenn du das Tool fuer GoBD-/Audit-/Compliance-pflichtige Daten
+einsetzt: das ist moeglich (das Tool hat die Bausteine — Hash-Kette,
+Aufbewahrungs-Regeln, Audit-Log, signierte PDFs), aber **die
+Zertifizierungs- und Verfahrensdokumentations-Pflicht liegt bei dir
+und ggf. deinem Wirtschaftspruefer**.

@@ -5,7 +5,7 @@
     <x-card>
         @if(auth()->user()->hasTwoFactorEnabled())
             <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-emerald-800 text-sm">
-                <strong>2FA ist aktiviert.</strong> Beim naechsten Login wird zusaetzlich der Code abgefragt.
+                <strong>2FA ist aktiviert.</strong> Beim nächsten Login wird zusaetzlich der Code abgefragt.
             </div>
 
             @if($recoveryCodes)
@@ -30,7 +30,7 @@
             <form method="POST" action="{{ route('two-factor.disable') }}" class="space-y-3" onsubmit="return confirm('2FA wirklich deaktivieren?')">
                 @csrf @method('DELETE')
                 <div>
-                    <x-input-label for="password" value="Passwort zur Bestaetigung" />
+                    <x-input-label for="password" value="Passwort zur Bestätigung" />
                     <x-text-input id="password" name="password" type="password" autocomplete="current-password" required />
                 </div>
                 <button class="inline-flex items-center rounded-lg border border-rose-300 bg-white px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50">2FA deaktivieren</button>
@@ -45,7 +45,7 @@
                     </div>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-xs font-medium text-slate-600">Geheimer Schluessel (manuell eingeben)</label>
+                            <label class="block text-xs font-medium text-slate-600">Geheimer Schlüssel (manuell eingeben)</label>
                             <code class="mt-1 inline-block break-all rounded bg-slate-100 px-2 py-1 text-xs">{{ $pending['secret'] }}</code>
                         </div>
                         <form method="POST" action="{{ route('two-factor.confirm') }}" class="space-y-3">

@@ -33,7 +33,7 @@ class WorkflowDesignerController extends Controller
             'form_schema' => $workflow->currentVersion?->form_schema ?? [],
             'directory' => [
                 'roles' => Role::orderBy('name')->get(['id', 'name', 'slug'])->all(),
-                'users' => User::where('is_active', true)->orderBy('name')
+                'users' => User::humans()->where('is_active', true)->orderBy('name')
                     ->limit(500)->get(['id', 'name', 'email'])->all(),
                 'lists' => \App\Models\LookupList::orderBy('name')
                     ->get(['id', 'name', 'columns'])
@@ -43,6 +43,13 @@ class WorkflowDesignerController extends Controller
                         'has_responsible' => (bool) collect($l->columns)->firstWhere('role', 'responsible'),
                         'has_escalation' => (bool) collect($l->columns)->firstWhere('role', 'escalation'),
                     ])->all(),
+                // Workflows-Liste für die Sub-Workflow- und Loop-Knoten.
+                // Den aktuellen Workflow filtern wir aus — sonst koennte
+                // jemand sich selbst aufrufen (Endlos-Rekursion).
+                'workflows' => \App\Models\Workflow::where('id', '!=', $workflow->id)
+                    ->where('status', \App\Models\Workflow::STATUS_ACTIVE)
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'trigger_type'])->all(),
             ],
             'urls' => [
                 'save' => route('workflows.designer.save', $workflow),
@@ -91,6 +98,19 @@ class WorkflowDesignerController extends Controller
     {
         $versions = $workflow->versions()->with('creator')->paginate(20);
         return view('workflows.versions', compact('workflow', 'versions'));
+    }
+
+    public function versionsDiff(Request $request, Workflow $workflow): View
+    {
+        $a = $request->integer('a');
+        $b = $request->integer('b');
+        $versionsList = $workflow->versions()->orderByDesc('version_number')->get(['id', 'version_number', 'change_summary', 'created_at']);
+
+        $verA = $a ? $workflow->versions()->where('id', $a)->first() : null;
+        $verB = $b ? $workflow->versions()->where('id', $b)->first() : null;
+        $diff = ($verA && $verB) ? app(\App\Services\WorkflowDiffer::class)->diff($verA, $verB) : null;
+
+        return view('workflows.versions_diff', compact('workflow', 'versionsList', 'verA', 'verB', 'diff'));
     }
 
     public function restore(Request $request, Workflow $workflow, WorkflowVersion $version)

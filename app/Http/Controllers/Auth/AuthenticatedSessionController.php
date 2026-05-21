@@ -31,7 +31,7 @@ class AuthenticatedSessionController extends Controller
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            $this->audit->log('auth.login.blocked', $user, null, null, "Login fuer inaktiven Account {$user->email}", $user->id);
+            $this->audit->log('auth.login.blocked', $user, null, null, "Login für inaktiven Account {$user->email}", $user->id);
 
             throw ValidationException::withMessages([
                 'email' => 'Dieses Konto ist deaktiviert.',
@@ -40,7 +40,7 @@ class AuthenticatedSessionController extends Controller
 
         if ($user->hasTwoFactorEnabled()) {
             // Erstes Faktor OK; logge wieder aus und merke die User-ID, bis
-            // der TOTP-Code bestaetigt wurde.
+            // der TOTP-Code bestätigt wurde.
             Auth::guard('web')->logout();
             $request->session()->put('auth.2fa.user_id', $user->id);
             $request->session()->put('auth.2fa.remember', $request->boolean('remember'));

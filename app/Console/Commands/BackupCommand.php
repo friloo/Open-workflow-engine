@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 class BackupCommand extends Command
 {
     protected $signature = 'backup:run';
-    protected $description = 'Erzeugt ein ZIP-Backup (DB + Anhaenge) und entfernt alte gemaess Retention.';
+    protected $description = 'Erzeugt ein ZIP-Backup (DB + Anhänge) und entfernt alte gemäß Retention.';
 
     public function handle(BackupService $service): int
     {

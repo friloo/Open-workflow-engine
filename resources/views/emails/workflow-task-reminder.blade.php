@@ -16,9 +16,9 @@
         <a href="{{ $approveUrl }}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;margin-right:6px;">Genehmigen</a>
         <a href="{{ $rejectUrl }}" style="display:inline-block;background:#e11d48;color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;">Ablehnen</a>
     </p>
-    <p style="color:#64748b;font-size:13px;">Klick auf einen der Buttons leitet auf eine Bestaetigungs-Seite — die Entscheidung wird erst nach dem Klick auf „Bestaetigen" gespeichert.</p>
+    <p style="color:#64748b;font-size:13px;">Klick auf einen der Buttons leitet auf eine Bestätigungs-Seite — die Entscheidung wird erst nach dem Klick auf „Bestätigen" gespeichert.</p>
     <p style="margin:14px 0;">
-        <a href="{{ $taskUrl }}" style="color:#6366f1;text-decoration:underline;font-size:13px;">Aufgabe in OWE oeffnen (mit Login)</a>
+        <a href="{{ $taskUrl }}" style="color:#6366f1;text-decoration:underline;font-size:13px;">Aufgabe in OWE öffnen (mit Login)</a>
     </p>
-    <p style="color:#94a3b8;font-size:12px;">Diese Mail kommt automatisch wenn eine Aufgabe laenger offen ist. Sobald du entscheidest, gibt's keine weiteren Erinnerungen.</p>
+    <p style="color:#94a3b8;font-size:12px;">Diese Mail kommt automatisch wenn eine Aufgabe länger offen ist. Sobald du entscheidest, gibt's keine weiteren Erinnerungen.</p>
 </x-mail::message-layout>

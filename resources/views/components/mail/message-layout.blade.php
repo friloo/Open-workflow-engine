@@ -13,7 +13,7 @@
         {{ $slot }}
       </td></tr>
       <tr><td style="padding:16px 28px;border-top:1px solid #f1f5f9;color:#64748b;font-size:12px;">
-        Diese E-Mail wurde automatisch erzeugt. Falls du keine Workflow-Benachrichtigungen mehr erhalten moechtest, kannst du das in deinen Profil-Einstellungen aendern.
+        Diese E-Mail wurde automatisch erzeugt. Falls du keine Workflow-Benachrichtigungen mehr erhalten möchtest, kannst du das in deinen Profil-Einstellungen ändern.
       </td></tr>
     </table>
   </td></tr>

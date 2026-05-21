@@ -28,7 +28,7 @@
                 </div>
                 <label class="inline-flex items-center gap-2 text-sm">
                     <input type="checkbox" name="use_storage_disk" value="1" @checked(old('use_storage_disk', $inbox->use_storage_disk)) class="rounded border-slate-300 text-indigo-600">
-                    <span>Pfad relativ zu <code>storage/app/</code> (sicherer fuer Shared Hosting)</span>
+                    <span>Pfad relativ zu <code>storage/app/</code> (sicherer für Shared Hosting)</span>
                 </label>
             </div>
         </x-card>
@@ -56,7 +56,7 @@
                 <div>
                     <x-input-label for="after_import" value="Nach erfolgreichem Import" />
                     <select id="after_import" name="after_import" class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="delete" @selected(old('after_import', $inbox->after_import) === 'delete')>Datei loeschen</option>
+                        <option value="delete" @selected(old('after_import', $inbox->after_import) === 'delete')>Datei löschen</option>
                         <option value="move" @selected(old('after_import', $inbox->after_import) === 'move')>In Unterordner verschieben</option>
                     </select>
                 </div>
@@ -78,9 +78,9 @@
     </form>
 
     @if($inbox->exists)
-        <form method="POST" action="{{ route('admin.folder-inboxes.destroy', $inbox) }}" class="mt-6" onsubmit="return confirm('Folder-Inbox loeschen? (Dateien im Ordner bleiben unangetastet)')">
+        <form method="POST" action="{{ route('admin.folder-inboxes.destroy', $inbox) }}" class="mt-6" onsubmit="return confirm('Folder-Inbox löschen? (Dateien im Ordner bleiben unangetastet)')">
             @csrf @method('DELETE')
-            <button class="text-sm text-rose-600 hover:text-rose-500">Folder loeschen</button>
+            <button class="text-sm text-rose-600 hover:text-rose-500">Folder löschen</button>
         </form>
     @endif
 </x-app-layout>

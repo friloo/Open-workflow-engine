@@ -32,7 +32,7 @@
                 @endforeach
 
                 <details class="rounded border border-slate-200 p-2">
-                    <summary class="cursor-pointer text-xs font-medium text-slate-600">Freie Felder hinzufuegen (z. B. doc_attachment_id)</summary>
+                    <summary class="cursor-pointer text-xs font-medium text-slate-600">Freie Felder hinzufügen (z. B. doc_attachment_id)</summary>
                     <div class="mt-2 grid grid-cols-2 gap-2"
                          x-data='{ extras: @json(array_filter($inputData, fn($k) => ! collect($formSchema)->pluck("key")->contains($k), ARRAY_FILTER_USE_KEY)) }'>
                         <template x-for="(v, k) in extras" :key="k">
@@ -47,7 +47,12 @@
                 </details>
 
                 <x-primary-button>Simulieren</x-primary-button>
-                <a href="{{ route('workflows.edit', $workflow) }}" class="ms-3 text-sm text-slate-600 hover:text-slate-900">Zurueck</a>
+                <button type="submit" formaction="{{ route('workflows.simulate.pdf', $workflow) }}"
+                        class="ms-2 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                        title="Trockenlauf direkt als PDF herunterladen (Pre-Production-Check)">
+                    Als PDF
+                </button>
+                <a href="{{ route('workflows.edit', $workflow) }}" class="ms-3 text-sm text-slate-600 hover:text-slate-900">Zurück</a>
             </form>
         </x-card>
 
@@ -55,7 +60,7 @@
             @if($error)
                 <div class="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{{ $error }}</div>
             @elseif($trace === null)
-                <p class="text-sm text-slate-500">Noch nichts simuliert. Felder links ausfuellen und auf <strong>Simulieren</strong> klicken.</p>
+                <p class="text-sm text-slate-500">Noch nichts simuliert. Felder links ausfüllen und auf <strong>Simulieren</strong> klicken.</p>
             @elseif(empty($trace))
                 <p class="text-sm text-slate-500">Lauf war leer.</p>
             @else
@@ -83,7 +88,7 @@
                         </li>
                     @endforeach
                 </ol>
-                <p class="mt-4 text-xs text-slate-500">Hinweis: bei Approval-Knoten nimmt die Simulation immer den „Genehmigt"-Pfad. Fuer „Abgelehnt"-Tests verwendet du am besten Bedingungs-Knoten auf Testfelder.</p>
+                <p class="mt-4 text-xs text-slate-500">Hinweis: bei Approval-Knoten nimmt die Simulation immer den „Genehmigt"-Pfad. Für „Abgelehnt"-Tests verwendet du am besten Bedingungs-Knoten auf Testfelder.</p>
             @endif
         </x-card>
     </div>

@@ -1,6 +1,6 @@
 <x-app-layout>
-    <x-slot name="header">Eingaenge: {{ $form->name }}</x-slot>
-    <x-slot name="subheader">{{ $form->submissions()->count() }} Eingaenge insgesamt.</x-slot>
+    <x-slot name="header">Eingänge: {{ $form->name }}</x-slot>
+    <x-slot name="subheader">{{ $form->submissions()->count() }} Eingänge insgesamt.</x-slot>
 
     <div class="mb-4 flex items-center justify-between">
         <a href="{{ route('forms.edit', $form) }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Formular bearbeiten</a>
@@ -11,7 +11,7 @@
 
     <x-card>
         @if($submissions->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Eingaben.</p>
+            <x-empty-state icon="form" title="Noch keine Eingaben" description="Sobald jemand das öffentliche Formular ausfüllt, taucht es hier auf." />
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">
@@ -32,7 +32,7 @@
                             <tr>
                                 <td class="py-3 pr-4 text-slate-700">#{{ $s->id }}</td>
                                 <td class="py-3 pr-4 text-xs text-slate-600">{{ $s->created_at->format('d.m.Y H:i') }}</td>
-                                <td class="py-3 pr-4 text-slate-700">{{ $s->submittedBy?->name ?? 'oeffentlich' }}</td>
+                                <td class="py-3 pr-4 text-slate-700">{{ $s->submittedBy?->name ?? 'öffentlich' }}</td>
                                 @foreach(array_slice($form->schema ?? [], 0, 3) as $f)
                                     @php($v = $s->data[$f['key']] ?? null)
                                     <td class="py-3 pr-4 text-slate-700 max-w-[180px] truncate">

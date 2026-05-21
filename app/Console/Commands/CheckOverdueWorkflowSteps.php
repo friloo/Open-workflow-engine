@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Mail;
 class CheckOverdueWorkflowSteps extends Command
 {
     protected $signature = 'workflow:check-due {--limit=200}';
-    protected $description = 'Eskaliert ueberfaellige Aufgaben und sendet Reminder vor Fristablauf.';
+    protected $description = 'Eskaliert überfällige Aufgaben und sendet Reminder vor Fristablauf.';
 
     public function handle(WorkflowEngine $engine): int
     {
         $limit = (int) $this->option('limit');
 
-        // Wait-Steps mit faelligem due_at -> Workflow weiterlaufen lassen
+        // Wait-Steps mit fälligem due_at -> Workflow weiterlaufen lassen
         $wakeable = WorkflowStepExecution::query()
             ->whereNull('completed_at')
             ->where('step_type', 'wait')
@@ -36,7 +36,7 @@ class CheckOverdueWorkflowSteps extends Command
             }
         }
 
-        // Eskalation nur fuer Approval-Steps
+        // Eskalation nur für Approval-Steps
         $overdue = WorkflowStepExecution::query()
             ->whereNull('completed_at')
             ->where('step_type', 'approval')

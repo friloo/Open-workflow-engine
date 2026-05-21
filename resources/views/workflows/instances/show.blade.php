@@ -1,23 +1,23 @@
 <x-app-layout :full="true">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div class="mb-4 flex items-center gap-3">
-            <a href="{{ route('workflow-instances.index') }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Vorgaenge</a>
-            <span class="text-slate-300">/</span>
-            <a href="{{ route('workflows.index') }}" class="text-sm text-slate-500 hover:text-slate-700">{{ $instance->workflow->name }}</a>
-        </div>
+        <x-breadcrumbs :items="[
+            ['title' => 'Vorgänge', 'url' => route('workflow-instances.index')],
+            ['title' => $instance->workflow->name, 'url' => route('workflows.index')],
+            ['title' => '#'.$instance->id],
+        ]" class="mb-4" />
 
         <header class="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Vorgang #{{ $instance->id }} · {{ $instance->workflow->name }}</h1>
                 <p class="mt-1 text-sm text-slate-500">
-                    Gestartet {{ $instance->started_at?->format('d.m.Y H:i') }}
-                    @if($instance->starter) von {{ $instance->starter->name }} @else (oeffentlich) @endif
-                    @if($instance->completed_at) · beendet {{ $instance->completed_at->format('d.m.Y H:i') }} @endif
+                    Gestartet <x-fmt-date :value="$instance->started_at" format="d.m.Y H:i" />
+                    @if($instance->starter) von {{ $instance->starter->name }} @else (öffentlich) @endif
+                    @if($instance->completed_at) · beendet <x-fmt-date :value="$instance->completed_at" format="d.m.Y H:i" /> @endif
                 </p>
             </div>
             <div class="flex items-center gap-3">
                 @switch($instance->status)
-                    @case('running')<span class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">laeuft</span>@break
+                    @case('running')<span class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700">läuft</span>@break
                     @case('completed')<span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">abgeschlossen</span>@break
                     @case('cancelled')<span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">abgebrochen</span>@break
                     @case('failed')<span class="inline-flex items-center rounded-full bg-rose-50 px-3 py-1 text-sm font-medium text-rose-700">fehlgeschlagen</span>@break
@@ -31,7 +31,7 @@
                         <div x-show="open" x-transition class="absolute z-30 mt-2 w-80 rounded-lg bg-white p-3 shadow-lg ring-1 ring-slate-200" style="display:none;">
                             <label class="block text-xs font-medium text-slate-700 mb-1">Grund (optional)</label>
                             <textarea name="reason" rows="2" class="mb-2 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-rose-500 focus:ring-rose-500"></textarea>
-                            <button type="submit" class="w-full rounded-lg bg-rose-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-rose-500">Abbrechen bestaetigen</button>
+                            <button type="submit" class="w-full rounded-lg bg-rose-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-rose-500">Abbrechen bestätigen</button>
                         </div>
                     </form>
                 @endif
@@ -52,7 +52,7 @@
 
                 <x-card title="Kommentare">
                     @if($instance->comments->isEmpty())
-                        <p class="text-sm text-slate-500">Noch keine Kommentare.</p>
+                        <x-empty-state title="Noch keine Kommentare" description="Bearbeiter koennen Notizen zu diesem Vorgang hinterlassen." />
                     @else
                         <ul class="space-y-3 mb-4">
                             @foreach($instance->comments as $c)
@@ -63,7 +63,7 @@
                                     <div class="flex-1 rounded-lg bg-slate-50 p-3">
                                         <div class="flex items-baseline justify-between gap-2 text-xs">
                                             <span class="font-medium text-slate-900">{{ $c->user?->name ?? 'System' }}</span>
-                                            <span class="text-slate-500">{{ $c->created_at->diffForHumans() }}</span>
+                                            <span class="text-slate-500"><x-fmt-date :value="$c->created_at" format="relative" /></span>
                                         </div>
                                         <p class="mt-1 whitespace-pre-wrap text-sm text-slate-800">{{ $c->body }}</p>
                                     </div>
@@ -73,7 +73,7 @@
                     @endif
                     <form method="POST" action="{{ route('workflow-instances.comment', $instance) }}" class="space-y-2">
                         @csrf
-                        <textarea name="body" rows="2" required placeholder="Kommentar fuer alle Beteiligten..."
+                        <textarea name="body" rows="2" required placeholder="Kommentar für alle Beteiligten..."
                             class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                         <x-input-error :messages="$errors->get('body')" />
                         <div class="flex justify-end">
@@ -84,7 +84,7 @@
 
                 <x-card title="Schritt-Historie">
                     @if($instance->stepExecutions->isEmpty())
-                        <p class="text-sm text-slate-500">Noch keine Schritte ausgefuehrt.</p>
+                        <x-empty-state title="Noch keine Schritte ausgeführt" description="Sobald der erste Knoten verarbeitet wird, taucht er hier auf." />
                     @else
                         <ol class="relative ms-3 border-s border-slate-200">
                             @foreach($instance->stepExecutions->sortBy('id') as $step)
@@ -102,13 +102,13 @@
                                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                                         <h3 class="text-sm font-semibold text-slate-900">{{ $nodeLabel }}</h3>
                                         <span class="text-xs text-slate-500">
-                                            {{ $step->assigned_at?->format('d.m.Y H:i') }}
-                                            @if($step->completed_at) → {{ $step->completed_at->format('d.m.Y H:i') }}@endif
+                                            <x-fmt-date :value="$step->assigned_at" format="d.m.Y H:i" />
+                                            @if($step->completed_at) → <x-fmt-date :value="$step->completed_at" format="d.m.Y H:i" />@endif
                                         </span>
                                     </div>
                                     <div class="mt-1 text-xs text-slate-600">
                                         Zugewiesen an: {{ $step->assignedUser?->name ?? $step->assignedRole?->name ?? '—' }}
-                                        @if($step->due_at) · Frist {{ $step->due_at->format('d.m.Y H:i') }}@endif
+                                        @if($step->due_at) · Frist <x-fmt-date :value="$step->due_at" format="d.m.Y H:i" />@endif
                                     </div>
                                     @if($step->decision)
                                         <div class="mt-2 inline-flex items-center rounded-md
@@ -136,20 +136,24 @@
 
             <div class="space-y-6">
                 @php($attachments = $instance->attachments)
-            @if($attachments->isNotEmpty())
-                <x-card title="Beigefuegte Dateien">
-                    <ul class="divide-y divide-slate-100">
-                        @foreach($attachments as $a)
-                            <li class="py-2 flex items-center justify-between gap-2 text-sm">
-                                <div class="min-w-0">
-                                    <a href="{{ route('attachments.download', $a) }}" class="font-medium text-indigo-600 hover:text-indigo-500 truncate block" target="_blank">{{ $a->original_name }}</a>
-                                    <div class="text-xs text-slate-500">{{ $a->label }}{{ $a->label ? ' · ' : '' }}{{ $a->sizeFormatted() }} · {{ $a->mime_type }}</div>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                </x-card>
-            @endif
+                <x-dropzone :upload-url="route('attachments.store', ['type'=>'instance','id'=>$instance->id])" label="Datei an diesen Vorgang anhängen">
+                    <x-card title="Beigefuegte Dateien" description="Datei ins Fenster ziehen, um sie an diesen Vorgang anzuhängen.">
+                        @if($attachments->isEmpty())
+                            <p class="text-sm text-slate-500">Noch keine Dateien — zieh einfach welche hier hinein.</p>
+                        @else
+                            <ul class="divide-y divide-slate-100">
+                                @foreach($attachments as $a)
+                                    <li class="py-2 flex items-center justify-between gap-2 text-sm">
+                                        <div class="min-w-0">
+                                            <a href="{{ route('attachments.download', $a) }}" class="font-medium text-indigo-600 hover:text-indigo-500 truncate block" target="_blank">{{ $a->original_name }}</a>
+                                            <div class="text-xs text-slate-500">{{ $a->label }}{{ $a->label ? ' · ' : '' }}{{ $a->sizeFormatted() }} · {{ $a->mime_type }}</div>
+                                        </div>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </x-card>
+                </x-dropzone>
 
             <x-card title="Antragsdaten">
                     @php($schema = $instance->version?->form_schema ?? [])

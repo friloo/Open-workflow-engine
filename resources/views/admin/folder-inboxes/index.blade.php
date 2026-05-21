@@ -11,7 +11,8 @@
             <x-empty-state icon="document" title="Noch keine Folder-Inboxen"
                 description="Lege einen Folder an, z. B. den Scanner-Output-Ordner deines Druckers oder einen FTP-Drop-Ordner." />
         @else
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                     <th class="py-2 pr-4">Name</th>
                     <th class="py-2 pr-4">Pfad</th>
@@ -45,6 +46,7 @@
                     @endforeach
                 </tbody>
             </table>
+</div>
         @endif
     </x-card>
 </x-app-layout>

@@ -30,37 +30,59 @@ class DocumentController extends Controller
 
         $visibleTypes = DocumentTypes::visibleForUser($user);
         $allowAll = $user->hasRole('admin');
+        $includeUnclassified = (bool) \App\Support\Settings::get('attachments.unclassified_visible_for_all', false);
 
-        // Standard: nur die aktuelle Version pro Chain anzeigen.
-        $query = Attachment::with('attachable', 'uploader')
-            ->where('is_current_version', true)
-            ->orderByDesc('id');
-
-        if (! $allowAll) {
-            $includeUnclassified = (bool) \App\Support\Settings::get('attachments.unclassified_visible_for_all', false);
-            $query->where(function ($w) use ($visibleTypes, $includeUnclassified) {
+        // Sichtbarkeits-Filter als Closure, damit wir ihn für Trefferliste UND Archiv-Counts wiederverwenden.
+        $applyVisibility = function ($q) use ($allowAll, $visibleTypes, $includeUnclassified) {
+            if ($allowAll) return $q;
+            return $q->where(function ($w) use ($visibleTypes, $includeUnclassified) {
                 if ($includeUnclassified) $w->whereNull('document_type');
                 if (! empty($visibleTypes)) $w->orWhereIn('document_type', $visibleTypes);
                 if (! $includeUnclassified && empty($visibleTypes)) $w->whereRaw('1=0');
             });
-        }
+        };
 
-        if ($type) {
+        // Anzahl pro Archiv (Dokumenttyp) — eine GROUP-BY-Query.
+        $rawCounts = $applyVisibility(
+            Attachment::query()->where('is_current_version', true)
+        )
+            ->selectRaw('document_type, COUNT(*) as c')
+            ->groupBy('document_type')
+            ->pluck('c', 'document_type')
+            ->all();
+        $archiveCounts = [];
+        $unclassifiedCount = 0;
+        foreach ($rawCounts as $key => $count) {
+            if ($key === null || $key === '') {
+                $unclassifiedCount += (int) $count;
+            } else {
+                $archiveCounts[(string) $key] = (int) $count;
+            }
+        }
+        $totalDocs = array_sum($archiveCounts) + $unclassifiedCount;
+
+        // Standard: nur die aktuelle Version pro Chain anzeigen.
+        // tags + cases eager-laden, damit der Split-View-Preview-Header sie
+        // ohne Extra-Query pro Zeile rendern kann.
+        $query = Attachment::with('attachable', 'uploader', 'tags', 'cases')
+            ->where('is_current_version', true)
+            ->orderByDesc('id');
+        $applyVisibility($query);
+
+        if ($type === '__unclassified__') {
+            $query->whereNull('document_type');
+        } elseif ($type) {
             if (! $allowAll && ! in_array($type, $visibleTypes, true)) abort(403);
             $query->where('document_type', $type);
         }
         if ($status) $query->where('ocr_status', $status);
         if ($q !== '') {
-            $query->where(function ($qq) use ($q) {
-                $qq->where('original_name', 'like', "%{$q}%")
-                   ->orWhere('label', 'like', "%{$q}%")
-                   ->orWhere('ocr_text', 'like', "%{$q}%");
-            });
+            app(\App\Services\Search\DocumentSearch::class)->applyFulltext($query, $q);
         }
 
-        // Filter auf indexed_fields (nur wenn ein Typ gewaehlt ist, denn nur
-        // dann gibt es ein Schema mit erlaubten Schluesseln).
-        $schema = $type ? \App\Support\DocumentFieldSchema::forType((string) $type) : [];
+        // Filter auf indexed_fields (nur wenn ein Typ gewählt ist, denn nur
+        // dann gibt es ein Schema mit erlaubten Schlüsseln).
+        $schema = ($type && $type !== '__unclassified__') ? \App\Support\DocumentFieldSchema::forType((string) $type) : [];
         $activeFieldFilters = [];
         if ($schema && $fieldFilters) {
             $allowedKeys = array_column($schema, 'key');
@@ -70,7 +92,7 @@ class DocumentController extends Controller
                 $field = $byKey[$key];
 
                 if (is_array($rawValue)) {
-                    // Range fuer date / currency / number: ['from' => ..., 'to' => ...]
+                    // Range für date / currency / number: ['from' => ..., 'to' => ...]
                     $from = trim((string) ($rawValue['from'] ?? ''));
                     $to = trim((string) ($rawValue['to'] ?? ''));
                     if ($from === '' && $to === '') continue;
@@ -98,18 +120,30 @@ class DocumentController extends Controller
         return view('documents.index', [
             'documents' => $query->paginate(25)->withQueryString(),
             'types' => $visibleTypes,
+            'archiveCounts' => $archiveCounts,
+            'unclassifiedCount' => $unclassifiedCount,
+            'totalDocs' => $totalDocs,
+            'unclassifiedVisible' => $allowAll || $includeUnclassified,
             'q' => $q,
             'type' => $type,
             'status' => $status,
             'schema' => $schema,
             'fieldFilters' => $activeFieldFilters,
             'ocrAvailability' => $ocr->availability(),
+            // Aktive Workflows fürs 'Workflow starten'-Dropdown im
+            // Preview-Header. Permission-Check passiert serverseitig.
+            'availableWorkflows' => \App\Models\Workflow::where('status', \App\Models\Workflow::STATUS_ACTIVE)
+                ->orderBy('name')->get(['id', 'name']),
+            // Gespeicherte Suchen des aktuellen Users
+            'savedSearches' => \App\Models\SavedSearch::where('user_id', $request->user()->id)
+                ->where('scope', 'documents')
+                ->orderBy('sort_order')->get(['id', 'name', 'params']),
         ]);
     }
 
     /**
      * Exportiert die aktuelle Suche (gleiche Filter wie /dokumente) als
-     * CSV. Inkl. erkannter Felder, falls ein Dokumenttyp gewaehlt ist.
+     * CSV. Inkl. erkannter Felder, falls ein Dokumenttyp gewählt ist.
      */
     public function exportCsv(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
     {
@@ -138,11 +172,7 @@ class DocumentController extends Controller
         }
         if ($status) $query->where('ocr_status', $status);
         if ($q !== '') {
-            $query->where(function ($qq) use ($q) {
-                $qq->where('original_name', 'like', "%{$q}%")
-                   ->orWhere('label', 'like', "%{$q}%")
-                   ->orWhere('ocr_text', 'like', "%{$q}%");
-            });
+            app(\App\Services\Search\DocumentSearch::class)->applyFulltext($query, $q);
         }
 
         $schema = $type ? \App\Support\DocumentFieldSchema::forType((string) $type) : [];
@@ -178,10 +208,10 @@ class DocumentController extends Controller
 
         return response()->streamDownload(function () use ($query, $fieldKeys) {
             $out = fopen('php://output', 'w');
-            // BOM fuer Excel
+            // BOM für Excel
             fwrite($out, "\xEF\xBB\xBF");
             $header = ['id', 'dateiname', 'dokumenttyp', 'beschriftung',
-                'mime', 'groesse_bytes', 'hochgeladen_am', 'hochgeladen_von',
+                'mime', 'größe_bytes', 'hochgeladen_am', 'hochgeladen_von',
                 'ocr_status'];
             foreach ($fieldKeys as $k) {
                 $header[] = 'feld_'.$k;
@@ -213,7 +243,7 @@ class DocumentController extends Controller
     }
 
     /**
-     * Postkorb: alle Anhaenge, die noch keinem Objekt angehaengt sind
+     * Postkorb: alle Anhänge, die noch keinem Objekt angehängt sind
      * (z. B. via IMAP eingegangen, ohne Workflow-Trigger). Pro Zeile kann
      * ein Workflow manuell gestartet werden — die erkannten Felder
      * wandern in den Kontext.
@@ -284,7 +314,7 @@ class DocumentController extends Controller
 
         return redirect()->route('documents.inbox')
             ->with('status', "Workflow {$workflow->name}: {$started} gestartet"
-                .($skipped ? ", {$skipped} ohne Berechtigung uebersprungen" : '').'.');
+                .($skipped ? ", {$skipped} ohne Berechtigung übersprungen" : '').'.');
     }
 
     public function startWorkflow(Request $request, Attachment $attachment): RedirectResponse
@@ -312,7 +342,7 @@ class DocumentController extends Controller
 
         $instance = app(\App\Services\WorkflowEngine::class)->start($workflow, $form, $request->user());
 
-        // Anhang an die Instanz haengen, damit er im Workflow-Viewer sichtbar ist.
+        // Anhang an die Instanz hängen, damit er im Workflow-Viewer sichtbar ist.
         $attachment->update([
             'attachable_type' => $instance->getMorphClass(),
             'attachable_id' => $instance->id,
@@ -328,7 +358,8 @@ class DocumentController extends Controller
 
     public function show(Attachment $attachment, Request $request): View
     {
-        if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
+        // Type-Mapping ODER Kontext (Workflow-Assignee / Asset-Owner).
+        if (! $attachment->visibleTo($request->user())) abort(403);
         $versions = $attachment->versions()->with('uploader')->get();
 
         // ZUGFeRD-Daten ermitteln: erst aus indexed_fields._zugferd (z. B.
@@ -345,16 +376,27 @@ class DocumentController extends Controller
             }
         }
 
+        // Aktive Workflows für den "Workflow starten"-Button (nur die,
+        // bei denen der User auch starten darf).
+        $availableWorkflows = \App\Models\Workflow::where('status', \App\Models\Workflow::STATUS_ACTIVE)
+            ->orderBy('name')->get(['id', 'name'])
+            ->filter(fn ($w) => $request->user()->hasAnyPermission(['workflows.run', 'workflows.design']))
+            ->values();
+
         return view('documents.show', [
             'attachment' => $attachment->load('attachable', 'uploader'),
             'versions' => $versions,
             'zugferdData' => $zugferdData,
+            'availableWorkflows' => $availableWorkflows,
+            'annotations' => \App\Models\PdfAnnotation::where('attachment_id', $attachment->id)
+                ->with('creator')
+                ->orderByDesc('created_at')->get(),
         ]);
     }
 
     /**
-     * Bulk-Aktion auf mehrere ausgewaehlte Dokumente: Typ aendern, Tag
-     * setzen/entfernen, Akte hinzufuegen, archivieren.
+     * Bulk-Aktion auf mehrere ausgewählte Dokumente: Typ ändern, Tag
+     * setzen/entfernen, Akte hinzufügen, archivieren.
      */
     public function bulkAction(Request $request): RedirectResponse
     {
@@ -416,7 +458,7 @@ class DocumentController extends Controller
         if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
 
         $fields = (array) $request->input('fields', []);
-        // Nur erlaubte Schluessel uebernehmen — aus dem Schema.
+        // Nur erlaubte Schlüssel übernehmen — aus dem Schema.
         $schema = \App\Support\DocumentFieldSchema::forType((string) $attachment->document_type);
         $allowed = array_column($schema, 'key');
         $clean = [];
@@ -451,11 +493,25 @@ class DocumentController extends Controller
      * Inline-Preview: setzt Content-Disposition: inline statt attachment,
      * so dass der Browser PDF/Bild direkt anzeigt.
      */
-    public function preview(Attachment $attachment, Request $request): StreamedResponse
+    public function preview(Attachment $attachment, Request $request)
     {
-        if (! DocumentTypes::canViewType($request->user(), $attachment->document_type)) abort(403);
+        if (! $attachment->visibleTo($request->user())) abort(403);
         $disk = Storage::disk($attachment->disk);
         if (! $disk->exists($attachment->path)) abort(404);
+
+        // Office-Dateien on-the-fly nach PDF konvertieren (cached).
+        // Nur wenn LibreOffice verfügbar ist; sonst Default-Streaming.
+        if ($attachment->isOffice() && \App\Services\OfficePreview::isAvailable()) {
+            $pdfPath = app(\App\Services\OfficePreview::class)->convertToPdf($attachment);
+            if ($pdfPath) {
+                return response()->file($pdfPath, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="'.addslashes(pathinfo($attachment->original_name, PATHINFO_FILENAME)).'.pdf"',
+                    'X-Content-Type-Options' => 'nosniff',
+                    'X-Preview-Source' => 'libreoffice',
+                ]);
+            }
+        }
 
         return $disk->response($attachment->path, $attachment->original_name, [
             'Content-Type' => $attachment->mime_type ?: 'application/octet-stream',
@@ -469,6 +525,8 @@ class DocumentController extends Controller
         if (! $request->user()->hasPermission('documents.search')) abort(403);
         $request->validate(['file' => ['required', 'file', 'max:15360']]);
         try {
+            // 'neue Version' ist eine explizite Aktion; Cross-Chain-Hash-Treffer
+            // sind hier sehr unwahrscheinlich und sollen nicht blocken.
             $new = $this->storage->store(
                 $request->file('file'),
                 $attachment->attachable,
@@ -476,6 +534,7 @@ class DocumentController extends Controller
                 $request->user()->id,
                 $attachment->document_type,
                 $attachment,
+                true,
             );
         } catch (\Throwable $e) {
             return back()->withErrors(['file' => $e->getMessage()]);
@@ -486,6 +545,37 @@ class DocumentController extends Controller
             'sha256' => $new->content_hash,
         ], "Neue Version v{$new->version_number} hochgeladen: {$new->original_name}");
         return redirect()->route('documents.show', $new)->with('status', "Neue Version v{$new->version_number} gespeichert.");
+    }
+
+    public function diff(Attachment $attachment, Attachment $other, Request $request): View
+    {
+        if (! $attachment->visibleTo($request->user())) abort(403);
+        if (! $other->visibleTo($request->user())) abort(403);
+
+        // Beide Versionen müssen zur gleichen Versionskette gehören
+        if ($attachment->version_chain_id !== $other->version_chain_id) {
+            abort(404, 'Dokumente gehören zu verschiedenen Versionsketten.');
+        }
+
+        // Reihenfolge: ältere Version links, neuere rechts
+        [$left, $right] = $attachment->version_number <= $other->version_number
+            ? [$attachment, $other]
+            : [$other, $attachment];
+
+        $result = app(\App\Services\DocumentDiffer::class)->diff($left, $right);
+
+        $this->audit->log('document.diff_viewed', $left, null, [
+            'chain' => $left->version_chain_id,
+            'left' => $left->version_number,
+            'right' => $right->version_number,
+        ], "Diff angesehen: v{$left->version_number} ↔ v{$right->version_number} von '{$left->original_name}'");
+
+        return view('documents.diff', [
+            'left' => $left,
+            'right' => $right,
+            'allVersions' => $left->versions()->with('uploader')->get(),
+            'result' => $result,
+        ]);
     }
 
     public function bulkUploadShow(): View
@@ -504,19 +594,33 @@ class DocumentController extends Controller
             'document_type' => ['nullable', 'string', 'max:64'],
             'label' => ['nullable', 'string', 'max:128'],
         ]);
-        $ok = 0; $errors = [];
+        $ok = 0; $skipped = 0; $errors = [];
         foreach ($request->file('files') as $file) {
             try {
                 $this->storage->store($file, null, $data['label'] ?? null, $request->user()->id, $data['document_type'] ?? null);
                 $ok++;
+            } catch (\App\Exceptions\DuplicateAttachmentException $e) {
+                // Duplikat — silent skippen, im Status-Bericht zaehlen.
+                $skipped++;
+                $errors[] = $file->getClientOriginalName().': bereits vorhanden seit '
+                    .$e->original->created_at->format('d.m.Y H:i')
+                    .' (#'.$e->original->id.').';
             } catch (\Throwable $e) {
                 $errors[] = $file->getClientOriginalName().': '.$e->getMessage();
             }
         }
         $this->audit->log('documents.bulk_uploaded', null, null, [
-            'imported' => $ok, 'errors' => count($errors), 'type' => $data['document_type'] ?? null,
-        ], "Bulk-Upload: {$ok} Dateien", $request->user()->id);
-        return redirect()->route('documents.index')->with('status', "Hochgeladen: {$ok} Dateien.".(count($errors) ? ' '.count($errors).' Fehler.' : ''))
+            'imported' => $ok, 'skipped_duplicates' => $skipped,
+            'errors' => count($errors) - $skipped,
+            'type' => $data['document_type'] ?? null,
+        ], "Bulk-Upload: {$ok} Dateien" . ($skipped ? ", {$skipped} Duplikat(e) übersprungen" : ''),
+        $request->user()->id);
+
+        $status = "Hochgeladen: {$ok} Dateien.";
+        if ($skipped) $status .= " {$skipped} Duplikat(e) übersprungen.";
+        $realErrors = count($errors) - $skipped;
+        if ($realErrors > 0) $status .= " {$realErrors} Fehler.";
+        return redirect()->route('documents.index')->with('status', $status)
             ->with('uploadErrors', $errors);
     }
 }

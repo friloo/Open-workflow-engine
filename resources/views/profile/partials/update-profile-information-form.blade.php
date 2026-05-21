@@ -17,6 +17,19 @@
             <x-input-label for="phone" value="Telefon" />
             <x-text-input id="phone" name="phone" type="text" :value="old('phone', $user->phone)" />
         </div>
+        @php($locales = config('app.available_locales', ['de' => 'Deutsch']))
+        @if(count($locales) > 1)
+            <div>
+                <x-input-label for="locale" value="Sprache / Language" />
+                <select id="locale" name="locale" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">— {{ __('Standard') }} —</option>
+                    @foreach($locales as $code => $label)
+                        <option value="{{ $code }}" @selected(old('locale', $user->locale) === $code)>{{ $label }}</option>
+                    @endforeach
+                </select>
+                <x-input-error :messages="$errors->get('locale')" />
+            </div>
+        @endif
     </div>
 
     <label class="inline-flex items-center gap-2 text-sm text-slate-700">

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Optionaler KI-Extraktor. Schickt OCR-Text + Feld-Schema an die
  * konfigurierte OpenAI-kompatible KI und erwartet ein JSON-Objekt
- * mit den gewuenschten Schluesseln zurueck.
+ * mit den gewünschten Schlüsseln zurück.
  *
  * Wird nur aufgerufen, wenn die KI konfiguriert ist UND ein Feld
  * explizit `extractor=ki` oder `ki_fallback=true` hat.
@@ -18,7 +18,7 @@ class AIFieldExtractor
 
     public function isAvailable(): bool
     {
-        return $this->ai->isConfigured();
+        return $this->ai->isReady() && $this->ai->isFeatureEnabled('field_extract');
     }
 
     /**
@@ -36,11 +36,11 @@ class AIFieldExtractor
         // Begrenzen, damit wir nicht ins Token-Limit laufen.
         $ctx = mb_substr($context, 0, 12000);
 
-        $system = 'Du extrahierst strukturierte Werte aus deutschen Geschaeftsdokumenten. '
-            .'Liefere AUSSCHLIESSLICH ein JSON-Objekt mit den vorgegebenen Schluesseln. '
-            .'Datumsfelder im Format YYYY-MM-DD. Betraege als Dezimalzahl mit Punkt ("1234.56"). '
+        $system = 'Du extrahierst strukturierte Werte aus deutschen Geschäftsdokumenten. '
+            .'Liefere AUSSCHLIESSLICH ein JSON-Objekt mit den vorgegebenen Schlüsseln. '
+            .'Datumsfelder im Format YYYY-MM-DD. Beträge als Dezimalzahl mit Punkt ("1234.56"). '
             .'Wenn ein Feld nicht eindeutig erkennbar ist, setze den Wert auf null. '
-            .'Keine Erklaerungen, kein Markdown, nur JSON.';
+            .'Keine Erklärungen, kein Markdown, nur JSON.';
 
         $user = "Schema (JSON):\n".json_encode($schemaForPrompt, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
             ."\n\nDokumenttext:\n".$ctx;

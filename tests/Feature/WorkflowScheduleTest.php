@@ -22,7 +22,7 @@ class WorkflowScheduleTest extends TestCase
             '2' => ['id'=>2,'name'=>'approval','class'=>'approval','data'=>['label'=>'Pruefen','recipient_type'=>'supervisor_of_initiator','grace_value'=>1,'grace_unit'=>'days'],'inputs'=>['input_1'=>[]],'outputs'=>['output_1'=>['connections'=>[]],'output_2'=>['connections'=>[]]]],
         ]]]];
         $wf = Workflow::create([
-            'name' => 'Fuehrerschein-Check', 'slug' => 'fuehrerschein-check',
+            'name' => 'Führerschein-Check', 'slug' => 'führerschein-check',
             'trigger_type' => 'recurring', 'status' => 'active',
             'created_by' => $admin->id, 'updated_by' => $admin->id,
         ]);
@@ -45,7 +45,7 @@ class WorkflowScheduleTest extends TestCase
         $schedule = WorkflowSchedule::create([
             'workflow_id' => $workflow->id,
             'subject_user_id' => $employee->id,
-            'subject_label' => 'Fuehrerschein Klasse B',
+            'subject_label' => 'Führerschein Klasse B',
             'interval_value' => 6, 'interval_unit' => 'months',
             'next_run_at' => now()->subDay(),
             'is_active' => true,
@@ -61,7 +61,7 @@ class WorkflowScheduleTest extends TestCase
 
         $instance = $workflow->instances()->first();
         $this->assertSame($employee->id, $instance->started_by);
-        $this->assertSame('Fuehrerschein Klasse B', $instance->data['subject_label']);
+        $this->assertSame('Führerschein Klasse B', $instance->data['subject_label']);
         $this->assertSame($employee->id, $instance->data['subject_user_id']);
 
         // Resulting task should be assigned to the supervisor.

@@ -22,7 +22,7 @@ class FormSchemaValidator
             if (! $key) continue;
             $attributes[$key] = $field['label'] ?? $key;
             // show_if: Wenn Feld serverseitig nicht sichtbar ist, ignoriere
-            // die Pflichtfeld-Pruefung.
+            // die Pflichtfeld-Prüfung.
             $visible = $this->isVisible($field, $input);
             $rule = [];
             $rule[] = ($field['required'] ?? false) && $visible ? 'required' : 'nullable';

@@ -45,7 +45,7 @@ class WorkflowInstanceViewTest extends TestCase
 
         $this->actingAs($admin)->get(route('workflow-instances.index'))
             ->assertOk()
-            ->assertSee('Vorgaenge')
+            ->assertSee('Vorgänge')
             ->assertSee('WF');
     }
 

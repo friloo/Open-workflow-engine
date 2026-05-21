@@ -12,7 +12,11 @@
         "laravel/framework": "^11.31",
         "laravel/socialite": "^5.27",
         "laravel/tinker": "^2.9",
+        "minishlink/web-push": "^10.0",
+        "onelogin/php-saml": "^4.3",
         "pragmarx/google2fa": "^9.0",
+        "setasign/fpdi-fpdf": "^2.3",
+        "smalot/pdfparser": "^2.12",
         "socialiteproviders/microsoft-azure": "^5.2",
         "webklex/laravel-imap": "^6.2"
     },
@@ -30,7 +34,8 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "Updater\\": "updater/src/"
         }
     },
     "autoload-dev": {

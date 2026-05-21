@@ -94,7 +94,7 @@ class TemplateController extends Controller
 
         $payload = json_decode($raw, true);
         if (! is_array($payload)) {
-            return back()->withErrors(['file' => 'Ungueltiges JSON.']);
+            return back()->withErrors(['file' => 'Ungültiges JSON.']);
         }
 
         $v = Validator::make($payload, [
@@ -139,7 +139,7 @@ class TemplateController extends Controller
         ], "Workflow {$workflow->name} importiert");
 
         return redirect()->route('workflows.design', $workflow)
-            ->with('status', 'Vorlage importiert — noch im Entwurf, bitte pruefen und aktivieren.');
+            ->with('status', 'Vorlage importiert — noch im Entwurf, bitte prüfen und aktivieren.');
     }
 
     /** @return array<int, array{slug:string,name:string,description:string,trigger_type:string,filename:string}> */

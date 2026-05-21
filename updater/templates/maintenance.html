@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Update läuft</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #0f172a;
+           display: grid; place-items: center; min-height: 100vh; margin: 0; }
+    .box { background: white; padding: 2rem 2.5rem; border-radius: 1rem;
+           box-shadow: 0 4px 14px rgba(0,0,0,0.06); text-align: center; max-width: 24rem; }
+    h1 { margin: 0 0 0.5rem; font-size: 1.25rem; }
+    p { margin: 0; color: #475569; font-size: 0.9rem; }
+    .spinner { display: inline-block; width: 1.5rem; height: 1.5rem; border: 3px solid #e2e8f0;
+               border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite;
+               margin-bottom: 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="box">
+    <div class="spinner"></div>
+    <h1>System-Update läuft</h1>
+    <p>Bitte in wenigen Sekunden neu laden.</p>
+</div>
+</body>
+</html>

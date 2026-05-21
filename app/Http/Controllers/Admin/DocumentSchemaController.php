@@ -68,7 +68,7 @@ class DocumentSchemaController extends Controller
 
         $this->audit->log('settings.document_schema.updated', null, null,
             ['document_type' => $type, 'fields' => collect($clean)->pluck('key')->all()],
-            "Schema fuer {$type} aktualisiert", $request->user()->id);
+            "Schema für {$type} aktualisiert", $request->user()->id);
 
         return redirect()->route('admin.document_schemas.edit', $type)
             ->with('status', 'Schema gespeichert.');
@@ -91,8 +91,8 @@ class DocumentSchemaController extends Controller
 
         $this->audit->log('attachments.reindexed', null, null,
             ['document_type' => $type, 'count' => $n],
-            "Felder fuer {$n} Anhaenge ({$type}) neu extrahiert", $request->user()->id);
+            "Felder für {$n} Anhänge ({$type}) neu extrahiert", $request->user()->id);
 
-        return back()->with('status', "{$n} Anhaenge neu indexiert.");
+        return back()->with('status', "{$n} Anhänge neu indexiert.");
     }
 }

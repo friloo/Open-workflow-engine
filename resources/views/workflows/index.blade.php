@@ -1,5 +1,8 @@
 <x-app-layout>
-    <x-slot name="header">Workflows</x-slot>
+    <x-slot name="header">
+        Workflows
+        <x-help-hint topic="workflows" label="Anleitung Workflows" />
+    </x-slot>
     <x-slot name="subheader">Entwerfe und verwalte deine Automatisierungen.</x-slot>
 
     @if(auth()->user()->hasPermission('workflows.design'))
@@ -64,7 +67,7 @@
                         <th class="py-2 pr-4">Trigger</th>
                         <th class="py-2 pr-4">Status</th>
                         <th class="py-2 pr-4">Aktuelle Version</th>
-                        <th class="py-2 pr-4">Geaendert</th>
+                        <th class="py-2 pr-4">Geändert</th>
                         <th class="py-2"></th>
                     </tr>
                 </thead>
@@ -97,7 +100,7 @@
                                 @endif
                             </td>
                             <td class="py-3 pr-4 text-xs text-slate-500">
-                                {{ $w->updated_at?->diffForHumans() }}
+                                <x-fmt-date :value="$w->updated_at" format="relative" />
                                 @if($w->updater)
                                     <div>von {{ $w->updater->name }}</div>
                                 @endif
@@ -107,10 +110,11 @@
                                     <a href="{{ route('workflows.start', $w) }}" class="text-sm font-semibold text-emerald-700 hover:text-emerald-600">Starten</a>
                                 @endif
                                 <a href="{{ route('workflows.design', $w) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Designer</a>
+                                <a href="{{ route('workflows.process_doc', $w) }}" class="text-sm text-slate-600 hover:text-slate-900" title="Prozessbeschreibung als PDF herunterladen">PDF-Doku</a>
                                 @if(auth()->user()->hasPermission('workflows.design'))
                                     <a href="{{ route('workflows.edit', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Metadaten</a>
                                     <a href="{{ route('workflows.versions', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Versionen</a>
-                                    <a href="{{ route('workflows.instances', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Vorgaenge ({{ $w->instances_count ?? 0 }})</a>
+                                    <a href="{{ route('workflows.instances', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Vorgänge ({{ $w->instances_count ?? 0 }})</a>
                                     @if($w->trigger_type==='recurring')
                                         <a href="{{ route('workflows.schedules.index', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Wiedervorlagen</a>
                                     @endif
@@ -121,7 +125,7 @@
                         <tr><td colspan="6">
                             <x-empty-state icon="workflow"
                                 title="Noch keine Workflows angelegt"
-                                description="Starte mit einer Vorlage (Bestellantrag, Krankmeldung, Fuehrerschein-Pruefung) oder lass die KI dir einen Entwurf bauen.">
+                                description="Starte mit einer Vorlage (Bestellantrag, Krankmeldung, Führerschein-Prüfung) oder lass die KI dir einen Entwurf bauen.">
                                 @if(auth()->user()->hasPermission('workflows.design'))
                                     <a href="{{ route('workflows.create') }}"><x-primary-button type="button">Neuer Workflow</x-primary-button></a>
                                     <a href="{{ route('help.show', 'workflows') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>

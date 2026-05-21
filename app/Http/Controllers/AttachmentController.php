@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\Attachment;
+use App\Models\Contract;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Models\WorkflowInstance;
@@ -20,7 +21,7 @@ class AttachmentController extends Controller
         private readonly AuditLogger $audit,
     ) {}
 
-    public function store(Request $request, string $type, int $id): RedirectResponse
+    public function store(Request $request, string $type, int $id)
     {
         $request->validate([
             'file' => ['required', 'file', 'max:15360'],
@@ -38,8 +39,20 @@ class AttachmentController extends Controller
                 $request->input('label'),
                 $request->user()->id,
                 $request->input('document_type'),
+                null,
+                (bool) $request->boolean('force'),
             );
+        } catch (\App\Exceptions\DuplicateAttachmentException $e) {
+            $msg = $e->getMessage().' Original: '.route('documents.show', $e->original).'. '
+                .'Trotzdem hochladen? Setze beim erneuten Senden das Feld "force=1".';
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['ok' => false, 'error' => $msg, 'duplicate' => true], 409);
+            }
+            return back()->withErrors(['file' => $msg]);
         } catch (\Throwable $e) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+            }
             return back()->withErrors(['file' => $e->getMessage()]);
         }
 
@@ -51,6 +64,16 @@ class AttachmentController extends Controller
             'sha256' => $attachment->content_hash,
         ], "Datei {$attachment->original_name} hochgeladen (sha256: ".substr($attachment->content_hash, 0, 12).")");
 
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'ok' => true,
+                'id' => $attachment->id,
+                'name' => $attachment->original_name,
+                'size' => $attachment->size,
+                'mime' => $attachment->mime_type,
+                'url' => route('documents.show', $attachment),
+            ]);
+        }
         return back()->with('status', "Datei {$attachment->original_name} hochgeladen.");
     }
 
@@ -60,8 +83,8 @@ class AttachmentController extends Controller
         $result = app(\App\Services\AttachmentStorage::class)->verifyAll();
         $this->audit->log('attachments.integrity_checked', null, null, [
             'checked' => $result['checked'], 'broken' => count($result['broken']),
-        ], "Integritaetspruefung: {$result['checked']} geprueft, ".count($result['broken'])." auffaellig", $request->user()->id);
-        return back()->with('status', "Integritaet geprueft: {$result['checked']} Dateien, ".count($result['broken'])." auffaellig.")
+        ], "Integritätsprüfung: {$result['checked']} geprüft, ".count($result['broken'])." auffällig", $request->user()->id);
+        return back()->with('status', "Integrität geprüft: {$result['checked']} Dateien, ".count($result['broken'])." auffällig.")
             ->with('integrityBroken', $result['broken']);
     }
 
@@ -76,8 +99,8 @@ class AttachmentController extends Controller
         $this->ensureUploadAllowed($attachment->attachable, $request);
         $snapshot = $attachment->only(['id', 'original_name', 'attachable_type', 'attachable_id']);
         $attachment->delete();
-        $this->audit->log('attachment.deleted', null, $snapshot, null, "Datei {$snapshot['original_name']} geloescht");
-        return back()->with('status', 'Datei geloescht.');
+        $this->audit->log('attachment.deleted', null, $snapshot, null, "Datei {$snapshot['original_name']} gelöscht");
+        return back()->with('status', 'Datei gelöscht.');
     }
 
     private function resolveAttachable(string $type, int $id, Request $request)
@@ -86,6 +109,7 @@ class AttachmentController extends Controller
             'asset' => Asset::findOrFail($id),
             'form-submission' => FormSubmission::findOrFail($id),
             'instance' => WorkflowInstance::findOrFail($id),
+            'contract' => Contract::findOrFail($id),
             default => abort(404),
         };
     }
@@ -98,15 +122,25 @@ class AttachmentController extends Controller
             return;
         }
         if ($attachable instanceof WorkflowInstance) {
-            // Initiator oder Workflow-Designer / Admin
-            if ($attachable->started_by !== $user->id
-                && ! $user->hasAnyPermission(['workflows.design'])) {
-                abort(403);
-            }
-            return;
+            // Initiator, Workflow-Designer, oder aktueller/früherer Assignee
+            // eines Steps auf dieser Instanz dürfen Dateien anhängen.
+            if ($attachable->started_by === $user->id) return;
+            if ($user->hasAnyPermission(['workflows.design'])) return;
+            $isAssignee = WorkflowStepExecution::where('workflow_instance_id', $attachable->id)
+                ->where(function ($q) use ($user) {
+                    $q->where('assigned_to_user_id', $user->id)
+                      ->orWhereIn('assigned_to_role_id', $user->roles->pluck('id'));
+                })->exists();
+            if ($isAssignee) return;
+            abort(403);
         }
         if ($attachable instanceof FormSubmission) {
             if (! $user->hasPermission('forms.manage')) abort(403);
+            return;
+        }
+        if ($attachable instanceof Contract) {
+            // Wer den Vertrag bearbeiten darf, darf auch Anhänge hochladen
+            if (! $attachable->userCanManage($user)) abort(403);
             return;
         }
         abort(403);
@@ -117,7 +151,7 @@ class AttachmentController extends Controller
         $user = $request->user();
         $att = $a->attachable;
 
-        // Admins/Workflow-Designer und Asset-/Form-Manager duerfen alles
+        // Admins/Workflow-Designer und Asset-/Form-Manager dürfen alles
         if ($user->hasAnyPermission(['workflows.design', 'audit.view'])) return;
 
         if ($att instanceof Asset) {
@@ -136,6 +170,11 @@ class AttachmentController extends Controller
         }
         if ($att instanceof FormSubmission) {
             if ($user->hasPermission('forms.view')) return;
+        }
+        if ($att instanceof Contract) {
+            // Wer den Vertrag sehen darf, darf auch dessen Anhänge laden
+            $visible = Contract::query()->visibleTo($user)->whereKey($att->id)->exists();
+            if ($visible) return;
         }
         abort(403);
     }

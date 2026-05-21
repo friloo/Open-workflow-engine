@@ -150,7 +150,7 @@ class ShareLinkTest extends TestCase
             'attachment_id' => $att->id, 'created_by' => $admin->id,
             'expires_at' => now()->addMonths(2),
         ]);
-        // Pruefung wurde vor 5 Tagen verschickt — Reaktionsfrist (3 Tage) ist abgelaufen
+        // Prüfung wurde vor 5 Tagen verschickt — Reaktionsfrist (3 Tage) ist abgelaufen
         $share->forceFill(['last_review_sent_at' => now()->subDays(5)])->save();
 
         $this->artisan('shares:review')->assertSuccessful();

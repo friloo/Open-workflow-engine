@@ -7,9 +7,9 @@ use App\Models\WorkflowVersion;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Trockenlauf eines Workflows: laeuft die Engine, persistiert NICHTS,
+ * Trockenlauf eines Workflows: läuft die Engine, persistiert NICHTS,
  * verschickt KEINE Mails / HTTP-Calls / Webhooks. Liefert einen Trace
- * mit jedem besuchten Knoten und der Begruendung der Verzweigung.
+ * mit jedem besuchten Knoten und der Begründung der Verzweigung.
  *
  * Implementierung: kapselt den Lauf in DB::transaction mit Rollback,
  * sodass jegliche DB-Schreiboperation neutralisiert wird. Wir
@@ -104,7 +104,7 @@ class WorkflowSimulator
                 $assignee = $this->describeAssignee($node['data'] ?? [], $data, $initiator);
                 $trace[] = ['node_id' => $nodeId, 'class' => 'approval', 'label' => $label,
                     'action' => "Aufgabe an: {$assignee}",
-                    'note' => 'Simulation nimmt automatisch "approved" als naechsten Pfad.'];
+                    'note' => 'Simulation nimmt automatisch "approved" als nächsten Pfad.'];
                 $next = $this->firstTarget($node, 'output_1');
                 if ($next) $this->walk($version, $next, $data, $initiator, $trace, $depth + 1);
                 break;
@@ -120,14 +120,14 @@ class WorkflowSimulator
             case 'http':
                 $url = data_get($node, 'data.url', '—');
                 $trace[] = ['node_id' => $nodeId, 'class' => 'http', 'label' => $label,
-                    'action' => "HTTP-Call: {$url} (in Simulation NICHT ausgefuehrt)"];
+                    'action' => "HTTP-Call: {$url} (in Simulation NICHT ausgeführt)"];
                 $next = $this->firstTarget($node, 'output_1');
                 if ($next) $this->walk($version, $next, $data, $initiator, $trace, $depth + 1);
                 break;
 
             case 'pdf_render':
                 $trace[] = ['node_id' => $nodeId, 'class' => 'pdf_render', 'label' => $label,
-                    'action' => 'PDF wuerde erzeugt (in Simulation NICHT geschrieben)'];
+                    'action' => 'PDF würde erzeugt (in Simulation NICHT geschrieben)'];
                 $next = $this->firstTarget($node, 'output_1');
                 if ($next) $this->walk($version, $next, $data, $initiator, $trace, $depth + 1);
                 break;
@@ -148,7 +148,7 @@ class WorkflowSimulator
         }
         if ($type === 'role') {
             $r = $d['recipient_role_id'] ? \App\Models\Role::find($d['recipient_role_id']) : null;
-            return $r ? "Rolle {$r->name}" : 'Rolle (nicht gewaehlt)';
+            return $r ? "Rolle {$r->name}" : 'Rolle (nicht gewählt)';
         }
         if ($type === 'supervisor_of_initiator') {
             $s = $initiator?->effectiveSupervisor();
@@ -160,9 +160,9 @@ class WorkflowSimulator
             if (! $list) return 'Lookup ohne Liste';
             $context = $this->buildContext($data, $initiator);
             $key = str_contains($source, '.') ? data_get($context, $source) : ($data[$source] ?? null);
-            if (! $key) return "Lookup: Schluessel-Wert leer ({$source}) -> Fallback";
+            if (! $key) return "Lookup: Schlüssel-Wert leer ({$source}) -> Fallback";
             $email = $list->emailForRole((string) $key, \App\Models\LookupList::ROLE_RESPONSIBLE);
-            if (! $email) return "Lookup: kein Treffer fuer '{$key}' in {$list->name} -> Fallback";
+            if (! $email) return "Lookup: kein Treffer für '{$key}' in {$list->name} -> Fallback";
             $u = \App\Models\User::where('email', $email)->first();
             return $u ? "Lookup-Treffer: {$u->name} ({$email})" : "Lookup-Treffer: {$email} (kein User)";
         }

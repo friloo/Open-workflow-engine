@@ -33,7 +33,7 @@ class Attachment extends Model
     protected static function booted(): void
     {
         static::updating(function (Attachment $a) {
-            // Hash und Pfad sind revisionssicher — duerfen nicht veraendert werden.
+            // Hash und Pfad sind revisionssicher — dürfen nicht verändert werden.
             foreach (['content_hash', 'path', 'size', 'attachable_type', 'attachable_id'] as $f) {
                 if ($a->isDirty($f) && $a->getOriginal($f) !== null) {
                     throw new \RuntimeException("Attachment-Feld {$f} ist unveraenderlich.");
@@ -42,7 +42,7 @@ class Attachment extends Model
         });
 
         static::deleting(function (Attachment $a) {
-            // Nur bei force-delete physisch loeschen (revisionssicher).
+            // Nur bei force-delete physisch löschen (revisionssicher).
             if ($a->isForceDeleting()) {
                 try { Storage::disk($a->disk)->delete($a->path); } catch (\Throwable) {}
             }
@@ -100,6 +100,54 @@ class Attachment extends Model
     public function isPdf(): bool
     {
         return $this->mime_type === 'application/pdf';
+    }
+
+    public function isOffice(): bool
+    {
+        return \App\Services\OfficePreview::isOfficeAttachment($this);
+    }
+
+    /** Preview-fähig im Browser (PDF, Bild, oder Office via LibreOffice). */
+    public function hasBrowserPreview(): bool
+    {
+        if ($this->isPdf() || $this->isImage()) return true;
+        return $this->isOffice() && \App\Services\OfficePreview::isAvailable();
+    }
+
+    /**
+     * Darf $user dieses Dokument im Detail / Preview ansehen?
+     *
+     * Erlaubt wenn:
+     * 1. Sein Rollen-Doku-Type-Mapping greift (DocumentTypes::canViewType), ODER
+     * 2. das Dokument an einer WorkflowInstance hängt und er Assignee
+     *    eines Steps darin ist oder war (auch wenn der Step abgeschlossen ist
+     *    — dadurch behält er Kontext nach seiner Entscheidung), ODER
+     * 3. das Dokument an einem Asset hängt das ihm gehört oder für das er
+     *    assets.view hat.
+     *
+     * Damit kann z. B. ein Buchhalter Rechnungen genehmigen, ohne dass die
+     * Rolle 'Buchhaltung' generell Zugriff auf den Doku-Type 'Rechnung' hat
+     * — der Zugriff entsteht durch die zugewiesene Aufgabe.
+     */
+    public function visibleTo(?\App\Models\User $user): bool
+    {
+        if (! $user) return false;
+        if (\App\Support\DocumentTypes::canViewType($user, $this->document_type)) return true;
+
+        $att = $this->attachable;
+        if ($att instanceof \App\Models\WorkflowInstance) {
+            if ($att->started_by === $user->id) return true;
+            return \App\Models\WorkflowStepExecution::where('workflow_instance_id', $att->id)
+                ->where(function ($q) use ($user) {
+                    $q->where('assigned_to_user_id', $user->id)
+                      ->orWhereIn('assigned_to_role_id', $user->roles->pluck('id'));
+                })->exists();
+        }
+        if ($att instanceof \App\Models\Asset) {
+            if ($att->user_id === $user->id) return true;
+            return $user->hasPermission('assets.view');
+        }
+        return false;
     }
 
     /**

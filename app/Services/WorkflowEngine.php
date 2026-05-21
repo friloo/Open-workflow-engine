@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\WorkflowNotificationMail;
 use App\Mail\WorkflowTaskAssignedMail;
+use App\Services\ApprovalStampService;
 use App\Models\User;
 use App\Models\Webhook;
 use App\Models\Workflow;
@@ -21,6 +22,15 @@ class WorkflowEngine
     private const MAX_DEPTH = 100;
 
     public function __construct(private readonly AuditLogger $audit) {}
+
+    /**
+     * ApprovalStampService wird über den Container aufgelöst, damit
+     * Tests einen Fake registrieren koennen (statt PDF wirklich zu rendern).
+     */
+    private function approvalStamper(): ApprovalStampService
+    {
+        return app(ApprovalStampService::class);
+    }
 
     /**
      * Start a new workflow instance. Walks the graph until it either
@@ -73,7 +83,7 @@ class WorkflowEngine
     public function run(WorkflowInstance $instance, string $startNodeId, int $depth = 0): void
     {
         if ($depth > self::MAX_DEPTH) {
-            throw new \RuntimeException('Workflow-Tiefe ueberschritten — moeglicher Endlos-Loop.');
+            throw new \RuntimeException('Workflow-Tiefe überschritten — möglicher Endlos-Loop.');
         }
 
         $version = $instance->version()->firstOrFail();
@@ -100,6 +110,10 @@ class WorkflowEngine
                 $this->audit->log('workflow.instance.completed', $instance, null, ['result' => $result],
                     "Workflow-Instanz #{$instance->id} beendet ({$result})");
                 $this->dispatchWebhook(Webhook::EVENT_INSTANCE_COMPLETED, $instance);
+                // Sub-Workflow: Parent aufwecken
+                if ($instance->parent_step_execution_id) {
+                    $this->finishChild($instance);
+                }
                 break;
 
             case 'http':
@@ -149,6 +163,36 @@ class WorkflowEngine
                 // Pausiert bis due_at — workflow:check-due weckt auf.
                 return;
 
+            case 'subworkflow':
+                $this->startSubworkflow($instance, $node);
+                // Pausiert bis Child-Instance completed — wake-up via finishChild().
+                return;
+
+            case 'loop':
+                $this->startForEachLoop($instance, $node);
+                // Pausiert bis alle Child-Instances completed.
+                return;
+
+            case 'switch_node':
+                $branchIdx = $this->evaluateSwitch($node['data'] ?? [], $this->buildContext($instance));
+                $cases = $node['data']['cases'] ?? [];
+                $outputKey = $branchIdx !== null
+                    ? 'output_'.($branchIdx + 1)
+                    : 'output_'.(count($cases) + 1); // default = letzter Ausgang
+                $next = $this->firstTarget($node, $outputKey);
+                if ($next) {
+                    $this->run($instance, $next, $depth + 1);
+                } else {
+                    $instance->update(['status' => WorkflowInstance::STATUS_COMPLETED, 'completed_at' => now()]);
+                }
+                break;
+
+            case 'aggregator':
+                $this->runAggregator($instance, $node);
+                $next = $this->firstTarget($node, 'output_1');
+                if ($next) $this->run($instance, $next, $depth + 1);
+                break;
+
             case 'set_field':
                 $this->setFieldsNode($instance, $node);
                 $next = $this->firstTarget($node, 'output_1');
@@ -194,8 +238,8 @@ class WorkflowEngine
             return;
         }
 
-        // Quorum: wenn mehrere Geschwister fuer denselben Step existieren,
-        // erst bei erfuelltem Quorum weitergehen. Logging ist immer.
+        // Quorum: wenn mehrere Geschwister für denselben Step existieren,
+        // erst bei erfülltem Quorum weitergehen. Logging ist immer.
         $this->audit->log('workflow.step.completed', $step, null, [
             'decision' => $decision,
             'comment' => $comment,
@@ -208,6 +252,22 @@ class WorkflowEngine
             return;
         }
         $decision = $quorum;
+
+        // Auto-Stempel: PDF-Anhänge der Instance mit Approval-Stempel
+        // bedrucken, falls am Knoten konfiguriert (data.stamp_pdf=true).
+        if ($step->step_type === 'approval' && in_array($decision, ['approved', 'rejected'], true)) {
+            try {
+                $this->approvalStamper()->maybeStamp($step, $decision);
+            } catch (\Throwable $e) {
+                Log::warning('approval stamping crashed', ['step_id' => $step->id, 'error' => $e->getMessage()]);
+            }
+            // Auto-E-Signatur: signature_level aus Doku-Typ + Node-Override
+            try {
+                app(SignatureService::class)->maybeSignForStep($step, $decision);
+            } catch (\Throwable $e) {
+                Log::warning('approval signing crashed', ['step_id' => $step->id, 'error' => $e->getMessage()]);
+            }
+        }
 
         $outputKey = match ($decision) {
             'approved' => 'output_1',
@@ -286,7 +346,7 @@ class WorkflowEngine
         $target = $this->resolveEscalationTarget($data, $step, $instance);
         if (! $target) {
             $this->audit->log('workflow.step.escalation_skipped', $step, null, null,
-                'Karenzzeit ueberschritten, aber kein Eskalationsziel konfiguriert');
+                'Karenzzeit überschritten, aber kein Eskalationsziel konfiguriert');
             $step->update(['due_at' => null]); // Don't escalate again.
             return null;
         }
@@ -294,7 +354,7 @@ class WorkflowEngine
         $step->update([
             'completed_at' => now(),
             'decision' => 'escalated',
-            'comment' => 'Karenzzeit ueberschritten — automatisch eskaliert.',
+            'comment' => 'Karenzzeit überschritten — automatisch eskaliert.',
         ]);
 
         $newStep = WorkflowStepExecution::create([
@@ -312,7 +372,7 @@ class WorkflowEngine
             'instance_id' => $instance->id,
             'from_step_id' => $step->id,
             'target' => $target,
-        ], 'Aufgabe eskaliert wegen Karenzzeit-Ueberschreitung');
+        ], 'Aufgabe eskaliert wegen Karenzzeit-Überschreitung');
 
         $this->notifyAssignee($newStep);
         return $newStep;
@@ -362,7 +422,7 @@ class WorkflowEngine
 
     /**
      * Fuehrt einen HTTP-Knoten aus: rendert URL/Headers/Body anhand der
-     * Instanz-Daten und persistiert ausgewaehlte Response-Felder zurueck.
+     * Instanz-Daten und persistiert ausgewählte Response-Felder zurück.
      */
     private function executeHttpNode(WorkflowInstance $instance, array $node): bool
     {
@@ -433,7 +493,7 @@ class WorkflowEngine
         $ok = $response->successful();
 
         // Response-Mapping in response.<save_as> (Namespace verhindert,
-        // dass reservierte Felder wie subject_user_id ueberschrieben werden).
+        // dass reservierte Felder wie subject_user_id überschrieben werden).
         $mapped = [];
         $json = null;
         try { $json = $response->json(); } catch (\Throwable) {}
@@ -447,8 +507,8 @@ class WorkflowEngine
         if ($mapped) {
             $data = $instance->data ?? [];
             $data['response'] = array_merge($data['response'] ?? [], $mapped);
-            // Kompatibilitaet: zusaetzlich top-level (deprecated, aber wird in
-            // Templates noch erwartet). Ueberschreibt reservierte Felder nicht.
+            // Kompatibilität: zusaetzlich top-level (deprecated, aber wird in
+            // Templates noch erwartet). Überschreibt reservierte Felder nicht.
             foreach ($mapped as $k => $v) {
                 if (! array_key_exists($k, ['subject_user_id', 'subject_user_email', 'subject_user_name', 'asset_id'])) {
                     $data[$k] = $v;
@@ -467,7 +527,7 @@ class WorkflowEngine
 
     private function sendJsonBody($request, string $method, string $url, string $rendered, array $headers, int $timeout)
     {
-        // Wenn die Vorlage gueltiges JSON ist, sende als JSON-Body.
+        // Wenn die Vorlage gültiges JSON ist, sende als JSON-Body.
         $rendered = trim($rendered);
         $decoded = $rendered === '' ? null : json_decode($rendered, true);
         if ($rendered === '') {
@@ -497,9 +557,9 @@ class WorkflowEngine
     }
 
     /**
-     * Erzeugt aus einem HTML-Template ein PDF und haengt es als Attachment
+     * Erzeugt aus einem HTML-Template ein PDF und hängt es als Attachment
      * an die Workflow-Instanz. Filename und Dokumenttyp werden ebenfalls
-     * mit Platzhaltern aufgeloest.
+     * mit Platzhaltern aufgelöst.
      */
     private function renderPdfNode(WorkflowInstance $instance, array $node): void
     {
@@ -631,7 +691,7 @@ class WorkflowEngine
         $data = $node['data'] ?? [];
         $quorumMode = (string) ($data['quorum_mode'] ?? 'single');
 
-        // Quorum nur bei Rollen-/Listen-Empfaengern sinnvoll (mehrere User
+        // Quorum nur bei Rollen-/Listen-Empfängern sinnvoll (mehrere User
         // gleichzeitig). Bei Einzeluser ignorieren wir den Modus.
         if ($quorumMode !== 'single') {
             $users = $this->resolveQuorumUsers($data, $instance);
@@ -639,7 +699,7 @@ class WorkflowEngine
                 $this->createQuorumApproval($instance, $node, $users, $quorumMode, (int) ($data['quorum_min'] ?? $users->count()));
                 return;
             }
-            // Fallback: kein Quorum moeglich -> wie single
+            // Fallback: kein Quorum möglich -> wie single
         }
 
         $target = $this->resolveAssignee($data, $instance);
@@ -683,11 +743,11 @@ class WorkflowEngine
      * Entscheidet, ob ein Quorum-Step (mehrere parallele Sub-Steps mit gleichem
      * step_key) jetzt schon einen Endwert hat oder noch wartet.
      *
-     *  - 'all' Modus:   alle muessen approve -> approved.
+     *  - 'all' Modus:   alle müssen approve -> approved.
      *                   Eine rejection bricht direkt ab (rejected).
      *  - 'n_of_m' Modus: ab quorum_min Approvals -> approved.
-     *                   Wenn nicht mehr genug offene Stimmen fuer das Quorum
-     *                   uebrig sind -> rejected.
+     *                   Wenn nicht mehr genug offene Stimmen für das Quorum
+     *                   übrig sind -> rejected.
      *  - sonst (single): immer direkt durch.
      *
      * @return ?string  Decision oder null wenn unentschieden.
@@ -741,10 +801,309 @@ class WorkflowEngine
     }
 
     /**
-     * Erzeugt einen Wait-Step (kein Empfaenger, nur due_at). Wird vom
+     * Erzeugt einen Wait-Step (kein Empfänger, nur due_at). Wird vom
      * Scheduler-Command 'workflow:check-due' aufgeweckt, sobald due_at
      * erreicht ist.
      */
+    /**
+     * Startet einen Sub-Workflow synchron — der aktuelle Workflow pausiert
+     * bis die Child-Instance completed ist. Beim Abschluss feuert
+     * finishChild() den parent-Step ab und schreibt das output_mapping
+     * in die Parent-Daten.
+     */
+    private function startSubworkflow(WorkflowInstance $instance, array $node): void
+    {
+        $data = $node['data'] ?? [];
+        $targetId = (int) ($data['target_workflow_id'] ?? 0);
+        $target = Workflow::find($targetId);
+        if (! $target || $target->status !== Workflow::STATUS_ACTIVE) {
+            // Fehler — geh auf den Error-Output, falls vorhanden.
+            $this->failSubworkflow($instance, $node, 'Ziel-Workflow nicht gefunden oder inaktiv.');
+            return;
+        }
+
+        $parentStep = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id,
+            'step_key' => (string) $node['id'],
+            'step_type' => 'subworkflow',
+            'assigned_at' => now(),
+            'children_count' => 1,
+            'children_completed_count' => 0,
+        ]);
+
+        $childData = $this->mapFields((array) ($data['input_mapping'] ?? []), $this->buildContext($instance));
+        $version = $target->versions()->latest('version_number')->first();
+        if (! $version) {
+            $this->failSubworkflow($instance, $node, 'Ziel-Workflow hat keine Version.');
+            return;
+        }
+
+        $child = WorkflowInstance::create([
+            'workflow_id' => $target->id,
+            'workflow_version_id' => $version->id,
+            'started_by' => $instance->started_by,
+            'parent_step_execution_id' => $parentStep->id,
+            'status' => WorkflowInstance::STATUS_RUNNING,
+            'started_at' => now(),
+            'data' => $childData,
+        ]);
+        $this->audit->log('workflow.subworkflow.started', $child, null, [
+            'parent_instance_id' => $instance->id,
+            'parent_step_key' => $node['id'],
+        ], "Sub-Workflow #{$child->id} ({$target->name}) gestartet von Parent #{$instance->id}");
+        $this->run($child, $this->startKey($version));
+    }
+
+    /**
+     * Loop-Knoten: pro Element der Source-Liste wird eine parallele
+     * Sub-Instance angelegt. Aktueller Workflow pausiert bis alle fertig.
+     */
+    private function startForEachLoop(WorkflowInstance $instance, array $node): void
+    {
+        $data = $node['data'] ?? [];
+        $sourceField = trim((string) ($data['source_field'] ?? ''));
+        $items = data_get($this->buildContext($instance), $sourceField, []);
+        if (! is_array($items)) $items = [];
+        $items = array_values($items);
+        $maxIter = max(1, (int) ($data['max_iterations'] ?? 100));
+        if (count($items) > $maxIter) {
+            $items = array_slice($items, 0, $maxIter);
+        }
+
+        $targetId = (int) ($data['target_workflow_id'] ?? 0);
+        $target = Workflow::find($targetId);
+        $itemField = (string) ($data['item_field_name'] ?? '_item');
+        $extraMap = (array) ($data['extra_input_mapping'] ?? []);
+
+        $parentStep = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id,
+            'step_key' => (string) $node['id'],
+            'step_type' => 'loop',
+            'assigned_at' => now(),
+            'children_count' => count($items),
+            'children_completed_count' => 0,
+        ]);
+
+        // Sonderfall: leere Liste oder kein Ziel — sofort weitermachen.
+        if (empty($items) || ! $target || $target->status !== Workflow::STATUS_ACTIVE) {
+            $parentStep->update(['completed_at' => now(), 'decision' => 'skipped']);
+            $next = $this->firstTarget($node, 'output_1');
+            if ($next) $this->run($instance, $next);
+            return;
+        }
+
+        $version = $target->versions()->latest('version_number')->first();
+        $extraData = $this->mapFields($extraMap, $this->buildContext($instance));
+
+        foreach ($items as $i => $item) {
+            $childData = $extraData;
+            $childData[$itemField] = $item;
+            $childData['_loop_index'] = $i;
+            $child = WorkflowInstance::create([
+                'workflow_id' => $target->id,
+                'workflow_version_id' => $version->id,
+                'started_by' => $instance->started_by,
+                'parent_step_execution_id' => $parentStep->id,
+                'status' => WorkflowInstance::STATUS_RUNNING,
+                'started_at' => now(),
+                'data' => $childData,
+            ]);
+            $this->run($child, $this->startKey($version));
+        }
+        $this->audit->log('workflow.loop.started', null, null, [
+            'parent_instance_id' => $instance->id,
+            'iterations' => count($items),
+            'target_workflow' => $target->name,
+        ], "For-each gestartet: {$target->name} ×".count($items));
+    }
+
+    /**
+     * Wird vom finishInstance()-Pfad aufgerufen wenn eine Child-Instance
+     * abgeschlossen ist. Schreibt output_mapping in die Parent-Daten und
+     * macht — sobald alle Children fertig sind — den parent-Step zu und
+     * setzt den Workflow fort.
+     */
+    public function finishChild(WorkflowInstance $child): void
+    {
+        $parentStep = WorkflowStepExecution::find($child->parent_step_execution_id);
+        if (! $parentStep) return;
+        $parent = $parentStep->instance;
+        if (! $parent) return;
+
+        $parentNode = $parent->version->definition['drawflow']['Home']['data'][$parentStep->step_key] ?? null;
+        if (! $parentNode) return;
+
+        // Output-Mapping nur bei subworkflow.
+        if ($parentStep->step_type === 'subworkflow') {
+            $outMap = (array) data_get($parentNode, 'data.output_mapping', []);
+            if ($outMap) {
+                $childCtx = $this->buildContext($child);
+                $parentData = $parent->data ?? [];
+                foreach ($outMap as $entry) {
+                    $parentKey = $entry['target'] ?? $entry['key'] ?? null;
+                    $childExpr = $entry['source'] ?? $entry['value'] ?? null;
+                    if ($parentKey && $childExpr) {
+                        $parentData[$parentKey] = data_get($childCtx, $childExpr);
+                    }
+                }
+                $parent->data = $parentData;
+                $parent->save();
+            }
+        }
+
+        // Loop-Collect: pro Child einen Wert in die Sammler-Liste schreiben,
+        // damit der Aggregator-Knoten danach was zum Aggregieren hat.
+        if ($parentStep->step_type === 'loop') {
+            $collectFrom = (string) data_get($parentNode, 'data.collect_field', '');
+            $collectInto = (string) (data_get($parentNode, 'data.collect_into', '_loop_results') ?: '_loop_results');
+            if ($collectFrom !== '') {
+                $value = data_get($child->data ?? [], $collectFrom);
+                $parentData = $parent->data ?? [];
+                $bucket = (array) ($parentData[$collectInto] ?? []);
+                $bucket[] = $value;
+                $parentData[$collectInto] = $bucket;
+                $parent->update(['data' => $parentData]);
+            }
+        }
+
+        // Children-Counter erhöhen
+        $parentStep->increment('children_completed_count');
+        $parentStep->refresh();
+
+        $allDone = ($parentStep->children_completed_count ?? 0) >= ($parentStep->children_count ?? 0);
+        if (! $allDone) return;
+
+        // Alle fertig — parent-Step abschliessen, nächster Knoten.
+        $childFailed = $child->status !== WorkflowInstance::STATUS_COMPLETED;
+        $outputKey = 'output_1';
+        if ($parentStep->step_type === 'subworkflow' && $childFailed
+            && empty(data_get($parentNode, 'data.continue_on_failure', false))) {
+            $outputKey = 'output_2';
+        }
+
+        $parentStep->update([
+            'completed_at' => now(),
+            'decision' => $childFailed ? 'sub_failed' : 'sub_ok',
+        ]);
+        $next = $this->firstTarget($parentNode, $outputKey);
+        if ($next) {
+            $this->run($parent, $next);
+        } else {
+            $parent->update(['status' => WorkflowInstance::STATUS_COMPLETED, 'completed_at' => now()]);
+        }
+    }
+
+    private function failSubworkflow(WorkflowInstance $instance, array $node, string $reason): void
+    {
+        $step = WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id,
+            'step_key' => (string) $node['id'],
+            'step_type' => 'subworkflow',
+            'assigned_at' => now(),
+            'completed_at' => now(),
+            'decision' => 'sub_failed',
+            'comment' => $reason,
+        ]);
+        $next = $this->firstTarget($node, 'output_2');
+        if ($next) $this->run($instance, $next);
+    }
+
+    /**
+     * Workert ein input_mapping-Array zu einem flachen Hash auf, der als
+     * data() der Child-Instance verwendet werden kann. Jeder Eintrag hat
+     * 'target' (Child-Schlüssel) und 'source' (Pfad oder Literal).
+     */
+    private function mapFields(array $mapping, array $ctx): array
+    {
+        $out = [];
+        foreach ($mapping as $entry) {
+            $key = $entry['target'] ?? $entry['key'] ?? null;
+            $src = $entry['source'] ?? $entry['value'] ?? null;
+            if (! $key) continue;
+            // Wenn source-String mit "$." anfängt: Pfad. Sonst Literal.
+            if (is_string($src) && str_starts_with($src, '$.')) {
+                $out[$key] = data_get($ctx, substr($src, 2));
+            } else {
+                $out[$key] = $src;
+            }
+        }
+        return $out;
+    }
+
+    private function startKey($version): ?string
+    {
+        $nodes = (array) data_get($version->definition, 'drawflow.Home.data', []);
+        foreach ($nodes as $key => $node) {
+            if (($node['class'] ?? null) === 'start') return (string) $key;
+        }
+        // Fallback: erster Knoten
+        return array_key_first($nodes);
+    }
+
+    /**
+     * Switch-Knoten: liefert den Index des passenden Case (0-basiert) oder
+     * null für den Default-Ausgang.
+     */
+    private function evaluateSwitch(array $data, array $ctx): ?int
+    {
+        $expr = (string) ($data['expression'] ?? '');
+        if ($expr === '') return null;
+        $value = data_get($ctx, $expr);
+        $cases = (array) ($data['cases'] ?? []);
+        foreach ($cases as $i => $case) {
+            $candidate = $case['value'] ?? null;
+            // Wenn beide numerisch: numerischer Vergleich. Sonst String.
+            if (is_numeric($value) && is_numeric($candidate)) {
+                if ((float) $value === (float) $candidate) return $i;
+            } else {
+                if ((string) $value === (string) $candidate) return $i;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Aggregator: liest eine Liste aus instance.data, faltet sie zu einem
+     * einzelnen Wert und schreibt ihn in das Ziel-Feld.
+     */
+    private function runAggregator(WorkflowInstance $instance, array $node): void
+    {
+        $data = $node['data'] ?? [];
+        $source = (string) ($data['source_field'] ?? '');
+        $op = (string) ($data['operation'] ?? 'sum');
+        $target = (string) ($data['target_field'] ?? 'aggregated');
+        if ($source === '' || $target === '') return;
+
+        $list = data_get($instance->data ?? [], $source, []);
+        if (! is_array($list)) $list = [];
+
+        $numerics = array_values(array_filter(array_map(function ($v) {
+            if (is_array($v)) return null;
+            $s = is_string($v) ? str_replace([',', ' '], ['.', ''], $v) : $v;
+            return is_numeric($s) ? (float) $s : null;
+        }, $list), fn ($v) => $v !== null));
+
+        $result = match ($op) {
+            'sum'      => round(array_sum($numerics), 4),
+            'avg'      => count($numerics) > 0 ? round(array_sum($numerics) / count($numerics), 4) : 0,
+            'min'      => count($numerics) > 0 ? min($numerics) : null,
+            'max'      => count($numerics) > 0 ? max($numerics) : null,
+            'count'    => count($list),
+            'concat'   => implode((string) ($data['separator'] ?? ', '), array_map('strval', $list)),
+            'distinct' => array_values(array_unique(array_map('strval', $list))),
+            default    => null,
+        };
+
+        $payload = $instance->data ?? [];
+        $payload[$target] = $result;
+        $instance->update(['data' => $payload]);
+
+        $this->audit->log('workflow.aggregator', $instance, null, [
+            'source' => $source, 'op' => $op, 'target' => $target,
+            'input_count' => count($list), 'result' => is_array($result) ? '[…]' : $result,
+        ], "Aggregator {$op} auf {$source}: ".(is_scalar($result) ? $result : 'list'));
+    }
+
     private function createWaitStep(WorkflowInstance $instance, array $node): void
     {
         $d = $node['data'] ?? [];
@@ -774,7 +1133,7 @@ class WorkflowEngine
     }
 
     /**
-     * Vom Scheduler aufgerufen, wenn ein Wait-Step ueberfaellig ist.
+     * Vom Scheduler aufgerufen, wenn ein Wait-Step überfällig ist.
      * Markiert ihn als completed und faehrt den Workflow fort.
      */
     public function resumeWaitStep(WorkflowStepExecution $step): void
@@ -793,7 +1152,7 @@ class WorkflowEngine
         if (! $node) return;
 
         $this->audit->log('workflow.wait.resumed', $step, null, null,
-            'Wartezeit abgelaufen, Workflow laeuft weiter.');
+            'Wartezeit abgelaufen, Workflow läuft weiter.');
 
         $next = $this->firstTarget($node, 'output_1');
         if ($next) $this->run($instance, $next);
@@ -820,7 +1179,7 @@ class WorkflowEngine
             $key = trim((string) ($a['field'] ?? ''));
             if ($key === '') continue;
             $value = $this->renderTemplate((string) ($a['value'] ?? ''), $context);
-            // numerische Auswertung (sehr einfach: nur fuer Ausdruecke wie "1.19*100")
+            // numerische Auswertung (sehr einfach: nur für Ausdrücke wie "1.19*100")
             if (! empty($a['as_number']) && is_numeric(trim($value))) {
                 $value = $value + 0;
             }
@@ -835,7 +1194,7 @@ class WorkflowEngine
 
     /**
      * Quorum: liefert die Liste der User, die in diesem Step abstimmen
-     * sollen. Rolle -> alle Mitglieder. Lookup -> nicht unterstuetzt
+     * sollen. Rolle -> alle Mitglieder. Lookup -> nicht unterstützt
      * (per definitionem nur einer). Sonst leer.
      *
      * @return \Illuminate\Support\Collection<int, User>
@@ -897,17 +1256,28 @@ class WorkflowEngine
 
     private function notifyAssignee(WorkflowStepExecution $step): void
     {
+        // Teams-Channel benachrichtigen (nur einmal pro Step, nicht
+        // pro Empfänger — gleicher Channel hört eh alle Member).
+        $teams = app(\App\Services\TeamsNotifier::class);
+        $node = data_get($step->instance->version->definition, "drawflow.Home.data.{$step->step_key}");
+        $teamsUrl = (string) (data_get($node, 'data.teams_webhook_url') ?? \App\Support\Settings::get('integrations.teams_webhook_url', ''));
+        if ($teamsUrl !== '' && data_get($node, 'data.notify_teams', true)) {
+            $teams->sendTaskNotification($step, $teamsUrl);
+        }
+
         $recipients = $this->stepRecipients($step);
         $workflow = $step->instance?->workflow;
         foreach ($recipients as $user) {
-            \App\Models\AppNotification::send(
-                $user,
-                'task.assigned',
-                'Neue Aufgabe: '.($workflow?->name ?? 'Workflow'),
-                'Du wurdest einer Genehmigungs-Aufgabe zugewiesen.',
-                route('tasks.show', $step),
-            );
-            if (! $user->email_notifications_enabled) continue;
+            if (\App\Support\NotificationPreferences::wants($user, 'task.assigned', 'in_app')) {
+                \App\Models\AppNotification::send(
+                    $user,
+                    'task.assigned',
+                    'Neue Aufgabe: '.($workflow?->name ?? 'Workflow'),
+                    'Du wurdest einer Genehmigungs-Aufgabe zugewiesen.',
+                    route('tasks.show', $step),
+                );
+            }
+            if (! \App\Support\NotificationPreferences::wants($user, 'task.assigned', 'mail')) continue;
             try {
                 Mail::to($user->email)->send(new WorkflowTaskAssignedMail($step, $user));
             } catch (\Throwable $e) {
@@ -989,7 +1359,7 @@ class WorkflowEngine
         $list = \App\Models\LookupList::find($listId);
         if (! $list) return [];
 
-        // Source unterstuetzt Punktnotation: "kostenstelle" oder
+        // Source unterstützt Punktnotation: "kostenstelle" oder
         // "doc.indexed_fields.kostenstelle" — damit klappt das Routing auch,
         // wenn der Wert aus extrahierten Dokument-Feldern kommt.
         $context = $this->buildContext($instance);

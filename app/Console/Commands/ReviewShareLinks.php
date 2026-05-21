@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Mail;
 class ReviewShareLinks extends Command
 {
     protected $signature = 'shares:review {--limit=200}';
-    protected $description = 'Versendet periodische Pruefungs-Mails fuer aktive Freigabe-Links und widerruft, wenn nicht reagiert wird.';
+    protected $description = 'Versendet periodische Prüfungs-Mails für aktive Freigabe-Links und widerruft, wenn nicht reagiert wird.';
 
     public function handle(AuditLogger $audit): int
     {
@@ -23,7 +23,7 @@ class ReviewShareLinks extends Command
         $now = now();
         $limit = (int) $this->option('limit');
 
-        // 1) Auto-Revoke: Mail wurde gesendet, Frist ueberschritten, keine Reaktion.
+        // 1) Auto-Revoke: Mail wurde gesendet, Frist überschritten, keine Reaktion.
         $overdue = ShareLink::where('is_revoked', false)
             ->whereNotNull('last_review_sent_at')
             ->where(function ($q) use ($grace) {
@@ -35,7 +35,7 @@ class ReviewShareLinks extends Command
 
         $revoked = 0;
         foreach ($overdue as $s) {
-            $s->revoke('Automatisch widerrufen — keine Reaktion auf Pruefung.');
+            $s->revoke('Automatisch widerrufen — keine Reaktion auf Prüfung.');
             $audit->log('share.auto_revoked', $s, null, [
                 'last_review_sent_at' => $s->last_review_sent_at?->toIso8601String(),
             ], 'Freigabe automatisch widerrufen (keine Antwort)');
@@ -46,9 +46,9 @@ class ReviewShareLinks extends Command
             $revoked++;
         }
 
-        // 2) Pruefungs-Mail senden:
-        //   a) noch nie geprueft und Link laeuft seit > interval Tagen
-        //   b) letzte Pruefung > interval Tage her UND noch keine Antwort
+        // 2) Prüfungs-Mail senden:
+        //   a) noch nie geprüft und Link läuft seit > interval Tagen
+        //   b) letzte Prüfung > interval Tage her UND noch keine Antwort
         $due = ShareLink::with('creator', 'attachment')
             ->where('is_revoked', false)
             ->where(function ($q) use ($now, $interval) {
@@ -68,8 +68,8 @@ class ReviewShareLinks extends Command
             \App\Models\AppNotification::send(
                 $s->creator,
                 'share.review_due',
-                'Freigabe pruefen: '.($s->attachment?->original_name ?? 'Dokument'),
-                'Die Freigabe muss bestaetigt oder widerrufen werden.',
+                'Freigabe prüfen: '.($s->attachment?->original_name ?? 'Dokument'),
+                'Die Freigabe muss bestätigt oder widerrufen werden.',
                 route('shares.index'),
             );
             if (! $s->creator->email) continue;
@@ -79,11 +79,11 @@ class ReviewShareLinks extends Command
                 $s->forceFill(['last_review_sent_at' => $now])->save();
                 $sent++;
             } catch (\Throwable $e) {
-                $this->warn("Pruefungs-Mail an {$s->creator->email}: {$e->getMessage()}");
+                $this->warn("Prüfungs-Mail an {$s->creator->email}: {$e->getMessage()}");
             }
         }
 
-        $this->info("Pruefungs-Mails: {$sent} · Auto-widerrufen: {$revoked}");
+        $this->info("Prüfungs-Mails: {$sent} · Auto-widerrufen: {$revoked}");
         return self::SUCCESS;
     }
 }

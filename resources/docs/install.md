@@ -4,6 +4,12 @@ Wenn OWE frisch hochgeladen wurde und `storage/app/.installed` noch
 nicht existiert, leitet jeder Aufruf automatisch nach `/install`.
 Kein SSH-Zugriff noetig.
 
+> [!TIP]
+> Diese Seite richtet sich an Admins, die OWE auf einem **eigenen
+> Server** oder Webhoster installieren. Wenn du nur eine bestehende
+> Instanz benutzen willst, geh direkt zu
+> [Erste Schritte](app:help.show?topic=first-steps).
+
 ## Voraussetzungen
 
 - PHP **>= 8.2** (auch 8.3 und neuer unterstuetzt). 8.4 ist nicht
@@ -51,7 +57,8 @@ Wenn dein Hoster keine Doc-Root-Umstellung erlaubt, geht's auch ohne:
    Fallback-`.htaccess` ins Root, die alle Requests intern nach
    `public/` umleitet.
 
-> ⚠️ **Sicherheit beim Fallback**: `vendor/`, `.env` etc. liegen im
+> [!WARNING]
+> **Sicherheit beim Fallback**: `vendor/`, `.env` etc. liegen im
 > oeffentlich erreichbaren Pfad. Die mitgelieferte `.htaccess`
 > blockiert den direkten Zugriff per `FilesMatch` und `RedirectMatch`.
 > Wenn `mod_rewrite` ausgeschaltet ist, GREIFT die Blockade nicht
@@ -144,6 +151,11 @@ ZIP per FTP nach `storage/app/backups/` schieben und ueber CLI
 
 Ab jetzt schickt der Middleware alle `/install*`-Aufrufe per Redirect
 zur Startseite — der Installer ist gesperrt.
+
+> [!TIP]
+> Jetzt bist du eingeloggt. Geh zu
+> [Erste Schritte als Admin](app:help.show?topic=first-steps) — das
+> fuehrt dich durch SMTP, Benutzer, Rollen, ersten Workflow.
 
 ## Neuinstallation / Reset
 

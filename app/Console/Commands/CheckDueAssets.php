@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 class CheckDueAssets extends Command
 {
     protected $signature = 'asset:check-due {--limit=200}';
-    protected $description = 'Startet Workflows fuer Assets, deren Vorlauffrist erreicht ist (Fuehrerschein, Unterweisung etc.).';
+    protected $description = 'Startet Workflows für Assets, deren Vorlauffrist erreicht ist (Führerschein, Unterweisung etc.).';
 
     public function handle(WorkflowEngine $engine): int
     {
@@ -22,7 +22,7 @@ class CheckDueAssets extends Command
             ->filter(fn (Asset $a) => $a->isDue());
 
         if ($assets->isEmpty()) {
-            $this->info('Keine faelligen Assets.');
+            $this->info('Keine fälligen Assets.');
             return self::SUCCESS;
         }
 
@@ -30,7 +30,7 @@ class CheckDueAssets extends Command
         foreach ($assets as $asset) {
             $workflow = $asset->workflow;
             if (! $workflow || $workflow->status !== 'active' || ! $workflow->current_version_id) {
-                $this->warn("Asset #{$asset->id}: Workflow nicht aktiv — uebersprungen.");
+                $this->warn("Asset #{$asset->id}: Workflow nicht aktiv — übersprungen.");
                 continue;
             }
             $data = [
@@ -45,8 +45,8 @@ class CheckDueAssets extends Command
 
             try {
                 $instance = $engine->start($workflow, $data, $asset->user);
-                // Asset-Anhaenge fuer die Instanz duplizieren (eigene Dateien,
-                // damit Lebenszyklus von Asset und Instanz unabhaengig ist).
+                // Asset-Anhänge für die Instanz duplizieren (eigene Dateien,
+                // damit Lebenszyklus von Asset und Instanz unabhängig ist).
                 foreach ($asset->attachments as $att) {
                     $disk = \Illuminate\Support\Facades\Storage::disk($att->disk);
                     if (! $disk->exists($att->path)) continue;
@@ -71,7 +71,7 @@ class CheckDueAssets extends Command
             }
         }
 
-        $this->info("{$started} Workflow(s) gestartet, {$assets->count()} faellige Assets verarbeitet.");
+        $this->info("{$started} Workflow(s) gestartet, {$assets->count()} fällige Assets verarbeitet.");
         return self::SUCCESS;
     }
 }

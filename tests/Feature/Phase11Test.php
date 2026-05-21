@@ -26,21 +26,25 @@ class Phase11Test extends TestCase
         $accounting = Role::create(['name' => 'Buchhaltung', 'slug' => 'buchhaltung', 'is_system' => false]);
         $accounting->permissions()->attach(\App\Models\Permission::whereIn('slug', ['documents.search'])->pluck('id'));
 
-        Settings::set('attachments.document_types', ['Rechnung', 'Vertrag', 'Fuehrerschein']);
+        Settings::set('attachments.document_types', ['Rechnung', 'Vertrag', 'Führerschein']);
         Settings::set('attachments.role_document_types', [
             'buchhaltung' => ['Rechnung'],
-            'hr' => ['Fuehrerschein'],
+            'hr' => ['Führerschein'],
         ]);
 
         $bUser = User::factory()->create();
         $bUser->assignRole('buchhaltung');
 
+        // Asset gehört einem ANDEREN User, damit der Owner-Bypass in
+        // Attachment::visibleTo() das Test-Setup nicht umgeht.
+        $otherUser = User::factory()->create();
+
         Storage::fake('local');
-        $asset = Asset::create(['name' => 'X', 'type' => 'x', 'user_id' => $bUser->id, 'status' => 'active', 'lead_time_days' => 30]);
+        $asset = Asset::create(['name' => 'X', 'type' => 'x', 'user_id' => $otherUser->id, 'status' => 'active', 'lead_time_days' => 30]);
         $storage = app(AttachmentStorage::class);
-        $a1 = $storage->store(UploadedFile::fake()->createWithContent('r.pdf', 'A')->mimeType('application/pdf'), $asset, null, $bUser->id, 'Rechnung');
-        $a2 = $storage->store(UploadedFile::fake()->createWithContent('v.pdf', 'B')->mimeType('application/pdf'), $asset, null, $bUser->id, 'Vertrag');
-        $a3 = $storage->store(UploadedFile::fake()->createWithContent('f.pdf', 'C')->mimeType('application/pdf'), $asset, null, $bUser->id, 'Fuehrerschein');
+        $a1 = $storage->store(UploadedFile::fake()->createWithContent('r.pdf', 'A')->mimeType('application/pdf'), $asset, null, $otherUser->id, 'Rechnung');
+        $a2 = $storage->store(UploadedFile::fake()->createWithContent('v.pdf', 'B')->mimeType('application/pdf'), $asset, null, $otherUser->id, 'Vertrag');
+        $a3 = $storage->store(UploadedFile::fake()->createWithContent('f.pdf', 'C')->mimeType('application/pdf'), $asset, null, $otherUser->id, 'Führerschein');
 
         $r = $this->actingAs($bUser)->get(route('documents.index'));
         $r->assertOk()
@@ -50,6 +54,52 @@ class Phase11Test extends TestCase
 
         $this->actingAs($bUser)->get(route('documents.show', $a1))->assertOk();
         $this->actingAs($bUser)->get(route('documents.show', $a2))->assertForbidden();
+    }
+
+    public function test_workflow_assignee_can_open_attached_document_without_type_permission(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+
+        Settings::set('attachments.document_types', ['Rechnung']);
+        // Bewusst LEER — die Buchhaltung darf den Typ 'Rechnung' NICHT generell sehen.
+        Settings::set('attachments.role_document_types', []);
+
+        $accounting = Role::create(['name' => 'Buchhaltung', 'slug' => 'buchhaltung', 'is_system' => false]);
+        $accounting->permissions()->attach(\App\Models\Permission::whereIn('slug', ['documents.search'])->pluck('id'));
+
+        $approver = User::factory()->create();
+        $approver->assignRole('buchhaltung');
+
+        // Workflow-Instanz mit angehängter Rechnung
+        $workflow = \App\Models\Workflow::create(['name' => 'Test', 'slug' => 'test', 'status' => 'active', 'created_by' => $approver->id]);
+        $version = \App\Models\WorkflowVersion::create(['workflow_id' => $workflow->id, 'version_number' => 1, 'definition' => ['drawflow' => ['Home' => ['data' => []]]]]);
+        $instance = \App\Models\WorkflowInstance::create([
+            'workflow_id' => $workflow->id, 'workflow_version_id' => $version->id,
+            'data' => [], 'status' => 'running',
+            'started_at' => now(), 'started_by' => $approver->id,
+        ]);
+
+        Storage::fake('local');
+        $invoice = app(AttachmentStorage::class)->store(
+            UploadedFile::fake()->createWithContent('rechnung.pdf', 'X')->mimeType('application/pdf'),
+            $instance, null, $approver->id, 'Rechnung',
+        );
+
+        // Schritt direkt dem Approver zuweisen
+        \App\Models\WorkflowStepExecution::create([
+            'workflow_instance_id' => $instance->id,
+            'step_key' => 'node-1',
+            'step_type' => 'approval',
+            'assigned_to_user_id' => $approver->id,
+        ]);
+
+        // Ohne Type-Rechte allein per Rolle: 403 auf documents.show
+        $other = User::factory()->create();
+        $other->assignRole('buchhaltung');
+        $this->actingAs($other)->get(route('documents.show', $invoice))->assertForbidden();
+
+        // Aber als Assignee: 200 — kein Type-Recht nötig
+        $this->actingAs($approver)->get(route('documents.show', $invoice))->assertOk();
     }
 
     public function test_admin_sees_all_document_types(): void
@@ -87,7 +137,7 @@ class Phase11Test extends TestCase
 
         // OCR-Text manuell setzen (sonst koennten Test-Server keine OCR-Tools haben)
         $att->forceFill([
-            'ocr_text' => 'Hier steht ein wichtiger Vertrag ueber Druckerwartung mit Kundennummer 4711.',
+            'ocr_text' => 'Hier steht ein wichtiger Vertrag über Druckerwartung mit Kundennummer 4711.',
             'ocr_status' => 'done',
         ])->save();
 

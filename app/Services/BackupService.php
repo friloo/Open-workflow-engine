@@ -14,8 +14,8 @@ use Symfony\Component\Process\Process;
  *
  * DB-Strategie:
  *   - SQLite:  database/database.sqlite kopieren
- *   - MySQL/MariaDB: mysqldump via Process; faellt sonst auf
- *     PHP-basierten Dump zurueck (fuer Shared Hosting ohne shell-Zugriff)
+ *   - MySQL/MariaDB: mysqldump via Process; fällt sonst auf
+ *     PHP-basierten Dump zurück (für Shared Hosting ohne shell-Zugriff)
  *
  * Restore: bewusst CLI-only, mit Maintenance-Flag (kein UI-Knopf).
  */
@@ -102,7 +102,7 @@ class BackupService
         $path = $this->backupDir().'/'.$safe;
         if (! is_file($path)) return false;
         @unlink($path);
-        $this->audit->log('backup.deleted', null, ['file' => $safe], null, "Backup geloescht: {$safe}", $userId);
+        $this->audit->log('backup.deleted', null, ['file' => $safe], null, "Backup gelöscht: {$safe}", $userId);
         return true;
     }
 
@@ -116,7 +116,7 @@ class BackupService
 
     /**
      * Restore aus einer ZIP-Datei.
-     * ACHTUNG: ueberschreibt aktuelle DB und Anhaenge.
+     * ACHTUNG: überschreibt aktuelle DB und Anhänge.
      */
     public function restore(string $filename): array
     {
@@ -124,7 +124,7 @@ class BackupService
         if (! $path) throw new \RuntimeException('Backup nicht gefunden.');
 
         $zip = new \ZipArchive();
-        if ($zip->open($path) !== true) throw new \RuntimeException('ZIP konnte nicht geoeffnet werden.');
+        if ($zip->open($path) !== true) throw new \RuntimeException('ZIP konnte nicht geöffnet werden.');
 
         $manifest = json_decode((string) $zip->getFromName('manifest.json'), true);
         if (! is_array($manifest) || ($manifest['owe_backup'] ?? 0) !== 1) {
@@ -207,7 +207,7 @@ class BackupService
             return ['filename' => 'database.sql', 'contents' => $this->phpMysqlDump()];
         }
 
-        throw new \RuntimeException("Backup fuer Driver {$cfg['driver']} nicht unterstuetzt.");
+        throw new \RuntimeException("Backup für Driver {$cfg['driver']} nicht unterstützt.");
     }
 
     private function phpSqliteDump(): string
@@ -275,12 +275,12 @@ class BackupService
         }
 
         if (in_array($cfg['driver'] ?? '', ['mysql', 'mariadb'], true)) {
-            // SQL in Statements zerlegen und ausfuehren
+            // SQL in Statements zerlegen und ausführen
             DB::unprepared($dump);
             return;
         }
 
-        throw new \RuntimeException("Restore fuer Driver {$cfg['driver']} nicht unterstuetzt.");
+        throw new \RuntimeException("Restore für Driver {$cfg['driver']} nicht unterstützt.");
     }
 
     private function prune(): void

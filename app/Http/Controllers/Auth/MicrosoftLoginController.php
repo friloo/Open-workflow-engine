@@ -43,7 +43,7 @@ class MicrosoftLoginController extends Controller
         $email = strtolower((string) ($oauthUser->getEmail() ?: $oauthUser->user['userPrincipalName'] ?? ''));
         $oid = (string) $oauthUser->getId();
         if (! $email || ! $oid) {
-            return redirect()->route('login')->withErrors(['email' => 'Microsoft hat keine vollstaendigen Profilangaben geliefert.']);
+            return redirect()->route('login')->withErrors(['email' => 'Microsoft hat keine vollständigen Profilangaben geliefert.']);
         }
 
         $autoProvision = (bool) config('services.microsoft-azure.auto_provision', true);
@@ -79,7 +79,7 @@ class MicrosoftLoginController extends Controller
 
         if (! $user->is_active) {
             $this->audit->log('auth.m365.blocked', $user, null, null,
-                "M365-Login fuer inaktiven Account {$user->email}", $user->id);
+                "M365-Login für inaktiven Account {$user->email}", $user->id);
             return redirect()->route('login')->withErrors(['email' => 'Dieses Konto ist deaktiviert.']);
         }
 

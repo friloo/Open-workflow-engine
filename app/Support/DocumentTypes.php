@@ -43,7 +43,7 @@ class DocumentTypes
 
     /**
      * Liste der Typ-Namen, die dieser User sehen darf. Admin sieht alles.
-     * Nicht klassifizierte Dokumente (NULL document_type) sind fuer jeden
+     * Nicht klassifizierte Dokumente (NULL document_type) sind für jeden
      * Suchberechtigten sichtbar.
      */
     public static function visibleForUser(User $user): array
@@ -61,7 +61,7 @@ class DocumentTypes
     }
 
     /**
-     * Default-Verhalten fuer unklassifizierte Dokumente:
+     * Default-Verhalten für unklassifizierte Dokumente:
      * - Admin sieht alles
      * - sonst nur, wenn `attachments.unclassified_visible_for_all` aktiv ist
      */

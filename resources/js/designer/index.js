@@ -7,6 +7,7 @@ const NODE_TEMPLATES = {
         label: 'Start',
         shortLabel: 'S',
         color: '#10b981',
+        category: 'Start & Ende',
         help: 'Einstiegspunkt des Workflows. Wird vom Trigger automatisch ausgeloest.',
         inputs: 0,
         outputs: 1,
@@ -17,6 +18,7 @@ const NODE_TEMPLATES = {
         label: 'Genehmigung',
         shortLabel: 'G',
         color: '#6366f1',
+        category: 'Entscheidung',
         help: 'Aufgabe an eine Person oder Rolle. Genehmigt / Abgelehnt / (Weiterleitung).',
         inputs: 1,
         outputs: 2,
@@ -30,6 +32,23 @@ const NODE_TEMPLATES = {
             escalation_type: 'none',
             escalation_role_id: null,
             allow_forward: false,
+            // Parallele Genehmigung: 'single' (nur 1 Person, Default),
+            // 'all' (alle Rollen-/Listen-Mitglieder muessen approven),
+            // 'n_of_m' (mindestens quorum_min Approvals reichen).
+            quorum_mode: 'single',
+            quorum_min: 2,
+            extra_fields: [],
+            // Teams: optional pro Knoten anderen Channel ansteuern
+            notify_teams: true,
+            teams_webhook_url: '',
+            // Stempel-Feature: gestempeltes PDF als neue Version anlegen
+            stamp_pdf: false,
+            stamp_pdf_only_on: 'approved',
+            // E-Signatur: ueberschreibt Default-Level aus Dokumenttyp.
+            // 'inherit' = uebernehmen, sonst SES/AES/QES erzwingen.
+            // Downgrades werden serverseitig ignoriert (nur Upgrades aktiv).
+            signature_level_override: 'inherit',
+            signature_on: 'approved',
         }),
         outputClasses: (data) => data.allow_forward
             ? ['genehmigt', 'abgelehnt', 'weitergeleitet']
@@ -39,6 +58,7 @@ const NODE_TEMPLATES = {
         label: 'Bedingung',
         shortLabel: '?',
         color: '#f59e0b',
+        category: 'Entscheidung',
         help: 'Verzweigt nach Werten aus dem Formular. Plus immer einem Else-Ausgang.',
         inputs: 1,
         outputs: 2, // 1 branch + else; grows dynamically
@@ -57,6 +77,7 @@ const NODE_TEMPLATES = {
         label: 'Benachrichtigung',
         shortLabel: '@',
         color: '#0ea5e9',
+        category: 'Kommunikation',
         help: 'Sendet eine E-Mail. Workflow laeuft danach weiter.',
         inputs: 1,
         outputs: 1,
@@ -74,6 +95,7 @@ const NODE_TEMPLATES = {
         label: 'HTTP-Request',
         shortLabel: 'H',
         color: '#a855f7',
+        category: 'Integration',
         help: 'Ruft eine externe API auf (z. B. Ticketsystem). Ausgaenge: OK / Fehler.',
         inputs: 1,
         outputs: 2,
@@ -100,6 +122,7 @@ const NODE_TEMPLATES = {
         label: 'PDF erzeugen',
         shortLabel: 'P',
         color: '#dc2626',
+        category: 'Daten',
         help: 'Erzeugt aus einem HTML-Template ein PDF und haengt es revisionssicher an die Instanz an.',
         inputs: 1,
         outputs: 1,
@@ -116,6 +139,7 @@ const NODE_TEMPLATES = {
         label: 'Warten',
         shortLabel: '⏳',
         color: '#0d9488',
+        category: 'Logik & Timing',
         help: 'Pausiert den Workflow fuer einen Zeitraum (Minuten/Stunden/Tage/Wochen/Monate). Der Scheduler weckt automatisch auf.',
         inputs: 1,
         outputs: 1,
@@ -126,6 +150,7 @@ const NODE_TEMPLATES = {
         label: 'Feld setzen',
         shortLabel: '=',
         color: '#0891b2',
+        category: 'Daten',
         help: 'Berechnet/setzt ein oder mehrere Felder in den Instanz-Daten. Werte koennen Platzhalter enthalten.',
         inputs: 1,
         outputs: 1,
@@ -135,10 +160,90 @@ const NODE_TEMPLATES = {
         }),
         outputClasses: () => ['weiter'],
     },
+    subworkflow: {
+        label: 'Sub-Workflow',
+        shortLabel: '⊂',
+        color: '#7c3aed',
+        category: 'Logik & Timing',
+        help: 'Startet einen anderen Workflow synchron — der aktuelle pausiert bis der Sub-Workflow fertig ist. Eingabe-/Ausgabe-Felder werden gemappt.',
+        inputs: 1,
+        outputs: 2,
+        defaults: () => ({
+            label: 'Sub-Workflow',
+            target_workflow_id: null,
+            // input_mapping: { 'child_field_key' => 'parent_field_key_or_expression' }
+            input_mapping: [],
+            // output_mapping: { 'parent_field' => 'child_field' }
+            output_mapping: [],
+            // Wenn der Sub-Workflow failed/cancelled: nimm output_2 (fehler) statt output_1 (ok).
+            continue_on_failure: false,
+        }),
+        outputClasses: () => ['ok', 'fehler'],
+    },
+    switch_node: {
+        label: 'Switch',
+        shortLabel: '⤨',
+        color: '#f59e0b',
+        category: 'Entscheidung',
+        help: 'Routet auf einen passenden Ausgang je nach Wert eines Feldes. Plus immer einem Default-Ausgang fuer den Fall dass kein Case matched.',
+        inputs: 1,
+        outputs: 2, // 1 case + default; waechst dynamisch
+        defaults: () => ({
+            label: 'Switch',
+            expression: 'kostenstelle',
+            cases: [{ label: 'Fall 1', value: '' }],
+        }),
+        outputClasses: (data) => [
+            ...(data.cases || []).map((_, i) => `case_${i + 1}`),
+            'default',
+        ],
+    },
+    aggregator: {
+        label: 'Aggregator',
+        shortLabel: 'Σ',
+        color: '#10b981',
+        category: 'Daten',
+        help: 'Aggregiert eine Liste (z. B. Resultate eines For-each-Loops) zu einem einzelnen Wert: Summe, Durchschnitt, Anzahl, Min, Max oder Komma-Liste.',
+        inputs: 1,
+        outputs: 1,
+        defaults: () => ({
+            label: 'Aggregator',
+            source_field: '_loop_results',
+            operation: 'sum',
+            target_field: 'aggregated',
+            separator: ', ',
+        }),
+        outputClasses: () => ['weiter'],
+    },
+    loop: {
+        label: 'For-each',
+        shortLabel: '⟳',
+        color: '#0d9488',
+        category: 'Logik & Timing',
+        help: 'Iteriert ueber ein Feld vom Typ Liste/Array. Pro Element wird ein Sub-Workflow gestartet; alle parallel. Der naechste Knoten startet erst wenn alle Iterationen fertig sind.',
+        inputs: 1,
+        outputs: 1,
+        defaults: () => ({
+            label: 'For-each',
+            source_field: 'items',
+            target_workflow_id: null,
+            item_field_name: '_item',
+            extra_input_mapping: [],
+            max_iterations: 100,
+            // Optional: nach jeder Child-Completion einen Wert aus den
+            // Child-Daten in eine Liste in der Parent-Instance sammeln,
+            // die der Aggregator-Knoten dann zusammenfasst.
+            //   collect_field='ergebnis_betrag' → instance.data._loop_results = [12.50, 34.00, ...]
+            collect_field: '',
+            collect_into: '_loop_results',
+        }),
+        outputClasses: () => ['weiter'],
+    },
     end: {
         label: 'Ende',
         shortLabel: 'E',
         color: '#64748b',
+        category: 'Start & Ende',
         help: 'Beendet den Workflow.',
         inputs: 1,
         outputs: 0,
@@ -153,7 +258,15 @@ const PALETTE = Object.entries(NODE_TEMPLATES).map(([type, t]) => ({
     shortLabel: t.shortLabel,
     color: t.color,
     help: t.help,
+    category: t.category || 'Sonstiges',
 }));
+
+// Kategorien-Reihenfolge im Sidebar — von "ich brauche das immer" bis "Spezialfaelle".
+const CATEGORY_ORDER = ['Start & Ende', 'Entscheidung', 'Kommunikation', 'Daten', 'Logik & Timing', 'Integration', 'Sonstiges'];
+
+const PALETTE_GROUPED = CATEGORY_ORDER
+    .map(cat => ({ category: cat, items: PALETTE.filter(p => p.category === cat) }))
+    .filter(g => g.items.length > 0);
 
 const TRIGGER_LABELS = {
     form: 'Formular',
@@ -191,12 +304,16 @@ window.designerApp = function designerApp() {
         directory: { roles: [], users: [] },
         formSchema: [],
         nodePalette: PALETTE,
+        nodePaletteGrouped: PALETTE_GROUPED,
         tab: 'canvas',
         selectedNode: null,
         saving: false,
         saveMessage: '',
         saveError: false,
         changeSummary: '',
+        miniMapOpen: true,
+        _mmScale: null,
+        _mmTimer: null,
         // KI-Workflow-Generierung
         aiOpen: false,
         aiDesc: '',
@@ -238,7 +355,23 @@ window.designerApp = function designerApp() {
 
             this.editor.on('nodeSelected', (id) => this.onNodeSelected(id));
             this.editor.on('nodeUnselected', () => { this.selectedNode = null; });
-            this.editor.on('nodeRemoved', () => { this.selectedNode = null; });
+            this.editor.on('nodeRemoved', () => { this.selectedNode = null; this.renderMiniMap(); });
+            this.editor.on('nodeMoved', () => this.renderMiniMap());
+            this.editor.on('nodeCreated', () => this.renderMiniMap());
+            this.editor.on('connectionCreated', () => this.renderMiniMap());
+            this.editor.on('connectionRemoved', () => this.renderMiniMap());
+
+            // Mini-Map waehrend Pan/Drag aktualisieren — Drawflow emittiert
+            // dafuer keine eigenen Events, also pollen wir solange die Maus
+            // ueber dem Canvas gehalten wird.
+            container.addEventListener('mousedown', () => {
+                if (this._mmTimer) clearInterval(this._mmTimer);
+                this._mmTimer = setInterval(() => this.renderMiniMap(), 80);
+            });
+            window.addEventListener('mouseup', () => {
+                if (this._mmTimer) { clearInterval(this._mmTimer); this._mmTimer = null; }
+                this.renderMiniMap();
+            });
 
             // Restore previous definition or insert a start node
             const def = this.payload.definition;
@@ -247,6 +380,87 @@ window.designerApp = function designerApp() {
             } else {
                 this.addNodeAt('start', 80, 120);
             }
+            this.$nextTick(() => this.renderMiniMap());
+        },
+
+        renderMiniMap() {
+            if (!this.editor || !this.miniMapOpen) return;
+            const canvas = document.getElementById('mini-map');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height;
+            ctx.clearRect(0, 0, W, H);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, W, H);
+
+            const data = this.editor.drawflow?.drawflow?.Home?.data || {};
+            const nodes = Object.values(data);
+            const containerEl = document.getElementById('drawflow');
+            if (!containerEl) return;
+            const cw = containerEl.clientWidth;
+            const ch = containerEl.clientHeight;
+            const z = this.editor.zoom || 1;
+            const vx = -(this.editor.canvas_x || 0) / z;
+            const vy = -(this.editor.canvas_y || 0) / z;
+            const vw = cw / z;
+            const vh = ch / z;
+
+            const NODE_W = 200, NODE_H = 80;
+            let minX = vx, minY = vy, maxX = vx + vw, maxY = vy + vh;
+            nodes.forEach(n => {
+                minX = Math.min(minX, n.pos_x);
+                minY = Math.min(minY, n.pos_y);
+                maxX = Math.max(maxX, n.pos_x + NODE_W);
+                maxY = Math.max(maxY, n.pos_y + NODE_H);
+            });
+            const pad = 60;
+            minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+            const span = Math.max(maxX - minX, 1);
+            const spanY = Math.max(maxY - minY, 1);
+            const scale = Math.min(W / span, H / spanY);
+
+            const colors = {
+                start: '#fef3c7', form: '#dbeafe', http: '#dcfce7',
+                email: '#d1fae5', condition: '#fae8ff', approval: '#fce7f3',
+                end: '#e0e7ff', delay: '#fed7aa', script: '#cffafe',
+            };
+            nodes.forEach(n => {
+                const x = (n.pos_x - minX) * scale;
+                const y = (n.pos_y - minY) * scale;
+                const w = Math.max(NODE_W * scale, 3);
+                const h = Math.max(NODE_H * scale, 3);
+                ctx.fillStyle = colors[n.class] || '#e2e8f0';
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 0.5;
+                ctx.fillRect(x, y, w, h);
+                ctx.strokeRect(x, y, w, h);
+            });
+
+            const vxs = (vx - minX) * scale;
+            const vys = (vy - minY) * scale;
+            ctx.strokeStyle = '#4f46e5';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(vxs, vys, vw * scale, vh * scale);
+
+            this._mmScale = { minX, minY, scale };
+        },
+
+        onMiniMapClick(event) {
+            if (!this._mmScale || !this.editor) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            const cx = x / this._mmScale.scale + this._mmScale.minX;
+            const cy = y / this._mmScale.scale + this._mmScale.minY;
+            const containerEl = document.getElementById('drawflow');
+            const z = this.editor.zoom || 1;
+            this.editor.canvas_x = -cx * z + containerEl.clientWidth / 2;
+            this.editor.canvas_y = -cy * z + containerEl.clientHeight / 2;
+            const pre = this.editor.precanvas;
+            if (pre) {
+                pre.style.transform = `translate(${this.editor.canvas_x}px, ${this.editor.canvas_y}px) scale(${z})`;
+            }
+            this.renderMiniMap();
         },
 
         paletteFor(type) {
@@ -355,6 +569,7 @@ window.designerApp = function designerApp() {
             if (dir === 'in') this.editor.zoom_in();
             else if (dir === 'out') this.editor.zoom_out();
             else this.editor.zoom_reset();
+            this.renderMiniMap();
         },
 
         // -- Form schema -----------------------------------------------------

@@ -25,7 +25,7 @@ class MicrosoftGraphSync
     {
         $config = config('services.microsoft-azure');
         if (empty($config['client_id']) || empty($config['client_secret']) || empty($config['tenant'])) {
-            throw new \RuntimeException('M365-Konfiguration unvollstaendig.');
+            throw new \RuntimeException('M365-Konfiguration unvollständig.');
         }
 
         $token = $this->fetchAppToken($config);
@@ -141,7 +141,7 @@ class MicrosoftGraphSync
     {
         $config = config('services.microsoft-azure');
         if (empty($config['client_id']) || empty($config['client_secret']) || empty($config['tenant'])) {
-            return ['ok' => false, 'message' => 'Konfiguration unvollstaendig (Client-ID, Secret und Tenant sind Pflicht).', 'user_count' => null];
+            return ['ok' => false, 'message' => 'Konfiguration unvollständig (Client-ID, Secret und Tenant sind Pflicht).', 'user_count' => null];
         }
 
         try {
@@ -162,7 +162,7 @@ class MicrosoftGraphSync
         $count = $resp->json('@odata.count');
         return [
             'ok' => true,
-            'message' => 'Verbindung erfolgreich.'.($count !== null ? " Tenant enthaelt {$count} Benutzer." : ''),
+            'message' => 'Verbindung erfolgreich.'.($count !== null ? " Tenant enthält {$count} Benutzer." : ''),
             'user_count' => $count,
         ];
     }

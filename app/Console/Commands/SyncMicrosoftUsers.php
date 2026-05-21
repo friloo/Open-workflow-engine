@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class SyncMicrosoftUsers extends Command
 {
-    protected $signature = 'm365:sync-users {--role=employee : Default-Rolle fuer neue Benutzer}';
+    protected $signature = 'm365:sync-users {--role=employee : Default-Rolle für neue Benutzer}';
     protected $description = 'Importiert/aktualisiert Benutzer aus Microsoft 365 (Graph API).';
 
     public function handle(MicrosoftGraphSync $sync): int

@@ -15,7 +15,7 @@ class RolesAndPermissionsSeeder extends Seeder
             ['slug' => 'users.view', 'name' => 'Benutzer ansehen', 'group' => 'Benutzer'],
             ['slug' => 'users.create', 'name' => 'Benutzer anlegen', 'group' => 'Benutzer'],
             ['slug' => 'users.update', 'name' => 'Benutzer bearbeiten', 'group' => 'Benutzer'],
-            ['slug' => 'users.delete', 'name' => 'Benutzer loeschen', 'group' => 'Benutzer'],
+            ['slug' => 'users.delete', 'name' => 'Benutzer löschen', 'group' => 'Benutzer'],
             ['slug' => 'users.import', 'name' => 'Benutzer importieren (CSV/M365)', 'group' => 'Benutzer'],
 
             // Rollen
@@ -27,19 +27,26 @@ class RolesAndPermissionsSeeder extends Seeder
             ['slug' => 'workflows.design', 'name' => 'Workflows entwerfen & aktivieren', 'group' => 'Workflows'],
             ['slug' => 'workflows.run', 'name' => 'Workflows starten', 'group' => 'Workflows'],
 
+            // Reports / KPIs
+            ['slug' => 'reports.view', 'name' => 'Reports & KPIs ansehen', 'group' => 'Reports'],
+
+            // Vertragsmanagement
+            ['slug' => 'contracts.view', 'name' => 'Verträge ansehen', 'group' => 'Verträge'],
+            ['slug' => 'contracts.manage', 'name' => 'Verträge pflegen', 'group' => 'Verträge'],
+
             // Formulare
             ['slug' => 'forms.view', 'name' => 'Formulare ansehen', 'group' => 'Formulare'],
             ['slug' => 'forms.manage', 'name' => 'Formulare verwalten', 'group' => 'Formulare'],
 
             // Audit
             ['slug' => 'audit.view', 'name' => 'Audit-Log ansehen', 'group' => 'Audit'],
-            ['slug' => 'audit.verify', 'name' => 'Audit-Kette pruefen', 'group' => 'Audit'],
+            ['slug' => 'audit.verify', 'name' => 'Audit-Kette prüfen', 'group' => 'Audit'],
 
             // Lookup-Listen (Kostenstellen, Abteilungen, ...)
             ['slug' => 'lists.view', 'name' => 'Listen ansehen', 'group' => 'Listen'],
             ['slug' => 'lists.manage', 'name' => 'Listen pflegen und importieren', 'group' => 'Listen'],
 
-            // Assets (Fuehrerscheine, Unterweisungen, ...)
+            // Assets (Führerscheine, Unterweisungen, ...)
             ['slug' => 'assets.view', 'name' => 'Assets ansehen', 'group' => 'Assets'],
             ['slug' => 'assets.manage', 'name' => 'Assets pflegen und importieren', 'group' => 'Assets'],
 
@@ -54,11 +61,11 @@ class RolesAndPermissionsSeeder extends Seeder
             ['slug' => 'shares.create', 'name' => 'Dokumente per Link teilen', 'group' => 'Dokumente'],
             ['slug' => 'shares.manage_all', 'name' => 'Alle Freigaben verwalten', 'group' => 'Dokumente'],
 
-            // Secrets-Vault (Tokens fuer HTTP-Knoten)
+            // Secrets-Vault (Tokens für HTTP-Knoten)
             ['slug' => 'secrets.manage', 'name' => 'Secrets verwalten', 'group' => 'Integrationen'],
 
             // E-Mail-Eingang (IMAP)
-            ['slug' => 'mailboxes.manage', 'name' => 'E-Mail-Postfaecher verwalten', 'group' => 'Integrationen'],
+            ['slug' => 'mailboxes.manage', 'name' => 'E-Mail-Postfächer verwalten', 'group' => 'Integrationen'],
             ['slug' => 'folder_inboxes.manage', 'name' => 'Folder-Inboxen verwalten', 'group' => 'Integrationen'],
 
             // System
@@ -83,13 +90,13 @@ class RolesAndPermissionsSeeder extends Seeder
             [
                 'slug' => 'workflow-designer',
                 'name' => 'Workflow-Designer',
-                'description' => 'Darf Workflows und Formulare entwerfen und veroeffentlichen.',
+                'description' => 'Darf Workflows und Formulare entwerfen und veröffentlichen.',
                 'is_system' => true,
                 'permissions' => [
                     'workflows.view', 'workflows.design', 'workflows.run',
                     'forms.view', 'forms.manage', 'users.view', 'roles.view',
                     'lists.view', 'lists.manage', 'assets.view', 'assets.manage',
-                    'documents.search', 'shares.create',
+                    'documents.search', 'shares.create', 'reports.view',
                 ],
             ],
             [
@@ -102,7 +109,7 @@ class RolesAndPermissionsSeeder extends Seeder
             [
                 'slug' => 'auditor',
                 'name' => 'Auditor',
-                'description' => 'Darf das Audit-Log einsehen und die Integritaetskette pruefen.',
+                'description' => 'Darf das Audit-Log einsehen und die Integritätskette prüfen.',
                 'is_system' => true,
                 'permissions' => ['audit.view', 'audit.verify', 'users.view', 'workflows.view'],
             ],

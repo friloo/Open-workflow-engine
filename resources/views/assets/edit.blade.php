@@ -18,12 +18,12 @@
                 </div>
                 <div>
                     <x-input-label for="type" value="Typ" />
-                    <x-text-input id="type" name="type" value="{{ old('type', $asset->type ?? '') }}" placeholder="z. B. Fuehrerschein" required />
+                    <x-text-input id="type" name="type" value="{{ old('type', $asset->type ?? '') }}" placeholder="z. B. Führerschein" required />
                 </div>
                 <div>
                     <x-input-label for="user_id" value="Inhaber" />
                     <select id="user_id" name="user_id" required class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option value="">— waehlen —</option>
+                        <option value="">— wählen —</option>
                         @foreach($users as $u)
                             <option value="{{ $u->id }}" @selected(old('user_id', $asset->user_id) == $u->id)>{{ $u->name }} ({{ $u->email }})</option>
                         @endforeach
@@ -31,7 +31,7 @@
                     <x-input-error :messages="$errors->get('user_id')" />
                 </div>
                 <div>
-                    <x-input-label for="valid_until" value="Gueltig bis" />
+                    <x-input-label for="valid_until" value="Gültig bis" />
                     <x-text-input id="valid_until" name="valid_until" type="date" value="{{ old('valid_until', $asset->valid_until?->format('Y-m-d')) }}" />
                 </div>
                 <div>
@@ -66,9 +66,9 @@
 
             <div class="mt-6 flex justify-between">
                 @if(! $isNew)
-                    <form method="POST" action="{{ route('assets.destroy', $asset) }}" onsubmit="return confirm('Asset wirklich loeschen?')">
+                    <form method="POST" action="{{ route('assets.destroy', $asset) }}" onsubmit="return confirm('Asset wirklich löschen?')">
                         @csrf @method('DELETE')
-                        <button type="submit" class="inline-flex items-center justify-center rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm hover:bg-rose-50">Loeschen</button>
+                        <button type="submit" class="inline-flex items-center justify-center rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm hover:bg-rose-50">Löschen</button>
                     </form>
                 @else <span></span>
                 @endif
@@ -83,9 +83,10 @@
 
     <div class="space-y-6">
         @if(! $isNew)
-            <x-card title="Dateien" description="Scans und Belege (z. B. Fuehrerschein-Foto).">
+            <x-dropzone :upload-url="route('attachments.store', ['type'=>'asset','id'=>$asset->id])" label="Datei zum Asset hinzufügen">
+            <x-card title="Dateien" description="Scans und Belege (z. B. Führerschein-Foto). Datei einfach hier reinziehen.">
                 @if($asset->attachments->isEmpty())
-                    <p class="text-sm text-slate-500">Noch keine Dateien.</p>
+                    <x-empty-state icon="document" title="Noch keine Dateien" description="Datei ins Fenster ziehen oder unten über den Button hochladen." />
                 @else
                     <ul class="divide-y divide-slate-100">
                         @foreach($asset->attachments as $a)
@@ -94,9 +95,9 @@
                                     <a href="{{ route('attachments.download', $a) }}" class="font-medium text-indigo-600 hover:text-indigo-500 truncate block" target="_blank">{{ $a->original_name }}</a>
                                     <div class="text-xs text-slate-500">{{ $a->sizeFormatted() }} · {{ $a->mime_type }} · {{ $a->created_at->format('d.m.Y H:i') }}</div>
                                 </div>
-                                <form method="POST" action="{{ route('attachments.destroy', $a) }}" onsubmit="return confirm('Datei wirklich loeschen?')">
+                                <form method="POST" action="{{ route('attachments.destroy', $a) }}" onsubmit="return confirm('Datei wirklich löschen?')">
                                     @csrf @method('DELETE')
-                                    <button class="text-xs text-rose-600 hover:text-rose-500">loeschen</button>
+                                    <button class="text-xs text-rose-600 hover:text-rose-500">löschen</button>
                                 </form>
                             </li>
                         @endforeach
@@ -113,19 +114,20 @@
                         <input type="text" name="label" placeholder="Beschriftung (optional)" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         @if(! empty($docTypes))
                             <select name="document_type" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">— Dokumenttyp waehlen (optional) —</option>
+                                <option value="">— Dokumenttyp wählen (optional) —</option>
                                 @foreach($docTypes as $dt)
                                     <option value="{{ $dt }}">{{ $dt }}</option>
                                 @endforeach
                             </select>
                         @else
-                            <input type="text" name="document_type" placeholder="Dokumenttyp (z. B. Vertrag, Fuehrerschein)" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <input type="text" name="document_type" placeholder="Dokumenttyp (z. B. Vertrag, Führerschein)" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         @endif
                         <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Hochladen</button>
                         <x-input-error :messages="$errors->get('file')" />
                     </form>
                 @endif
             </x-card>
+            </x-dropzone>
         @endif
     </div>
     </div>

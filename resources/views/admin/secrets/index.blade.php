@@ -6,9 +6,10 @@
         <div class="lg:col-span-2">
             <x-card>
                 @if($secrets->isEmpty())
-                    <p class="text-sm text-slate-500">Noch keine Secrets.</p>
+                    <x-empty-state title="Noch keine Secrets" description="Lege oben einen verschlüsselten Wert an (API-Keys, Tokens) — in HTTP-Knoten als @{{ secret.NAME }} verwendbar." />
                 @else
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                             <th class="py-2 pr-4">Key</th>
                             <th class="py-2 pr-4">Beschreibung</th>
@@ -17,8 +18,9 @@
                         </tr></thead>
                         <tbody class="divide-y divide-slate-100">
                             @foreach($secrets as $s)
+                                @php($placeholder = '{{ secret.'.$s->key.' }}')
                                 <tr>
-                                    <td class="py-3 pr-4"><code class="rounded bg-slate-100 px-2 py-0.5 text-xs">@{{ secret.{{ $s->key }} }}</code></td>
+                                    <td class="py-3 pr-4"><code class="rounded bg-slate-100 px-2 py-0.5 text-xs">{{ $placeholder }}</code></td>
                                     <td class="py-3 pr-4 text-slate-700 text-xs">{{ $s->description }}</td>
                                     <td class="py-3 pr-4 text-xs text-slate-500">{{ $s->created_at->diffForHumans() }}@if($s->creator) · {{ $s->creator->name }}@endif</td>
                                     <td class="py-3 text-right">
@@ -27,15 +29,16 @@
                                             <input type="password" name="value" placeholder="neuer Wert" class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <button class="text-xs text-indigo-600 hover:text-indigo-500">rotieren</button>
                                         </form>
-                                        <form method="POST" action="{{ route('admin.secrets.destroy', $s) }}" class="inline ms-2" onsubmit="return confirm('Secret loeschen?')">
+                                        <form method="POST" action="{{ route('admin.secrets.destroy', $s) }}" class="inline ms-2" onsubmit="return confirm('Secret löschen?')">
                                             @csrf @method('DELETE')
-                                            <button class="text-xs text-rose-600 hover:text-rose-500">loeschen</button>
+                                            <button class="text-xs text-rose-600 hover:text-rose-500">löschen</button>
                                         </form>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+</div>
                 @endif
                 <div class="mt-4">{{ $secrets->links() }}</div>
             </x-card>
@@ -53,7 +56,7 @@
                 <div>
                     <x-input-label for="value" value="Wert" />
                     <x-text-input id="value" name="value" type="password" required autocomplete="new-password" />
-                    <p class="mt-1 text-xs text-slate-500">Wird verschluesselt gespeichert.</p>
+                    <p class="mt-1 text-xs text-slate-500">Wird verschlüsselt gespeichert.</p>
                 </div>
                 <div>
                     <x-input-label for="description" value="Beschreibung" />

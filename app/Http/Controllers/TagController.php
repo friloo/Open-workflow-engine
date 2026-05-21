@@ -52,7 +52,7 @@ class TagController extends Controller
     {
         $name = $tag->name;
         $tag->delete();
-        $this->audit->log('tag.deleted', null, ['name' => $name], null, "Tag {$name} geloescht");
-        return back()->with('status', "Tag {$name} geloescht.");
+        $this->audit->log('tag.deleted', null, ['name' => $name], null, "Tag {$name} gelöscht");
+        return back()->with('status', "Tag {$name} gelöscht.");
     }
 }

@@ -5,7 +5,7 @@
         @if($notifications->isEmpty())
             <x-empty-state icon="bell"
                 title="Keine Benachrichtigungen"
-                description="Sobald du eine Aufgabe erhaeltst oder eine Freigabe geprueft werden muss, taucht es hier auf." />
+                description="Sobald du eine Aufgabe erhältst oder eine Freigabe geprüft werden muss, taucht es hier auf." />
         @else
             <div class="mb-3 flex justify-end">
                 <form method="POST" action="{{ route('notifications.read_all') }}">
@@ -24,7 +24,7 @@
                                 <span class="font-medium text-slate-900">{{ $n->title }}</span>
                             @endif
                             @if($n->body)<div class="text-sm text-slate-600">{{ $n->body }}</div>@endif
-                            <div class="text-xs text-slate-500 mt-0.5">{{ $n->created_at->diffForHumans() }}</div>
+                            <div class="text-xs text-slate-500 mt-0.5"><x-fmt-date :value="$n->created_at" format="relative" /></div>
                         </div>
                     </li>
                 @endforeach

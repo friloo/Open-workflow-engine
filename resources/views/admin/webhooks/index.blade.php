@@ -8,9 +8,10 @@
 
     <x-card>
         @if($webhooks->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Webhooks.</p>
+            <x-empty-state title="Noch keine Webhooks" description="Lege oben einen Endpunkt an, um Events aus Workflows nach extern zu schicken." />
         @else
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                     <th class="py-2 pr-4">Name</th>
                     <th class="py-2 pr-4">URL</th>
@@ -39,15 +40,16 @@
                             <td class="py-3 text-right space-x-3">
                                 <form method="POST" action="{{ route('admin.webhooks.test', $w) }}" class="inline">@csrf<button class="text-sm text-slate-600 hover:text-slate-900">Test</button></form>
                                 <a href="{{ route('admin.webhooks.edit', $w) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
-                                <form method="POST" action="{{ route('admin.webhooks.destroy', $w) }}" class="inline" onsubmit="return confirm('Webhook loeschen?')">
+                                <form method="POST" action="{{ route('admin.webhooks.destroy', $w) }}" class="inline" onsubmit="return confirm('Webhook löschen?')">
                                     @csrf @method('DELETE')
-                                    <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                    <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                 </form>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+</div>
         @endif
         <div class="mt-4">{{ $webhooks->links() }}</div>
     </x-card>

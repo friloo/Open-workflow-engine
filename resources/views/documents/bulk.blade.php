@@ -15,7 +15,7 @@
                  @drop.prevent="$el.classList.remove('border-indigo-500','bg-indigo-50'); files = Array.from($event.dataTransfer.files || []); $refs.f.files = $event.dataTransfer.files">
                 <input type="file" name="files[]" multiple x-ref="f" @change="handle" class="hidden"
                        accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,.doc,.docx,.xls,.xlsx,.txt,.csv">
-                <p class="text-sm text-slate-700">Dateien hier ablegen oder klicken zum Auswaehlen.</p>
+                <p class="text-sm text-slate-700">Dateien hier ablegen oder klicken zum Auswählen.</p>
                 <p class="mt-1 text-xs text-slate-500">Max. 50 Dateien, je max. 15 MB. PDF, Bild, Word, Excel, Text.</p>
                 <ul class="mt-3 text-xs text-slate-700" x-show="files.length" style="display:none;">
                     <template x-for="f in files" :key="f.name">
@@ -37,7 +37,7 @@
                     @endif
                 </div>
                 <div>
-                    <x-input-label for="label" value="Beschriftung (optional, fuer alle)" />
+                    <x-input-label for="label" value="Beschriftung (optional, für alle)" />
                     <x-text-input id="label" name="label" placeholder="z. B. Eingang Juni 2026" />
                 </div>
             </div>

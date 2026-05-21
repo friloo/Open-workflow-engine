@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">API-Tokens</x-slot>
-    <x-slot name="subheader">Persoenliche Tokens fuer automatisierte Zugriffe (Header: <code class="font-mono">Authorization: Bearer owe_…</code>).</x-slot>
+    <x-slot name="subheader">Persönliche Tokens für automatisierte Zugriffe (Header: <code class="font-mono">Authorization: Bearer owe_…</code>).</x-slot>
 
     @if($plain)
         <x-card>
@@ -45,7 +45,8 @@
         @if($tokens->isEmpty())
             <p class="text-sm text-slate-500">Noch keine Tokens.</p>
         @else
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                 <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                     <th class="py-2 pr-4">Name</th>
                     <th class="py-2 pr-4">Prefix</th>
@@ -68,7 +69,7 @@
                                     <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">aktiv</span>
                                 @endif
                                 @if($t->expires_at && ! $t->revoked_at)
-                                    <div class="text-xs text-slate-500 mt-1">laeuft ab {{ $t->expires_at->format('d.m.Y') }}</div>
+                                    <div class="text-xs text-slate-500 mt-1">läuft ab {{ $t->expires_at->format('d.m.Y') }}</div>
                                 @endif
                             </td>
                             <td class="py-3 pr-4 text-xs">
@@ -95,6 +96,7 @@
                     @endforeach
                 </tbody>
             </table>
+</div>
         @endif
     </x-card>
 </x-app-layout>

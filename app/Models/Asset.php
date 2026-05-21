@@ -38,9 +38,9 @@ class Asset extends Model
     }
 
     /**
-     * Asset ist zur Pruefung faellig: valid_until - lead_time_days <= heute,
-     * und entweder noch nie geprueft oder das letzte Review liegt vor dem
-     * aktuellen Pruefzyklus.
+     * Asset ist zur Prüfung fällig: valid_until - lead_time_days <= heute,
+     * und entweder noch nie geprüft oder das letzte Review liegt vor dem
+     * aktuellen Prüfzyklus.
      */
     public function isDue(): bool
     {
@@ -48,7 +48,7 @@ class Asset extends Model
         if (! $this->valid_until) return false;
         $threshold = $this->valid_until->copy()->subDays((int) $this->lead_time_days);
         if (now()->lt($threshold)) return false;
-        // Bereits in aktuellem Zyklus geprueft (last_review_at nach threshold)?
+        // Bereits in aktuellem Zyklus geprüft (last_review_at nach threshold)?
         if ($this->last_review_at && $this->last_review_at->gte($threshold)) return false;
         return true;
     }

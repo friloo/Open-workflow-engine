@@ -155,7 +155,7 @@ class Phase15jTest extends TestCase
         $this->assertNull($r['error']);
         $this->assertSame(0, WorkflowInstance::count());
         \Illuminate\Support\Facades\Mail::assertNothingSent();
-        // Trace enthaelt notify-Knoten
+        // Trace enthält notify-Knoten
         $this->assertContains('notify', collect($r['trace'])->pluck('class')->all());
     }
 

@@ -32,7 +32,7 @@ class InstallerTest extends TestCase
 
     public function test_welcome_page_renders_with_checks(): void
     {
-        $this->get('/install')->assertOk()->assertSee('System-Pruefung')->assertSee('PHP-Version');
+        $this->get('/install')->assertOk()->assertSee('System-Prüfung')->assertSee('PHP-Version');
     }
 
     public function test_database_page_renders(): void
@@ -59,7 +59,7 @@ class InstallerTest extends TestCase
     public function test_finish_step_sets_marker(): void
     {
         $this->seed(\Database\Seeders\RolesAndPermissionsSeeder::class);
-        // Mindestens ein User noetig, damit dbReady greift
+        // Mindestens ein User nötig, damit dbReady greift
         $u = User::factory()->create();
         $u->roles()->attach(Role::where('slug', 'admin')->first()->id);
 
@@ -88,7 +88,7 @@ class InstallerTest extends TestCase
     {
         $this->get('/install/restore')->assertOk()
             ->assertSee('Backup-Datei')
-            ->assertSee('Max. Upload-Groesse');
+            ->assertSee('Max. Upload-Größe');
     }
 
     public function test_restore_rejects_when_driver_mismatch(): void

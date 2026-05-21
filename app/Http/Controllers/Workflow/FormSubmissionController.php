@@ -38,7 +38,7 @@ class FormSubmissionController extends Controller
 
         return response()->streamDownload(function () use ($form, $columns, $labels) {
             $out = fopen('php://output', 'w');
-            // UTF-8 BOM fuer Excel-Kompatibilitaet
+            // UTF-8 BOM für Excel-Kompatibilität
             fwrite($out, "\xEF\xBB\xBF");
 
             $header = ['id', 'eingegangen', 'eingereicht_von', 'workflow_instanz'];
@@ -50,7 +50,7 @@ class FormSubmissionController extends Controller
                     $row = [
                         $s->id,
                         $s->created_at?->format('Y-m-d H:i:s'),
-                        $s->submittedBy?->email ?? 'oeffentlich',
+                        $s->submittedBy?->email ?? 'öffentlich',
                         $s->workflow_instance_id ?? '',
                     ];
                     foreach ($columns as $col) {

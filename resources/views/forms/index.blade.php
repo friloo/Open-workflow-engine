@@ -12,7 +12,7 @@
         @if($forms->isEmpty())
             <x-empty-state icon="form"
                 title="Noch keine Formulare"
-                description="Lege ein Stand-Alone-Formular an — fuer reine Datensammlung oder als Trigger fuer einen Workflow.">
+                description="Lege ein Stand-Alone-Formular an — für reine Datensammlung oder als Trigger für einen Workflow.">
                 @if(auth()->user()->hasPermission('forms.manage'))
                     <a href="{{ route('forms.create') }}"><x-primary-button type="button">Neues Formular</x-primary-button></a>
                     <a href="{{ route('help.show', 'forms') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>
@@ -26,7 +26,7 @@
                             <th class="py-2 pr-4">Name</th>
                             <th class="py-2 pr-4">Workflow</th>
                             <th class="py-2 pr-4">Status</th>
-                            <th class="py-2 pr-4">Eingaenge</th>
+                            <th class="py-2 pr-4">Eingänge</th>
                             <th class="py-2"></th>
                         </tr>
                     </thead>
@@ -46,19 +46,19 @@
                                 </td>
                                 <td class="py-3 pr-4">
                                     @if($f->is_public)
-                                        <a href="{{ route('forms.public.show', $f->public_slug) }}" target="_blank" class="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700 hover:bg-sky-100">oeffentlich</a>
+                                        <a href="{{ route('forms.public.show', $f->public_slug) }}" target="_blank" class="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700 hover:bg-sky-100">öffentlich</a>
                                     @else
                                         <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">intern</span>
                                     @endif
                                 </td>
                                 <td class="py-3 pr-4 text-slate-700">{{ $f->submissions_count }}</td>
                                 <td class="py-3 text-right space-x-3">
-                                    <a href="{{ route('forms.submissions.index', $f) }}" class="text-sm text-slate-600 hover:text-slate-900">Eingaenge</a>
+                                    <a href="{{ route('forms.submissions.index', $f) }}" class="text-sm text-slate-600 hover:text-slate-900">Eingänge</a>
                                     @if(auth()->user()->hasPermission('forms.manage'))
                                         <a href="{{ route('forms.edit', $f) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
-                                        <form method="POST" action="{{ route('forms.destroy', $f) }}" class="inline" onsubmit="return confirm('Formular wirklich loeschen?')">
+                                        <form method="POST" action="{{ route('forms.destroy', $f) }}" class="inline" onsubmit="return confirm('Formular wirklich löschen?')">
                                             @csrf @method('DELETE')
-                                            <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                            <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                         </form>
                                     @endif
                                 </td>

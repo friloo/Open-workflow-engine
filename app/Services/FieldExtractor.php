@@ -10,9 +10,9 @@ use App\Support\DocumentFieldSchema;
  *
  * Reihenfolge pro Feld:
  *   1. Heuristik / Regex / KI (laut Schema-Eintrag)
- *   2. wenn leer und `ki_fallback` gesetzt UND KI verfuegbar -> KI
+ *   2. wenn leer und `ki_fallback` gesetzt UND KI verfügbar -> KI
  *
- * KI ist immer optional. Ohne konfigurierte KI laeuft alles via Heuristik.
+ * KI ist immer optional. Ohne konfigurierte KI läuft alles via Heuristik.
  */
 class FieldExtractor
 {
@@ -22,7 +22,7 @@ class FieldExtractor
     ) {}
 
     /**
-     * Liest die Schema-Felder aus, fuehrt Extraktion durch und persistiert
+     * Liest die Schema-Felder aus, führt Extraktion durch und persistiert
      * sie in `attachments.indexed_fields`. Liefert die ermittelten Felder.
      */
     public function extractFor(Attachment $att): array
@@ -75,7 +75,7 @@ class FieldExtractor
     {
         $ex = $field['extractor'];
         if ($ex === 'manual') return null;
-        if ($ex === 'ki') return null; // wird gebuendelt verarbeitet
+        if ($ex === 'ki') return null; // wird gebündelt verarbeitet
 
         if (str_starts_with($ex, 'zugferd:')) {
             $key = substr($ex, strlen('zugferd:'));
@@ -114,7 +114,7 @@ class FieldExtractor
             && preg_match('/^.(.+).([a-zA-Z]*)$/s', $pattern)
             && @preg_match($pattern, '') !== false;
         if (! $isDelimited) {
-            // # als Delimiter, damit Slashes im Muster nicht escaped werden muessen.
+            // # als Delimiter, damit Slashes im Muster nicht escaped werden müssen.
             $pattern = '#'.str_replace('#', '\\#', $pattern).'#i';
             if (@preg_match($pattern, '') === false) return null;
         }
@@ -149,7 +149,7 @@ class FieldExtractor
 
     private function findGermanDate(string $text): ?string
     {
-        // Bevorzugt Datum in der Naehe von "Datum", "Rechnungsdatum", etc.
+        // Bevorzugt Datum in der Nähe von "Datum", "Rechnungsdatum", etc.
         if (preg_match('/(?:rechnungs-?datum|leistungsdatum|datum|date)[^\d]{0,12}(\d{1,2}\.\s?\d{1,2}\.\s?\d{2,4})/iu', $text, $m)) {
             return $this->normalizeGermanDate($m[1]);
         }
@@ -171,7 +171,7 @@ class FieldExtractor
 
     private function findCurrency(string $text): ?string
     {
-        // Bevorzugt Betrag in der Naehe von Brutto/Gesamt; sonst groesster Wert.
+        // Bevorzugt Betrag in der Nähe von Brutto/Gesamt; sonst größter Wert.
         if (preg_match('/(?:gesamt(?:summe)?|brutto|zu zahlen|rechnungs?betrag)[^\d]{0,20}(\d{1,3}(?:[.\s]\d{3})*[.,]\d{2})\s*(?:€|EUR)?/iu', $text, $m)) {
             return $this->normalizeAmount($m[1]);
         }
@@ -223,10 +223,10 @@ class FieldExtractor
     }
 
     /**
-     * Sucht den OCR-Text nach Schluesseln aus einer Lookup-Liste. Damit
+     * Sucht den OCR-Text nach Schlüsseln aus einer Lookup-Liste. Damit
      * lernt das System z. B. Kostenstellen-Codes ohne KI: der Anwender
      * pflegt die Liste, der Extraktor findet die Werte im Dokument.
-     * Bei mehreren Treffern gewinnt der laengste (spezifischste).
+     * Bei mehreren Treffern gewinnt der längste (spezifischste).
      */
     private function findInLookup(string $listSlug, string $text): ?string
     {
@@ -239,7 +239,7 @@ class FieldExtractor
         $keys = $list->entries()->pluck('key_value')->filter()->all();
         if (empty($keys)) return null;
 
-        // Laengste zuerst, damit "K-2026-01" vor "K-2026" gewinnt.
+        // Längste zuerst, damit "K-2026-01" vor "K-2026" gewinnt.
         usort($keys, fn ($a, $b) => mb_strlen((string) $b) <=> mb_strlen((string) $a));
 
         foreach ($keys as $k) {

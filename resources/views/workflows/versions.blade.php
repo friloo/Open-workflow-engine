@@ -2,13 +2,19 @@
     <x-slot name="header">Versionen: {{ $workflow->name }}</x-slot>
     <x-slot name="subheader">Jede Speicherung erzeugt eine neue, unveraenderbare Version.</x-slot>
 
-    <div class="mb-4">
-        <a href="{{ route('workflows.design', $workflow) }}" class="text-sm text-indigo-600 hover:text-indigo-500">&larr; Zurueck zum Designer</a>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <a href="{{ route('workflows.design', $workflow) }}" class="text-sm text-indigo-600 hover:text-indigo-500">&larr; Zurück zum Designer</a>
+        @if($versions->count() >= 2)
+            <a href="{{ route('workflows.versions.diff', $workflow) }}"
+               class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                Versionen vergleichen
+            </a>
+        @endif
     </div>
 
     <x-card>
         @if($versions->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Versionen vorhanden.</p>
+            <x-empty-state title="Noch keine Versionen" description="Sobald du den Designer speicherst, wird die erste Version angelegt." />
         @else
             <ul class="divide-y divide-slate-100">
                 @foreach($versions as $v)
@@ -27,12 +33,15 @@
                                 <div class="mt-1 text-sm text-slate-700">{{ $v->change_summary }}</div>
                             @endif
                         </div>
-                        @if($workflow->current_version_id !== $v->id && auth()->user()->hasPermission('workflows.design'))
-                            <form method="POST" action="{{ route('workflows.versions.restore', [$workflow, $v]) }}" onsubmit="return confirm('Diese Version als neuen Stand wiederherstellen?')">
-                                @csrf
-                                <x-secondary-button>Wiederherstellen</x-secondary-button>
-                            </form>
-                        @endif
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('workflows.process_doc.version', [$workflow, $v]) }}" class="text-xs text-indigo-600 hover:text-indigo-500" title="Prozessbeschreibung dieser Version als PDF">PDF-Doku</a>
+                            @if($workflow->current_version_id !== $v->id && auth()->user()->hasPermission('workflows.design'))
+                                <form method="POST" action="{{ route('workflows.versions.restore', [$workflow, $v]) }}" onsubmit="return confirm('Diese Version als neuen Stand wiederherstellen?')">
+                                    @csrf
+                                    <x-secondary-button>Wiederherstellen</x-secondary-button>
+                                </form>
+                            @endif
+                        </div>
                     </li>
                 @endforeach
             </ul>

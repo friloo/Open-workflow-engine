@@ -2,14 +2,14 @@
 <html lang="de">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>OWE Installer — System-Pruefung</title>
+    <title>OWE Installer — System-Prüfung</title>
     @include('install._styles')
 </head>
 <body>
 <div class="wrap">
     @include('install._header', ['step' => 1])
-    <h2>System-Pruefung</h2>
-    <p class="sub">Diese Voraussetzungen muessen erfuellt sein, damit OWE laeuft.</p>
+    <h2>System-Prüfung</h2>
+    <p class="sub">Diese Voraussetzungen müssen erfüllt sein, damit OWE läuft.</p>
     <table>
         @foreach($checks as $c)
             <tr>
@@ -34,13 +34,13 @@
             </a>
             <a href="{{ route('install.restore') }}" style="display:block; padding:16px; border:1px solid #fed7aa; border-radius:10px; background:#fff7ed; text-decoration:none; color:#7c2d12;">
                 <strong>Aus Backup wiederherstellen</strong>
-                <div style="font-size:13px; color:#475569; margin-top:4px;">Backup-ZIP hochladen, DB und Anhaenge einspielen — z. B. fuer Umzug auf neuen Host.</div>
+                <div style="font-size:13px; color:#475569; margin-top:4px;">Backup-ZIP hochladen, DB und Anhänge einspielen — z. B. für Umzug auf neuen Host.</div>
             </a>
         </div>
     @endif
 
     <div style="margin-top:20px; text-align: right;">
-        <a class="link" href="{{ url('/install') }}">Neu pruefen</a>
+        <a class="link" href="{{ url('/install') }}">Neu prüfen</a>
     </div>
 </div></div>
 </body>

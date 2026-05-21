@@ -1,5 +1,20 @@
 <x-app-layout :full="true">
-    <div x-data="designerApp()" x-init="boot()" class="flex h-[calc(100vh-4rem)] flex-col">
+    {{-- Mobile-Warnung: Designer braucht Drag & Drop und ist auf Touch-Geräten kaum
+         bedienbar. Auf Geräten kleiner als lg blenden wir die App komplett aus und
+         zeigen einen Hinweis statt einem kaputten Canvas. --}}
+    <div class="lg:hidden flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <div class="grid h-14 w-14 place-items-center rounded-full bg-amber-100 text-amber-700">
+            <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        </div>
+        <h2 class="mt-4 text-base font-semibold text-slate-900">Designer braucht einen Desktop</h2>
+        <p class="mt-2 max-w-sm text-sm text-slate-500">
+            Drag-and-Drop von Knoten und das Ziehen von Verbindungen funktioniert auf
+            Touch-Geräten nicht zuverlaessig. Oeffne diesen Workflow am Rechner.
+        </p>
+        <a href="{{ route('workflows.index') }}" class="mt-4 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">&larr; Zurück zu Workflows</a>
+    </div>
+
+    <div x-data="designerApp()" x-init="boot()" class="hidden lg:flex h-[calc(100vh-4rem)] flex-col">
 
         {{-- Toolbar --}}
         <div class="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white px-6 py-3">
@@ -21,14 +36,18 @@
                 </div>
             </div>
             <div class="ms-auto flex items-center gap-2">
-                <button type="button" @click="aiOpen = true"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-500">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
-                    KI-Entwurf
-                </button>
-                <input type="text" x-model="changeSummary" placeholder="Beschreibung der Aenderung (optional)"
+                @php($aiClient = app(\App\Services\AIClient::class))
+                @if($aiClient->isReady() && $aiClient->isFeatureEnabled('workflow_design'))
+                    <button type="button" @click="aiOpen = true"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-500">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+                        KI-Entwurf
+                    </button>
+                @endif
+                <input type="text" x-model="changeSummary" placeholder="Beschreibung der Änderung (optional)"
                     class="w-64 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 <a href="{{ route('workflows.versions', $workflow) }}" class="text-sm text-slate-600 hover:text-slate-900">Versionen</a>
+                <a href="{{ route('workflows.process_doc', $workflow) }}" target="_blank" class="text-sm text-slate-600 hover:text-slate-900" title="Prozessbeschreibung als PDF herunterladen">PDF-Doku</a>
                 <button type="button" @click="save()" :disabled="saving"
                     class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
                     <span x-show="!saving">Speichern</span>
@@ -46,7 +65,7 @@
                 </div>
                 <div class="p-6 space-y-3">
                     <textarea x-model="aiDesc" rows="8"
-                        placeholder="z. B.: Bestellantrag. Mitarbeiter fuellt Formular mit Kostenstelle, Beschreibung und Betrag aus. Bei IT-Kostenstelle (1000) geht es zur IT-Leitung, bei Office (2000) an den Office-Manager. Karenzzeit 3 Tage, eskaliert an Admin-Rolle. Nach Genehmigung wird via HTTP-POST ein Ticket im Jira (URL beispiel.atlassian.net/rest/api/3/issue, Bearer-Token) erstellt und der Antragsteller per Mail informiert. Bei Ablehnung Mail an den Antragsteller mit dem Grund."
+                        placeholder="z. B.: Bestellantrag. Mitarbeiter füllt Formular mit Kostenstelle, Beschreibung und Betrag aus. Bei IT-Kostenstelle (1000) geht es zur IT-Leitung, bei Office (2000) an den Office-Manager. Karenzzeit 3 Tage, eskaliert an Admin-Rolle. Nach Genehmigung wird via HTTP-POST ein Ticket im Jira (URL beispiel.atlassian.net/rest/api/3/issue, Bearer-Token) erstellt und der Antragsteller per Mail informiert. Bei Ablehnung Mail an den Antragsteller mit dem Grund."
                         class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-violet-500 focus:ring-violet-500"></textarea>
                     <p x-show="aiError" x-text="aiError" class="text-sm text-rose-700" style="display:none;"></p>
                 </div>
@@ -79,21 +98,28 @@
         {{-- Canvas tab --}}
         <div x-show="tab==='canvas'" class="flex flex-1 overflow-hidden">
             {{-- Palette --}}
-            <aside class="w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white">
+            <aside class="w-64 shrink-0 overflow-y-auto border-r border-slate-200 bg-white">
                 <div class="p-4">
                     <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Knoten</h3>
                     <p class="mt-1 text-xs text-slate-500">In die Flaeche ziehen.</p>
-                    <div class="mt-3 space-y-2">
-                        <template x-for="palette in nodePalette" :key="palette.type">
-                            <div draggable="true"
-                                @dragstart="onDragStart($event, palette.type)"
-                                class="cursor-grab rounded-lg border border-slate-200 bg-white p-3 hover:border-indigo-300 hover:bg-indigo-50 transition">
-                                <div class="flex items-center gap-2">
-                                    <div class="grid h-6 w-6 place-items-center rounded text-xs font-semibold text-white"
-                                        :style="`background-color: ${palette.color}`" x-text="palette.shortLabel"></div>
-                                    <div class="text-sm font-medium text-slate-900" x-text="palette.label"></div>
+                    <div class="mt-3 space-y-4">
+                        <template x-for="group in nodePaletteGrouped" :key="group.category">
+                            <div>
+                                <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5" x-text="group.category"></div>
+                                <div class="space-y-1.5">
+                                    <template x-for="palette in group.items" :key="palette.type">
+                                        <div draggable="true"
+                                            @dragstart="onDragStart($event, palette.type)"
+                                            :title="palette.help"
+                                            class="group cursor-grab rounded-lg border border-slate-200 bg-white px-2.5 py-2 hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-sm transition">
+                                            <div class="flex items-center gap-2">
+                                                <div class="grid h-7 w-7 shrink-0 place-items-center rounded text-xs font-semibold text-white"
+                                                    :style="`background-color: ${palette.color}`" x-text="palette.shortLabel"></div>
+                                                <div class="text-sm font-medium text-slate-900 leading-tight" x-text="palette.label"></div>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
-                                <p class="mt-1 text-xs text-slate-500" x-text="palette.help"></p>
                             </div>
                         </template>
                     </div>
@@ -104,6 +130,20 @@
             <div class="relative flex-1 bg-slate-50">
                 <div id="drawflow" class="absolute inset-0"
                     @drop="onDrop($event)" @dragover.prevent></div>
+
+                {{-- Mini-Map für große Workflows --}}
+                <div class="pointer-events-none absolute left-3 bottom-3 flex flex-col items-start gap-2">
+                    <button type="button"
+                        @click="miniMapOpen = !miniMapOpen; if (miniMapOpen) $nextTick(() => renderMiniMap())"
+                        class="pointer-events-auto rounded-md bg-white px-2 py-1 text-xs text-slate-600 shadow ring-1 ring-slate-200 hover:bg-slate-50"
+                        x-text="miniMapOpen ? 'Mini-Map ausblenden' : 'Mini-Map einblenden'"></button>
+                    <canvas id="mini-map" width="200" height="130"
+                        x-show="miniMapOpen"
+                        @click="onMiniMapClick($event)"
+                        class="pointer-events-auto rounded-md bg-white shadow ring-1 ring-slate-200 cursor-crosshair"
+                        title="Klicken, um dorthin zu schwenken"></canvas>
+                </div>
+
                 <div class="pointer-events-none absolute right-3 bottom-3 flex gap-2">
                     <button type="button" @click="zoom('in')" class="pointer-events-auto rounded-md bg-white p-2 shadow ring-1 ring-slate-200 hover:bg-slate-50" title="Zoom +">+</button>
                     <button type="button" @click="zoom('out')" class="pointer-events-auto rounded-md bg-white p-2 shadow ring-1 ring-slate-200 hover:bg-slate-50" title="Zoom -">−</button>
@@ -116,15 +156,15 @@
                 <div class="p-4">
                     <template x-if="!selectedNode">
                         <div class="text-sm text-slate-500">
-                            <p>Waehle einen Knoten aus, um seine Einstellungen zu bearbeiten.</p>
-                            <p class="mt-2 text-xs">Verbinde Knoten, indem du vom kleinen Punkt rechts (Ausgang) zum Punkt links (Eingang) des naechsten Knotens ziehst.</p>
+                            <p>Wähle einen Knoten aus, um seine Einstellungen zu bearbeiten.</p>
+                            <p class="mt-2 text-xs">Verbinde Knoten, indem du vom kleinen Punkt rechts (Ausgang) zum Punkt links (Eingang) des nächsten Knotens ziehst.</p>
                         </div>
                     </template>
                     <template x-if="selectedNode">
                         <div>
                             <div class="flex items-center justify-between">
                                 <h3 class="text-sm font-semibold text-slate-900" x-text="paletteFor(selectedNode.type).label"></h3>
-                                <button type="button" @click="deleteSelected()" class="text-xs text-rose-600 hover:text-rose-500">Loeschen</button>
+                                <button type="button" @click="deleteSelected()" class="text-xs text-rose-600 hover:text-rose-500">Löschen</button>
                             </div>
                             <p class="mt-1 text-xs text-slate-500" x-text="paletteFor(selectedNode.type).help"></p>
 
@@ -139,7 +179,7 @@
                                 <template x-if="selectedNode.type==='approval'">
                                     <div class="space-y-3">
                                         <div>
-                                            <label class="block text-xs font-medium text-slate-600">Empfaenger-Typ</label>
+                                            <label class="block text-xs font-medium text-slate-600">Empfänger-Typ</label>
                                             <select x-model="selectedNode.data.recipient_type"
                                                 class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                 <option value="supervisor_of_initiator">Vorgesetzter des Antragstellers</option>
@@ -157,14 +197,14 @@
                                                     <label class="block text-xs font-medium text-slate-600">Liste</label>
                                                     <select x-model.number="selectedNode.data.list_id"
                                                         class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                        <option value="">— Liste waehlen —</option>
+                                                        <option value="">— Liste wählen —</option>
                                                         <template x-for="l in directory.lists" :key="l.id">
                                                             <option :value="l.id" x-text="l.name + (l.has_responsible ? '' : ' (keine Verantwortlich-Spalte!)')"></option>
                                                         </template>
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-xs font-medium text-slate-600">Schluessel aus Feld</label>
+                                                    <label class="block text-xs font-medium text-slate-600">Schlüssel aus Feld</label>
                                                     <input type="text" x-model="selectedNode.data.lookup_source"
                                                         placeholder="z. B. kostenstelle oder doc.indexed_fields.kostenstelle"
                                                         list="lookup-source-options"
@@ -177,7 +217,7 @@
                                                         <option value="doc.indexed_fields.rechnungsnummer">doc.indexed_fields.rechnungsnummer</option>
                                                         <option value="doc.document_type">doc.document_type</option>
                                                     </datalist>
-                                                    <p class="mt-1 text-xs text-slate-500">Direkter Formularfeld-Name (z. B. <code>kostenstelle</code>) oder Punktnotation fuer Dokument-Felder (z. B. <code>doc.indexed_fields.kostenstelle</code>).</p>
+                                                    <p class="mt-1 text-xs text-slate-500">Direkter Formularfeld-Name (z. B. <code>kostenstelle</code>) oder Punktnotation für Dokument-Felder (z. B. <code>doc.indexed_fields.kostenstelle</code>).</p>
                                                 </div>
                                                 <div class="grid grid-cols-2 gap-2">
                                                     <div>
@@ -209,7 +249,7 @@
                                                 <label class="block text-xs font-medium text-slate-600">Rolle</label>
                                                 <select x-model.number="selectedNode.data.recipient_role_id"
                                                     class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                    <option value="">— waehlen —</option>
+                                                    <option value="">— wählen —</option>
                                                     <template x-for="r in directory.roles" :key="r.id">
                                                         <option :value="r.id" x-text="r.name"></option>
                                                     </template>
@@ -221,7 +261,7 @@
                                                 <label class="block text-xs font-medium text-slate-600">Benutzer</label>
                                                 <select x-model.number="selectedNode.data.recipient_user_id"
                                                     class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                    <option value="">— waehlen —</option>
+                                                    <option value="">— wählen —</option>
                                                     <template x-for="u in directory.users" :key="u.id">
                                                         <option :value="u.id" x-text="`${u.name} (${u.email})`"></option>
                                                     </template>
@@ -245,11 +285,11 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-slate-600">Bei Ueberschreitung eskalieren an</label>
+                                            <label class="block text-xs font-medium text-slate-600">Bei Überschreitung eskalieren an</label>
                                             <select x-model="selectedNode.data.escalation_type"
                                                 class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                 <option value="none">Nicht eskalieren</option>
-                                                <option value="supervisor_of_current">Vorgesetzten des Empfaengers</option>
+                                                <option value="supervisor_of_current">Vorgesetzten des Empfängers</option>
                                                 <option value="role">Mitglieder einer Rolle</option>
                                                 <option value="list_lookup">Aus Liste (Eskalations-Spalte)</option>
                                             </select>
@@ -259,7 +299,7 @@
                                                 <label class="block text-xs font-medium text-slate-600">Eskalations-Rolle</label>
                                                 <select x-model.number="selectedNode.data.escalation_role_id"
                                                     class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                    <option value="">— waehlen —</option>
+                                                    <option value="">— wählen —</option>
                                                     <template x-for="r in directory.roles" :key="r.id">
                                                         <option :value="r.id" x-text="r.name"></option>
                                                     </template>
@@ -268,15 +308,15 @@
                                         </template>
                                         <label class="flex items-center gap-2 text-xs text-slate-700">
                                             <input type="checkbox" x-model="selectedNode.data.allow_forward" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                            Empfaenger darf an dritte Person weiterleiten
+                                            Empfänger darf an dritte Person weiterleiten
                                         </label>
 
                                         <div class="rounded-md bg-slate-50 p-2 space-y-2">
-                                            <label class="block text-xs font-medium text-slate-600">Quorum (nur bei Rolle als Empfaenger)</label>
+                                            <label class="block text-xs font-medium text-slate-600">Quorum (nur bei Rolle als Empfänger)</label>
                                             <select x-model="selectedNode.data.quorum_mode"
                                                 class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                 <option value="single">Einer reicht (Standard)</option>
-                                                <option value="all">Alle muessen zustimmen (Vier-Augen / Sechs-Augen)</option>
+                                                <option value="all">Alle müssen zustimmen (Vier-Augen / Sechs-Augen)</option>
                                                 <option value="n_of_m">N von M (Mehrheits-Quorum)</option>
                                             </select>
                                             <template x-if="selectedNode.data.quorum_mode === 'n_of_m'">
@@ -286,7 +326,7 @@
                                                 </div>
                                             </template>
                                             <p class="text-xs text-slate-500" x-show="selectedNode.data.quorum_mode !== 'single' && selectedNode.data.recipient_type !== 'role'">
-                                                Quorum hat nur Wirkung, wenn der Empfaenger eine <strong>Rolle</strong> ist (mehrere Personen).
+                                                Quorum hat nur Wirkung, wenn der Empfänger eine <strong>Rolle</strong> ist (mehrere Personen).
                                             </p>
                                         </div>
 
@@ -297,10 +337,197 @@
                                             </label>
                                             <label class="flex items-center gap-2 text-xs text-slate-700">
                                                 <input type="checkbox" x-model="selectedNode.data.require_comment_on_rejection" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                                Begruendung bei Ablehnung verpflichtend
+                                                Begründung bei Ablehnung verpflichtend
                                             </label>
                                         </div>
-                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgaenge: <strong>Genehmigt</strong> / <strong>Abgelehnt</strong> <span x-show="selectedNode.data.allow_forward">/ <strong>Weitergeleitet</strong></span></p>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgänge: <strong>Genehmigt</strong> / <strong>Abgelehnt</strong> <span x-show="selectedNode.data.allow_forward">/ <strong>Weitergeleitet</strong></span></p>
+
+                                        {{-- Parallele Genehmigung: nur sinnvoll wenn Empfänger eine Rolle
+                                             oder eine Liste ist (mehrere Personen) — bei Einzeluser wird die
+                                             Einstellung im Engine ignoriert. --}}
+                                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
+                                            <div>
+                                                <h4 class="text-xs font-semibold text-slate-700">Parallele Genehmigung</h4>
+                                                <p class="text-[11px] text-slate-500">
+                                                    Nur sinnvoll wenn der Empfänger eine Rolle oder eine Liste ist
+                                                    (mehrere Personen werden parallel beteiligt). Bei Einzeluser hat das
+                                                    keinen Effekt.
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600 mb-1">Modus</label>
+                                                <select x-model="selectedNode.data.quorum_mode"
+                                                    x-init="if (!selectedNode.data.quorum_mode) selectedNode.data.quorum_mode = 'single'"
+                                                    class="block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <option value="single">Einzeln (Default) — eine Person genehmigt</option>
+                                                    <option value="all">Alle müssen genehmigen — eine Ablehnung bricht ab</option>
+                                                    <option value="n_of_m">N von M genehmigen — ab Schwelle wird durchgewunken</option>
+                                                </select>
+                                            </div>
+                                            <template x-if="selectedNode.data.quorum_mode === 'n_of_m'">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600 mb-1">Schwelle (mindestens N Approvals)</label>
+                                                    <input type="number" min="1" max="50" x-model.number="selectedNode.data.quorum_min"
+                                                        class="block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <p class="text-[11px] text-slate-500 mt-1">
+                                                        Sobald N Mitglieder genehmigen, geht der Workflow weiter. Wenn nicht
+                                                        mehr genug Stimmen übrig sind, wird automatisch abgelehnt.
+                                                    </p>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        {{-- Zusatzfelder beim Genehmigen --}}
+                                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                            <div class="flex items-baseline justify-between mb-2">
+                                                <div>
+                                                    <h4 class="text-xs font-semibold text-slate-700">Zusatzfelder beim Entscheiden</h4>
+                                                    <p class="text-[11px] text-slate-500">
+                                                        Werden im Aufgaben-Formular angezeigt. Werte mit Ziel <em>Dokument-Indexfeld</em>
+                                                        werden automatisch ins Schema des jeweiligen Doku-Typs übernommen
+                                                        (falls noch nicht vorhanden) — danach sind sie in der Dokumenten-Suche
+                                                        als Filter und im Detail-Editor verfügbar.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <template x-if="!selectedNode.data.extra_fields">
+                                                <span x-init="selectedNode.data.extra_fields = []"></span>
+                                            </template>
+                                            <div class="space-y-2">
+                                                <template x-for="(f, fi) in selectedNode.data.extra_fields" :key="fi">
+                                                    <div class="rounded-md border border-slate-200 bg-white p-2 space-y-1.5">
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <span class="text-[11px] uppercase tracking-wider text-slate-400">Feld <span x-text="fi+1"></span></span>
+                                                            <button type="button" @click="selectedNode.data.extra_fields.splice(fi,1)" class="text-xs text-rose-600 hover:text-rose-500">entfernen</button>
+                                                        </div>
+                                                        <div class="grid grid-cols-3 gap-1.5">
+                                                            <input type="text" x-model="f.label" placeholder="Bezeichnung"
+                                                                class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                            <input type="text" x-model="f.key"
+                                                                @input="f.key = f.key.toString().toLowerCase().replace(/[^a-z0-9_]+/g,'_').replace(/^_+|_+$/g,'')"
+                                                                placeholder="key (a-z, _)"
+                                                                class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                            <select x-model="f.type" class="rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                                <option value="text">Text</option>
+                                                                <option value="textarea">Textarea</option>
+                                                                <option value="number">Zahl</option>
+                                                                <option value="date">Datum</option>
+                                                                <option value="select">Auswahl</option>
+                                                                <option value="checkbox">Ja/Nein</option>
+                                                            </select>
+                                                        </div>
+                                                        <template x-if="f.type === 'select'">
+                                                            <textarea x-model="f.options_raw"
+                                                                @input="f.options = (f.options_raw||'').split('\n').map(s => s.trim()).filter(Boolean)"
+                                                                rows="2" placeholder="Optionen je Zeile"
+                                                                class="block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                                        </template>
+                                                        <div class="flex items-center justify-between gap-2 text-[11px]">
+                                                            <label class="inline-flex items-center gap-1.5 text-slate-700">
+                                                                <input type="checkbox" x-model="f.required" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                                Pflichtfeld
+                                                            </label>
+                                                            <label class="inline-flex items-center gap-1.5 text-slate-700">
+                                                                Speichern in
+                                                                <select x-model="f.target" class="rounded border-slate-300 text-[11px] shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                                    <option value="doc">Dokument-Indexfeld</option>
+                                                                    <option value="instance">Workflow-Daten</option>
+                                                                </select>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <button type="button"
+                                                    @click="selectedNode.data.extra_fields.push({
+                                                        key: 'feld_' + ((selectedNode.data.extra_fields?.length || 0) + 1),
+                                                        label: '',
+                                                        type: 'text',
+                                                        required: false,
+                                                        target: 'doc',
+                                                        options: [],
+                                                        options_raw: '',
+                                                    })"
+                                                    class="w-full rounded-md border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Zusatzfeld</button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Teams-Channel Routing --}}
+                                        <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                                            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                                <input type="checkbox" x-model="selectedNode.data.notify_teams"
+                                                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                <span><strong>Microsoft Teams benachrichtigen</strong></span>
+                                            </label>
+                                            <template x-if="selectedNode.data.notify_teams !== false">
+                                                <div class="mt-2">
+                                                    <label class="block text-xs font-medium text-slate-600 mb-1">Teams Channel Webhook-URL (optional)</label>
+                                                    <input type="url" x-model="selectedNode.data.teams_webhook_url"
+                                                           placeholder="leer = globale URL aus den Systemeinstellungen"
+                                                           class="block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <p class="mt-1 text-xs text-slate-500">
+                                                        Eintragen, wenn dieser Knoten in einen <strong>anderen</strong> Channel
+                                                        als die globale Default-URL gehen soll. Beispiel: Aufgaben für
+                                                        die IT-Rolle gehen in den IT-Teams-Chat, für Buchhaltung in den
+                                                        Buchhaltungs-Chat.
+                                                    </p>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        {{-- PDF-Stempel beim Approval --}}
+                                        <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                                            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                                <input type="checkbox" x-model="selectedNode.data.stamp_pdf"
+                                                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                <span><strong>PDF-Anhänge des Vorgangs automatisch stempeln</strong></span>
+                                            </label>
+                                            <p class="mt-1 text-xs text-slate-500">
+                                                Bei finaler Entscheidung wird ein „Genehmigt"/„Abgelehnt"-Stempel
+                                                unten rechts auf die letzte Seite gerendert (Name, Datum, Vorgang).
+                                                Originaldatei bleibt erhalten — der gestempelte PDF wird als neue
+                                                Version gespeichert.
+                                            </p>
+                                            <template x-if="selectedNode.data.stamp_pdf">
+                                                <div class="mt-2">
+                                                    <label class="block text-xs text-slate-600 mb-1">Wann stempeln?</label>
+                                                    <select x-model="selectedNode.data.stamp_pdf_only_on"
+                                                            class="block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                        <option value="approved">Nur bei Genehmigung</option>
+                                                        <option value="rejected">Nur bei Ablehnung</option>
+                                                        <option value="both">Bei jeder Entscheidung</option>
+                                                    </select>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        {{-- E-Signatur-Override pro Approval-Knoten --}}
+                                        <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                                            <label class="block text-sm font-medium text-slate-700 mb-1">E-Signatur bei finaler Entscheidung</label>
+                                            <p class="text-xs text-slate-500 mb-2">
+                                                Bei <em>Genehmigt</em> werden die PDF-Anhänge des Vorgangs automatisch
+                                                mit dem gewählten Level signiert. <strong>„Aus Dokumenttyp übernehmen"</strong>
+                                                nutzt das in den Admin-Einstellungen pro Dokumenttyp hinterlegte Level.
+                                                Override hebt das Level nur an — Downgrades werden serverseitig ignoriert.
+                                            </p>
+                                            <select x-model="selectedNode.data.signature_level_override"
+                                                    class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="inherit">Aus Dokumenttyp übernehmen (Default)</option>
+                                                <option value="ses">SES erzwingen (Stempel + Hash + Audit)</option>
+                                                <option value="aes">AES erzwingen (kryptographisches PKCS#7)</option>
+                                                <option value="qes">QES erzwingen (externer Provider)</option>
+                                                <option value="none">Keine Signatur (auch wenn Dokumenttyp eine fordert — riskant)</option>
+                                            </select>
+                                            <template x-if="selectedNode.data.signature_level_override !== 'inherit' && selectedNode.data.signature_level_override !== 'none'">
+                                                <div class="mt-2">
+                                                    <label class="block text-xs text-slate-600 mb-1">Wann signieren?</label>
+                                                    <select x-model="selectedNode.data.signature_on"
+                                                            class="block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                        <option value="approved">Nur bei Genehmigung</option>
+                                                        <option value="both">Bei jeder finalen Entscheidung</option>
+                                                    </select>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </template>
 
@@ -341,9 +568,9 @@
                                                         <select x-model="branch.operator" class="rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                             <option value="eq">ist gleich</option>
                                                             <option value="neq">ist ungleich</option>
-                                                            <option value="contains">enthaelt</option>
-                                                            <option value="gt">groesser</option>
-                                                            <option value="gte">groesser/gleich</option>
+                                                            <option value="contains">enthält</option>
+                                                            <option value="gt">größer</option>
+                                                            <option value="gte">größer/gleich</option>
                                                             <option value="lt">kleiner</option>
                                                             <option value="lte">kleiner/gleich</option>
                                                             <option value="checked">ist angekreuzt</option>
@@ -359,7 +586,7 @@
                                             </div>
                                         </template>
                                         </div>
-                                        <button type="button" @click="addBranch()" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Verzweigung hinzufuegen</button>
+                                        <button type="button" @click="addBranch()" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Verzweigung hinzufügen</button>
                                         <div class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">
                                             Letzter Ausgang: <strong>Sonst (else)</strong>
                                         </div>
@@ -370,7 +597,7 @@
                                 <template x-if="selectedNode.type==='notify'">
                                     <div class="space-y-3">
                                         <div>
-                                            <label class="block text-xs font-medium text-slate-600">Empfaenger</label>
+                                            <label class="block text-xs font-medium text-slate-600">Empfänger</label>
                                             <select x-model="selectedNode.data.recipient_type"
                                                 class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                                 <option value="initiator">Antragsteller</option>
@@ -384,13 +611,13 @@
                                         </div>
                                         <template x-if="selectedNode.data.recipient_type==='role'">
                                             <select x-model.number="selectedNode.data.recipient_role_id" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                <option value="">— Rolle waehlen —</option>
+                                                <option value="">— Rolle wählen —</option>
                                                 <template x-for="r in directory.roles" :key="r.id"><option :value="r.id" x-text="r.name"></option></template>
                                             </select>
                                         </template>
                                         <template x-if="selectedNode.data.recipient_type==='user'">
                                             <select x-model.number="selectedNode.data.recipient_user_id" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                <option value="">— Benutzer waehlen —</option>
+                                                <option value="">— Benutzer wählen —</option>
                                                 <template x-for="u in directory.users" :key="u.id"><option :value="u.id" x-text="`${u.name} (${u.email})`"></option></template>
                                             </select>
                                         </template>
@@ -409,34 +636,43 @@
                                 {{-- HTTP-Request settings --}}
                                 <template x-if="selectedNode.type==='http'">
                                     <div class="space-y-3" x-data="{ aiDesc:'', aiBusy:false, aiError:'' }">
-                                        <p class="text-xs text-slate-500">Body und Header sind frei anpassbar. Antwort-Felder koennen zurueck in den Workflow uebernommen werden.</p>
+                                        <p class="text-xs text-slate-500">Body und Header sind frei anpassbar. Antwort-Felder koennen zurück in den Workflow übernommen werden.</p>
 
+                                        @if($aiClient->isReady() && $aiClient->isFeatureEnabled('http_suggest'))
                                         <div class="rounded-lg border border-violet-200 bg-violet-50 p-3 space-y-2">
-                                            <div class="text-xs font-semibold text-violet-800">✨ KI-Vorschlag aus API-Beschreibung</div>
-                                            <textarea x-model="aiDesc" rows="4" placeholder="z. B.: POST an https://example.atlassian.net/rest/api/3/issue mit Bearer-Token. JSON-Body mit fields.project.key='IT', fields.summary aus Antrag, fields.description aus 'beschreibung'. Antwort enthaelt 'key' = Ticket-ID."
-                                                class="block w-full rounded-lg border-violet-300 bg-white text-xs shadow-sm focus:border-violet-500 focus:ring-violet-500"></textarea>
+                                            <div class="text-xs font-semibold text-violet-800">+ KI-Import: curl, OpenAPI oder API-Doku</div>
+                                            <p class="text-[11px] text-violet-700">Komplettes curl reinpasten, OpenAPI-Snippet, Markdown-Endpoint oder Freitext — KI füllt URL, Methode, Header, Auth und Body-Template aus. Beispielwerte werden durch passende Form-Platzhalter ersetzt.</p>
+                                            <textarea x-model="aiDesc" rows="6"
+                                                placeholder='curl -X POST "https://itdoku.example.com/api/tickets" -H "Authorization: Bearer xxx" -H "Content-Type: application/json" -d {"subject":"Test","from_email":"max@example.com","description":"..."}'
+                                                class="block w-full rounded-lg border-violet-300 bg-white text-xs shadow-sm focus:border-violet-500 focus:ring-violet-500 font-mono"></textarea>
                                             <div class="flex items-center gap-2">
-                                                <button type="button" :disabled="aiBusy || !aiDesc"
+                                                <button type="button" :disabled="aiBusy || !aiDesc.trim()"
                                                     @click="aiBusy = true; aiError = '';
                                                         fetch('{{ route('admin.ai.suggest_http') }}', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type':'application/json','X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept':'application/json' },
-                                                            body: JSON.stringify({ description: aiDesc, available_fields: (formSchema||[]).map(f=>f.key) }),
+                                                            body: JSON.stringify({
+                                                                input: aiDesc,
+                                                                purpose: 'Aufruf aus einem Workflow-HTTP-Knoten — Werte kommen aus dem Antragsteller-Kontext und Formular-Daten',
+                                                                available_fields: (formSchema||[]).map(f=>f.key).concat(['initiator_email','initiator_name','workflow_name','instance_id','timestamp']),
+                                                            }),
                                                         }).then(async r => {
                                                             const j = await r.json();
                                                             if (! r.ok) { aiError = j.error || 'Fehler'; return; }
                                                             const s = j.suggestion || {};
-                                                            ['method','url','auth_type','auth_token','auth_username','auth_password','auth_header_name','body_type','body_template'].forEach(k => { if (s[k] !== undefined) selectedNode.data[k] = s[k]; });
-                                                            if (Array.isArray(s.headers) && s.headers.length) selectedNode.data.headers = s.headers;
+                                                            ['method','url','auth_type','auth_token','auth_username','auth_password','auth_header_name','body_type','body_template'].forEach(k => { if (s[k] !== undefined && s[k] !== '') selectedNode.data[k] = s[k]; });
+                                                            if (Array.isArray(s.headers)) selectedNode.data.headers = s.headers.filter(h => h && h.key);
                                                             if (Array.isArray(s.body_form)) selectedNode.data.body_form = s.body_form;
                                                             if (Array.isArray(s.response_mapping) && s.response_mapping.length) selectedNode.data.response_mapping = s.response_mapping;
+                                                            if (s.notes) aiError = 'Hinweis: ' + s.notes;
                                                         }).catch(e => aiError = e.message).finally(() => aiBusy = false)"
                                                     class="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-violet-500 disabled:opacity-50">
-                                                    <span x-show="!aiBusy">Generieren</span><span x-show="aiBusy">Generiere…</span>
+                                                    <span x-show="!aiBusy">API übernehmen</span><span x-show="aiBusy">analysiere &hellip;</span>
                                                 </button>
-                                                <span x-text="aiError" class="text-xs text-rose-700"></span>
+                                                <span x-text="aiError" class="text-xs text-violet-700"></span>
                                             </div>
                                         </div>
+                                        @endif
 
                                         <div class="grid grid-cols-3 gap-2">
                                             <div class="col-span-1">
@@ -550,14 +786,14 @@
                                                 </label>
                                             </div>
                                         </div>
-                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgaenge: <strong>OK</strong> / <strong>Fehler</strong></p>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgänge: <strong>OK</strong> / <strong>Fehler</strong></p>
                                     </div>
                                 </template>
 
                                 {{-- PDF-Render settings --}}
                                 <template x-if="selectedNode.type==='pdf_render'">
                                     <div class="space-y-3">
-                                        <p class="text-xs text-slate-500">Erzeugt aus einem HTML-Template ein PDF und haengt es als Attachment an die Workflow-Instanz. Hash wird gespeichert (revisionssicher).</p>
+                                        <p class="text-xs text-slate-500">Erzeugt aus einem HTML-Template ein PDF und hängt es als Attachment an die Workflow-Instanz. Hash wird gespeichert (revisionssicher).</p>
                                         <div>
                                             <label class="block text-xs font-medium text-slate-600">HTML-Template</label>
                                             <textarea x-model="selectedNode.data.html_template" rows="10" spellcheck="false"
@@ -578,10 +814,10 @@
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-slate-600">Bezeichnung (optional)</label>
-                                            <input type="text" x-model="selectedNode.data.label" placeholder="z. B. Antrag bestaetigt"
+                                            <input type="text" x-model="selectedNode.data.label" placeholder="z. B. Antrag bestätigt"
                                                 class="mt-1 block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                         </div>
-                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Nach dem Erzeugen verfuegbar als <code>@{{ pdf.last_attachment_id }}</code>, <code>@{{ pdf.last_filename }}</code>, <code>@{{ pdf.last_hash }}</code>.</p>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Nach dem Erzeugen verfügbar als <code>@{{ pdf.last_attachment_id }}</code>, <code>@{{ pdf.last_filename }}</code>, <code>@{{ pdf.last_hash }}</code>.</p>
                                     </div>
                                 </template>
 
@@ -589,7 +825,7 @@
                                 {{-- Wait-Knoten --}}
                                 <template x-if="selectedNode.type==='wait'">
                                     <div class="space-y-3">
-                                        <p class="text-xs text-slate-500">Pausiert den Workflow fuer den eingestellten Zeitraum. Der Scheduler (cron) weckt automatisch wieder auf.</p>
+                                        <p class="text-xs text-slate-500">Pausiert den Workflow für den eingestellten Zeitraum. Der Scheduler (cron) weckt automatisch wieder auf.</p>
                                         <div class="grid grid-cols-2 gap-2">
                                             <div>
                                                 <label class="block text-xs font-medium text-slate-600">Dauer</label>
@@ -608,7 +844,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <p class="text-xs text-slate-500">Hinweis: aufwecken passiert beim naechsten <code>workflow:check-due</code>-Lauf (alle 5 Minuten).</p>
+                                        <p class="text-xs text-slate-500">Hinweis: aufwecken passiert beim nächsten <code>workflow:check-due</code>-Lauf (alle 5 Minuten).</p>
                                     </div>
                                 </template>
 
@@ -636,8 +872,184 @@
                                     </div>
                                 </template>
 
+                                {{-- Sub-Workflow --}}
+                                <template x-if="selectedNode.type==='subworkflow'">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Ziel-Workflow</label>
+                                            <select x-model.number="selectedNode.data.target_workflow_id"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="">— Workflow wählen —</option>
+                                                <template x-for="w in directory.workflows" :key="w.id">
+                                                    <option :value="w.id" x-text="w.name + ' (' + w.trigger_type + ')'"></option>
+                                                </template>
+                                            </select>
+                                            <p class="text-[11px] text-slate-500 mt-1">Der Sub-Workflow muss <em>aktiv</em> sein.</p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Eingabe-Mapping (Parent → Child)</label>
+                                            <p class="text-[11px] text-slate-500 mb-1">Schlüssel = Feld in der Child-Instance. Wert = Platzhalter wie <code>$.kostenstelle</code> oder Literal.</p>
+                                            <template x-for="(m, mi) in selectedNode.data.input_mapping" :key="mi">
+                                                <div class="mb-1 flex items-center gap-1">
+                                                    <input type="text" x-model="m.target" placeholder="child_field" class="w-1/3 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <input type="text" x-model="m.source" placeholder="$.parent_feld oder Literal" class="flex-1 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <button type="button" @click="selectedNode.data.input_mapping.splice(mi,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                </div>
+                                            </template>
+                                            <button type="button" @click="selectedNode.data.input_mapping.push({target:'', source:''})" class="w-full rounded border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Mapping</button>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Ausgabe-Mapping (Child → Parent)</label>
+                                            <p class="text-[11px] text-slate-500 mb-1">Wird nach Child-Abschluss in die Parent-Daten geschrieben.</p>
+                                            <template x-for="(m, mi) in selectedNode.data.output_mapping" :key="mi">
+                                                <div class="mb-1 flex items-center gap-1">
+                                                    <input type="text" x-model="m.target" placeholder="parent_field" class="w-1/3 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <input type="text" x-model="m.source" placeholder="child_feld" class="flex-1 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                    <button type="button" @click="selectedNode.data.output_mapping.splice(mi,1)" class="text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                </div>
+                                            </template>
+                                            <button type="button" @click="selectedNode.data.output_mapping.push({target:'', source:''})" class="w-full rounded border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Mapping</button>
+                                        </div>
+
+                                        <label class="flex items-center gap-2 text-xs text-slate-700">
+                                            <input type="checkbox" x-model="selectedNode.data.continue_on_failure" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                            Bei Fehler trotzdem auf Ausgang OK weitermachen (sonst geht's auf Fehler).
+                                        </label>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgänge: <strong>OK</strong> / <strong>Fehler</strong></p>
+                                    </div>
+                                </template>
+
+                                {{-- For-each-Loop --}}
+                                <template x-if="selectedNode.type==='loop'">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Quell-Feld (Liste)</label>
+                                            <input type="text" x-model="selectedNode.data.source_field" placeholder="z. B. items oder doc.indexed_fields.positions"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            <p class="text-[11px] text-slate-500 mt-1">Muss in der Instance auf einen Array zeigen. Pro Element wird ein Sub-Workflow gestartet.</p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Sub-Workflow pro Iteration</label>
+                                            <select x-model.number="selectedNode.data.target_workflow_id"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                <option value="">— Workflow wählen —</option>
+                                                <template x-for="w in directory.workflows" :key="w.id">
+                                                    <option :value="w.id" x-text="w.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Element-Feldname</label>
+                                                <input type="text" x-model="selectedNode.data.item_field_name" placeholder="_item"
+                                                    class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Max. Iterationen</label>
+                                                <input type="number" x-model.number="selectedNode.data.max_iterations" min="1" max="1000"
+                                                    class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </div>
+                                        </div>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Alle Iterationen laufen <strong>parallel</strong>. Der Knoten geht erst weiter wenn alle fertig sind.</p>
+
+                                        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-2">
+                                            <div>
+                                                <h4 class="text-xs font-semibold text-slate-700">Ergebnisse einsammeln (optional)</h4>
+                                                <p class="text-[11px] text-slate-500">
+                                                    Wenn ein Aggregator-Knoten nach diesem Loop kommt: hier den Pfad zu einem Wert in der Child-Instance angeben, der nach jeder Iteration in eine Liste in der Parent-Instance fliesst.
+                                                </p>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600">Quellfeld in Child</label>
+                                                    <input type="text" x-model="selectedNode.data.collect_field" placeholder="z. B. betrag oder ergebnis"
+                                                        class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-slate-600">Zielliste in Parent</label>
+                                                    <input type="text" x-model="selectedNode.data.collect_into" placeholder="_loop_results"
+                                                        class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                {{-- Switch-Knoten --}}
+                                <template x-if="selectedNode.type==='switch_node'">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Ausdruck / Feld-Pfad</label>
+                                            <input type="text" x-model="selectedNode.data.expression" placeholder="z. B. kostenstelle oder doc.indexed_fields.lieferant"
+                                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            <p class="text-[11px] text-slate-500 mt-1">Wird gegen die Cases verglichen (numerisch wenn beide Zahlen, sonst String).</p>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600 mb-1">Cases</label>
+                                            <p class="text-[11px] text-slate-500 mb-2">Erster Match gewinnt. Wenn keiner matched → Default-Ausgang.</p>
+                                            <div class="space-y-1.5"
+                                                 x-sort:config="{ animation: 150, handle: '.drag-handle' }"
+                                                 x-sort="selectedNode.data.cases.splice($event.newIndex, 0, selectedNode.data.cases.splice($event.oldIndex, 1)[0])">
+                                                <template x-for="(c, ci) in selectedNode.data.cases" :key="ci">
+                                                    <div class="grid grid-cols-12 gap-1 items-center rounded-md border border-slate-200 bg-white p-1.5" x-sort:item="ci">
+                                                        <span class="drag-handle col-span-1 cursor-grab select-none text-xs text-slate-400 text-center">⋮⋮</span>
+                                                        <input type="text" x-model="c.label" placeholder="Label" class="col-span-4 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                        <span class="col-span-1 text-xs text-slate-400 text-center">=</span>
+                                                        <input type="text" x-model="c.value" placeholder="Wert" class="col-span-5 rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                                        <button type="button" @click="selectedNode.data.cases.splice(ci,1)" class="col-span-1 text-xs text-rose-600 hover:text-rose-500">×</button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <button type="button" @click="selectedNode.data.cases.push({label:'Fall '+(selectedNode.data.cases.length+1), value:''})" class="mt-1 w-full rounded border border-dashed border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50">+ Case</button>
+                                        </div>
+                                        <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Ausgänge: pro Case einer + <strong>Default</strong> am Ende.</p>
+                                    </div>
+                                </template>
+
+                                {{-- Aggregator-Knoten --}}
+                                <template x-if="selectedNode.type==='aggregator'">
+                                    <div class="space-y-3">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Quellfeld (Liste)</label>
+                                                <input type="text" x-model="selectedNode.data.source_field" placeholder="_loop_results"
+                                                    class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Operation</label>
+                                                <select x-model="selectedNode.data.operation" class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <option value="sum">Summe</option>
+                                                    <option value="avg">Durchschnitt</option>
+                                                    <option value="min">Minimum</option>
+                                                    <option value="max">Maximum</option>
+                                                    <option value="count">Anzahl Elemente</option>
+                                                    <option value="concat">Komma-Liste</option>
+                                                    <option value="distinct">Eindeutige Werte (Array)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-slate-600">Zielfeld</label>
+                                            <input type="text" x-model="selectedNode.data.target_field" placeholder="aggregated"
+                                                class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            <p class="text-[11px] text-slate-500 mt-1">Resultat wird in <code>instance.data.{target_field}</code> geschrieben.</p>
+                                        </div>
+                                        <template x-if="selectedNode.data.operation === 'concat'">
+                                            <div>
+                                                <label class="block text-xs font-medium text-slate-600">Trennzeichen</label>
+                                                <input type="text" x-model="selectedNode.data.separator" placeholder=", "
+                                                    class="mt-1 block w-full rounded border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono">
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+
                                 <template x-if="selectedNode.type==='start'">
-                                    <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Start-Knoten. Wird vom Workflow-Trigger automatisch ausgeloest.</p>
+                                    <p class="rounded-md bg-slate-50 p-2 text-xs text-slate-500">Start-Knoten. Wird vom Workflow-Trigger automatisch ausgelöst.</p>
                                 </template>
 
                                 {{-- End settings --}}
@@ -662,7 +1074,7 @@
         {{-- Form-Schema tab --}}
         <div x-show="tab==='form'" class="flex-1 overflow-y-auto bg-slate-50 p-6">
             <div class="mx-auto max-w-3xl">
-                <x-card title="Formularfelder" description="Per Drag-and-Drop am Griff anordnen. Diese Felder stehen in Bedingungen, Mails und Genehmigungen zur Verfuegung.">
+                <x-card title="Formularfelder" description="Per Drag-and-Drop am Griff anordnen. Diese Felder stehen in Bedingungen, Mails und Genehmigungen zur Verfügung.">
                     <div class="space-y-3"
                          x-sort:config="{ animation: 150, handle: '.drag-handle' }"
                          x-sort="formSchema.splice($event.newIndex, 0, formSchema.splice($event.oldIndex, 1)[0])">
@@ -724,7 +1136,7 @@
                                         <select x-model="field.show_if_op" class="rounded border-slate-300 text-xs">
                                             <option value="eq">ist gleich</option>
                                             <option value="neq">ist ungleich</option>
-                                            <option value="contains">enthaelt</option>
+                                            <option value="contains">enthält</option>
                                             <option value="checked">ist angekreuzt</option>
                                             <option value="unchecked">nicht angekreuzt</option>
                                             <option value="not_empty">nicht leer</option>
@@ -735,7 +1147,7 @@
                                 </div>
                             </div>
                         </template>
-                        <button type="button" @click="addField()" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Feld hinzufuegen</button>
+                        <button type="button" @click="addField()" class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Feld hinzufügen</button>
                     </div>
                 </x-card>
             </div>

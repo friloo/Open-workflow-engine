@@ -20,7 +20,7 @@ class WorkflowScheduleController extends Controller
     public function index(Workflow $workflow): View
     {
         $schedules = $workflow->schedules()->with("subjectUser", "creator")->orderBy("next_run_at")->paginate(50);
-        $users = User::where('is_active', true)->orderBy('name')->get(['id', 'name', 'email']);
+        $users = User::humans()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'email']);
         return view('workflows.schedules.index', compact('workflow', 'schedules', 'users'));
     }
 
@@ -47,7 +47,7 @@ class WorkflowScheduleController extends Controller
             'workflow' => $workflow->name,
             'subject' => $schedule->subjectUser?->email ?? $schedule->subject_label,
             'interval' => $schedule->interval_value.' '.$schedule->interval_unit,
-        ], "Schedule fuer Workflow {$workflow->name} angelegt");
+        ], "Schedule für Workflow {$workflow->name} angelegt");
 
         return redirect()->route('workflows.schedules.index', $workflow)->with('status', 'Schedule angelegt.');
     }
@@ -86,8 +86,8 @@ class WorkflowScheduleController extends Controller
         $schedule->delete();
 
         $this->audit->log('workflow.schedule.deleted', null, $snapshot, null,
-            "Schedule #{$snapshot['id']} geloescht");
+            "Schedule #{$snapshot['id']} gelöscht");
 
-        return back()->with('status', 'Schedule geloescht.');
+        return back()->with('status', 'Schedule gelöscht.');
     }
 }

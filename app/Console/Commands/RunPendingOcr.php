@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 class RunPendingOcr extends Command
 {
     protected $signature = 'ocr:run-pending {--limit=50}';
-    protected $description = 'Versucht OCR fuer alle Attachments mit Status pending oder failed.';
+    protected $description = 'Versucht OCR für alle Attachments mit Status pending oder failed.';
 
     public function handle(OcrExtractor $ocr): int
     {
@@ -20,12 +20,12 @@ class RunPendingOcr extends Command
             ->get();
 
         if ($atts->isEmpty()) {
-            $this->info('Keine Anhaenge offen.');
+            $this->info('Keine Anhänge offen.');
             return self::SUCCESS;
         }
 
         foreach ($atts as $a) {
-            $this->line("OCR fuer #{$a->id} {$a->original_name}");
+            $this->line("OCR für #{$a->id} {$a->original_name}");
             $ocr->extract($a);
             $this->line('  -> '.$a->fresh()->ocr_status);
         }

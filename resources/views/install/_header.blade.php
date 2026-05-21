@@ -1,6 +1,6 @@
 <div class="card">
     <h1>Open Workflow Engine — Erstinstallation</h1>
-    <p class="sub">Schritt-fuer-Schritt-Einrichtung. Dauert ca. 3 Minuten.</p>
+    <p class="sub">Schritt-für-Schritt-Einrichtung. Dauert ca. 3 Minuten.</p>
     <div class="steps">
         <span class="step {{ $step === 1 ? 'active' : ($step > 1 ? 'done' : '') }}">1. System</span>
         <span class="step {{ $step === 2 ? 'active' : ($step > 2 ? 'done' : '') }}">2. Datenbank</span>

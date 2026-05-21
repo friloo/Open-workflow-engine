@@ -96,7 +96,7 @@ class Phase15gTest extends TestCase
         ]);
         Storage::fake('local');
         $att = app(AttachmentStorage::class)->storeBytes('dummy', 'r.pdf', 'application/pdf', null, null, $admin->id, 'Rechnung');
-        $att->forceFill(['ocr_text' => 'Code: K-2026-001 fuer Auftrag'])->save();
+        $att->forceFill(['ocr_text' => 'Code: K-2026-001 für Auftrag'])->save();
 
         $res = app(FieldExtractor::class)->extractFor($att);
         $this->assertSame('K-2026-001', $res['code']);
@@ -108,7 +108,7 @@ class Phase15gTest extends TestCase
         $maria = User::factory()->create();
         $list = $this->kostenstellenListe($admin, $maria);
 
-        // Workflow mit Approval-Knoten, der ueber doc.indexed_fields.kostenstelle
+        // Workflow mit Approval-Knoten, der über doc.indexed_fields.kostenstelle
         // den Verantwortlichen aus der Liste sucht.
         $workflow = Workflow::create(['name' => 'WF', 'trigger_type' => 'manual', 'status' => Workflow::STATUS_ACTIVE]);
         $version = WorkflowVersion::create([
@@ -192,7 +192,7 @@ class Phase15gTest extends TestCase
 
         $this->actingAs($admin)->get(route('documents.inbox'))
             ->assertOk()
-            ->assertSee('Postkorb')
+            ->assertSee('Posteingang')
             ->assertSee('r.pdf');
     }
 

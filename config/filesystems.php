@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Attachments-Disk
+    |--------------------------------------------------------------------------
+    |
+    | Wo OWE Dateianhaenge ablegt. Default: lokaler Disk 'local'. Wer S3/
+    | MinIO/Wasabi nutzen will, setzt ATTACHMENTS_DISK=s3 und konfiguriert
+    | die AWS_*-Env-Vars unten — danach landen alle neuen Uploads dort,
+    | bestehende Dateien bleiben lokal. Migration alter Dateien via:
+    |   php artisan attachments:migrate-disk s3
+    */
+    'attachments_disk' => env('ATTACHMENTS_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

@@ -35,7 +35,7 @@
 
             <x-card title="Letzte Importe">
                 @if($recent->isEmpty())
-                    <p class="text-sm text-slate-500">Noch keine Importe.</p>
+                    <x-empty-state title="Noch keine Importe" description="Lade oben eine CSV hoch, um neue Benutzer anzulegen." />
                 @else
                     <ul class="divide-y divide-slate-100">
                         @foreach($recent as $imp)

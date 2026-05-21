@@ -27,10 +27,41 @@ class AttachmentStorage
         private readonly FieldExtractor $fields,
     ) {}
 
-    public function store(UploadedFile $file, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, ?Attachment $newVersionOf = null): Attachment
+    /**
+     * Sucht ein bestehendes Attachment mit demselben SHA-256-Inhalt.
+     * Optional: eine version_chain ausschliessen (z. B. wenn explizit
+     * eine neue Version derselben Datei hochgeladen wird).
+     */
+    /**
+     * Welcher Disk für neue Anhänge benutzt wird. Konfiguriert über
+     * config/filesystems.php 'attachments_disk' bzw. ATTACHMENTS_DISK.
+     * Default: 'local'. Wer S3 / MinIO / Wasabi nutzen will, setzt
+     * ATTACHMENTS_DISK=s3.
+     *
+     * Bestehende Attachments behalten ihre 'disk'-Spalte — sie werden
+     * vom alten Disk gelesen, neue landen auf dem neuen. So ist der
+     * Wechsel ohne sofortige Migration möglich; alte Dateien lässt
+     * man entweder liegen oder migriert sie via
+     *   php artisan attachments:migrate-disk <ziel-disk>
+     */
+    public function disk(): string
+    {
+        return config('filesystems.attachments_disk', 'local');
+    }
+
+    public function findDuplicate(string $hash, ?string $excludeChainId = null): ?Attachment
+    {
+        $q = Attachment::query()
+            ->where('content_hash', $hash)
+            ->orderBy('id'); // aeltestes zuerst — das Original
+        if ($excludeChainId) $q->where('version_chain_id', '!=', $excludeChainId);
+        return $q->with('uploader')->first();
+    }
+
+    public function store(UploadedFile $file, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, ?Attachment $newVersionOf = null, bool $allowDuplicate = false): Attachment
     {
         if ($file->getSize() > self::MAX_BYTES) {
-            throw new \RuntimeException('Datei zu gross (max. 15 MB).');
+            throw new \RuntimeException('Datei zu groß (max. 15 MB).');
         }
         $mime = $file->getMimeType() ?: 'application/octet-stream';
         if (! $this->mimeAllowed($mime)) {
@@ -43,15 +74,25 @@ class AttachmentStorage
             throw new \RuntimeException('Hash der Datei konnte nicht berechnet werden.');
         }
 
+        // Duplikat-Prüfung: gleicher Hash bereits irgendwo? Bei einer neuen
+        // Version derselben Datei (gleiche Chain) erlauben wir es bewusst.
+        if (! $allowDuplicate) {
+            $dup = $this->findDuplicate($hash, $newVersionOf?->version_chain_id);
+            if ($dup) {
+                throw new \App\Exceptions\DuplicateAttachmentException($dup);
+            }
+        }
+
         $dir = 'attachments/'.now()->format('Y/m');
         $name = Str::ulid().'.'.Str::lower($file->getClientOriginalExtension() ?: 'bin');
-        $path = $file->storeAs($dir, $name, 'local');
+        $disk = $this->disk();
+        $path = $file->storeAs($dir, $name, $disk);
         if (! $path) {
             throw new \RuntimeException('Datei konnte nicht gespeichert werden.');
         }
 
         // Versionierung: neues Dokument startet eine Chain, neue Version
-        // haengt sich in eine bestehende Chain ein.
+        // hängt sich in eine bestehende Chain ein.
         if ($newVersionOf) {
             $chainId = $newVersionOf->version_chain_id;
             $versionNumber = ($newVersionOf->versions()->max('version_number') ?? 0) + 1;
@@ -66,7 +107,7 @@ class AttachmentStorage
             'attachable_type' => $attachable?->getMorphClass(),
             'attachable_id' => $attachable?->getKey(),
             'original_name' => Str::limit($file->getClientOriginalName(), 250, ''),
-            'disk' => 'local',
+            'disk' => $disk,
             'path' => $path,
             'mime_type' => $mime,
             'size' => $file->getSize(),
@@ -80,25 +121,14 @@ class AttachmentStorage
             'is_current_version' => true,
         ]);
 
-        // OCR-Extraktion synchron versuchen (best-effort, kein Abbruch)
-        try {
-            $this->ocr->extract($att);
-        } catch (\Throwable) {
-            // Status bleibt pending — kann ueber 'ocr:run-pending' nachgeholt werden
-        }
-
-        // Felder-Extraktion nach OCR (best-effort, basierend auf document_type-Schema)
-        try {
-            $this->fields->extractFor($att->refresh());
-        } catch (\Throwable) {
-        }
+        $this->triggerOcrAndIndex($att);
 
         return $att;
     }
 
     /**
-     * Pruefe Integritaet aller Attachments. Liefert Liste mit verdaechtigen
-     * Eintraegen (Hash stimmt nicht oder Datei fehlt).
+     * Pruefe Integrität aller Attachments. Liefert Liste mit verdaechtigen
+     * Einträgen (Hash stimmt nicht oder Datei fehlt).
      *
      * @return array{checked:int, broken:array<int, array{id:int, name:string, reason:string}>}
      */
@@ -125,23 +155,32 @@ class AttachmentStorage
 
     /**
      * Speichert rohen Byte-String als Attachment. Wird vom PDF-Render-Knoten
-     * benutzt, der das PDF im Workflow erzeugt und revisionssicher anhaengt.
+     * benutzt, der das PDF im Workflow erzeugt und revisionssicher anhängt.
      */
-    public function storeBytes(string $bytes, string $filename, string $mime, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null): Attachment
+    public function storeBytes(string $bytes, string $filename, string $mime, ?Model $attachable, ?string $label, ?int $userId, ?string $documentType = null, bool $allowDuplicate = false): Attachment
     {
         if (strlen($bytes) > self::MAX_BYTES) {
-            throw new \RuntimeException('Datei zu gross (max. 15 MB).');
+            throw new \RuntimeException('Datei zu groß (max. 15 MB).');
         }
         if (! $this->mimeAllowed($mime)) {
             throw new \RuntimeException("Dateityp nicht erlaubt ({$mime}).");
         }
 
         $hash = hash('sha256', $bytes);
+
+        if (! $allowDuplicate) {
+            $dup = $this->findDuplicate($hash);
+            if ($dup) {
+                throw new \App\Exceptions\DuplicateAttachmentException($dup);
+            }
+        }
+
+        $disk = $this->disk();
         $ext = Str::lower(pathinfo($filename, PATHINFO_EXTENSION) ?: 'bin');
         $dir = 'attachments/'.now()->format('Y/m');
         $name = Str::ulid().'.'.$ext;
         $path = $dir.'/'.$name;
-        if (! Storage::disk('local')->put($path, $bytes)) {
+        if (! Storage::disk($disk)->put($path, $bytes)) {
             throw new \RuntimeException('Datei konnte nicht gespeichert werden.');
         }
 
@@ -151,7 +190,7 @@ class AttachmentStorage
             'attachable_type' => $attachable?->getMorphClass(),
             'attachable_id' => $attachable?->getKey(),
             'original_name' => Str::limit($filename, 250, ''),
-            'disk' => 'local',
+            'disk' => $disk,
             'path' => $path,
             'mime_type' => $mime,
             'size' => strlen($bytes),
@@ -165,16 +204,26 @@ class AttachmentStorage
             'is_current_version' => true,
         ]);
 
-        try {
-            $this->ocr->extract($att);
-        } catch (\Throwable) {
-        }
-        try {
-            $this->fields->extractFor($att->refresh());
-        } catch (\Throwable) {
-        }
+        $this->triggerOcrAndIndex($att);
 
         return $att;
+    }
+
+    /**
+     * Triggert OCR + Feld-Indexierung. Default synchron (alter
+     * Verhalten). Per Setting QUEUE_OCR=true wandert das in einen
+     * Queue-Job — wer ein 'queue:work' am Laufen hat, bekommt sofortige
+     * Uploads ohne OCR-Wartezeit.
+     */
+    private function triggerOcrAndIndex(Attachment $att): void
+    {
+        if ((bool) config('app.queue_ocr', false)) {
+            \App\Jobs\ProcessAttachmentOcr::dispatch($att->id);
+            return;
+        }
+        try { $this->ocr->extract($att); } catch (\Throwable) {}
+        try { $this->fields->extractFor($att->refresh()); } catch (\Throwable) {}
+        try { app(\App\Services\Search\DocumentSearch::class)->index($att->refresh()); } catch (\Throwable) {}
     }
 
     public function streamDownload(Attachment $attachment)

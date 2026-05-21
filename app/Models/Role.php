@@ -11,10 +11,11 @@ class Role extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'description', 'is_system'];
+    protected $fillable = ['name', 'slug', 'description', 'is_system', 'requires_2fa'];
 
     protected $casts = [
         'is_system' => 'boolean',
+        'requires_2fa' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -35,6 +36,12 @@ class Role extends Model
     {
         return $this->belongsToMany(User::class)
             ->withPivot(['assigned_by', 'assigned_at']);
+    }
+
+    public function lookupLists(): BelongsToMany
+    {
+        return $this->belongsToMany(LookupList::class, 'lookup_list_role')
+            ->withPivot('can_edit')->withTimestamps();
     }
 
     public function hasPermission(string $slug): bool

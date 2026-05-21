@@ -81,7 +81,7 @@ class Phase15dTest extends TestCase
         $url = URL::temporarySignedRoute('mail-approval.show', now()->addDays(3), [
             'step' => $step->id, 'user' => $approver->id, 'decision' => 'approved',
         ]);
-        $this->get($url)->assertOk()->assertSee('Genehmigung bestaetigen');
+        $this->get($url)->assertOk()->assertSee('Genehmigung bestätigen');
 
         // POST: same URL, signature preserved in query string.
         $this->post($url, ['comment' => 'OK'])->assertOk()->assertSee('Genehmigt');

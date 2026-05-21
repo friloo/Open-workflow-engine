@@ -17,19 +17,31 @@ class AIController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $data = $request->validate([
+            'enabled' => ['nullable', 'boolean'],
             'provider' => ['required', 'in:openai,deepseek,ollama,custom'],
             'base_url' => ['required', 'url', 'max:512'],
             'model' => ['required', 'string', 'max:128'],
             'api_key' => ['nullable', 'string', 'max:1024'],
+            'features' => ['nullable', 'array'],
+            'features.*' => ['nullable', 'boolean'],
         ]);
+        Settings::set('ai.enabled', (bool) ($data['enabled'] ?? false), $request->user()->id);
         foreach (['provider', 'base_url', 'model'] as $k) {
             Settings::set("ai.{$k}", $data[$k], $request->user()->id);
         }
         if (! empty($data['api_key'])) {
             Settings::set('ai.api_key', $data['api_key'], $request->user()->id);
         }
+
+        $submitted = (array) ($data['features'] ?? []);
+        foreach (array_keys(\App\Services\AIClient::knownFeatures()) as $feature) {
+            Settings::set("ai.feature.{$feature}", (bool) ($submitted[$feature] ?? false), $request->user()->id);
+        }
+
         $this->audit->log('settings.ai.updated', null, null, [
+            'enabled' => (bool) ($data['enabled'] ?? false),
             'provider' => $data['provider'], 'model' => $data['model'],
+            'features' => array_map(fn ($v) => (bool) $v, $submitted),
         ], 'KI-Konfiguration aktualisiert', $request->user()->id);
 
         return back()->with('status', 'KI-Konfiguration gespeichert.');
@@ -51,20 +63,50 @@ class AIController extends Controller
     public function suggestHttp(AIClient $client, Request $request): JsonResponse
     {
         $data = $request->validate([
-            'description' => ['required', 'string', 'max:6000'],
+            // 'description' bleibt aus Rückwärts-Kompat; 'input' ist neu für
+            // einen freien Mix aus curl / OpenAPI / Markdown-Doku / Freitext.
+            'description' => ['nullable', 'string', 'max:20000'],
+            'input' => ['nullable', 'string', 'max:20000'],
             'available_fields' => ['nullable', 'array'],
+            'purpose' => ['nullable', 'string', 'max:500'],
         ]);
+        $input = trim((string) ($data['input'] ?? $data['description'] ?? ''));
+        if ($input === '') {
+            return response()->json(['error' => 'Bitte Beschreibung, curl-Befehl oder API-Doku angeben.'], 422);
+        }
+        if (! $client->isEnabled()) {
+            return response()->json(['error' => 'KI ist global deaktiviert.'], 422);
+        }
+        if (! $client->isFeatureEnabled('http_suggest')) {
+            return response()->json(['error' => 'KI-Feature „HTTP-Vorschlag" ist deaktiviert.'], 422);
+        }
         if (! $client->isConfigured()) {
             return response()->json(['error' => 'KI ist nicht konfiguriert.'], 422);
         }
 
+        // 1) Wenn der Input wie ein curl-Befehl aussieht, vorab strukturell
+        //    parsen. Das gibt der KI eine sichere Basis und spart Token.
+        $preparsed = null;
+        if (preg_match('/^\s*curl\b/i', $input) || str_contains($input, "\ncurl ")) {
+            try {
+                $preparsed = \App\Services\CurlParser::parse($input);
+            } catch (\Throwable) {
+                $preparsed = null;
+            }
+        }
+
         $fields = $data['available_fields'] ?? [];
-        $fieldList = $fields ? "Verfuegbare Platzhalter (Formular- und Workflow-Felder): ".implode(', ', $fields) : '';
+        $fieldList = $fields ? "Verfügbare Platzhalter: ".implode(', ', $fields) : '';
+        $purpose = (string) ($data['purpose'] ?? '');
+        $purposeLine = $purpose !== '' ? "Aktueller Zweck des Calls: {$purpose}" : '';
 
         $system = <<<TXT
-Du bist Experte fuer API-Integrationen. Aus der gegebenen API-Beschreibung erzeugst du
-strikt eine JSON-Antwort fuer einen HTTP-Workflow-Knoten. Antworte ausschliesslich mit
-einem JSON-Objekt mit diesen Feldern (alle optional, leer lassen wenn nicht relevant):
+Du bist Experte für API-Integrationen. Aus dem gegebenen Input (kann sein:
+curl-Befehl, OpenAPI/Swagger-Snippet, Markdown-Doku, oder freie Beschreibung)
+erzeugst du ein JSON-Objekt für einen HTTP-Knoten.
+
+Antworte AUSSCHLIESSLICH mit reinem JSON, ohne Markdown-Wrapper, in diesem
+Format:
 
 {
   "method": "GET|POST|PUT|PATCH|DELETE",
@@ -78,31 +120,45 @@ einem JSON-Objekt mit diesen Feldern (alle optional, leer lassen wenn nicht rele
   "body_type": "none|json|form|raw",
   "body_template": "",
   "body_form": [{"key": "", "value": ""}],
-  "response_mapping": [{"path": "", "save_as": ""}]
+  "response_mapping": [{"path": "", "save_as": ""}],
+  "notes": "kurze Hinweise an den Admin (max 200 Zeichen)"
 }
 
 Regeln:
-- Dynamische Werte als Mustache-Platzhalter formulieren, z. B. {{ initiator_email }},
-  {{ subject_user_name }}, {{ kostenstelle }}, {{ instance_id }}, {{ workflow_name }}.
-- response_mapping nutzt Punktnotation, z. B. "data.id" -> "ticket_id".
-- Wenn der API-Body als JSON erwartet wird, body_type = json + body_template als
-  gueltiges JSON mit Platzhaltern.
-- Wenn die API ein API-Key-Header verlangt, auth_type = api_key_header und
-  auth_header_name korrekt setzen (z. B. "X-API-Key" oder "Authorization").
-- Antworte AUSSCHLIESSLICH mit reinem JSON, ohne Markdown-Wrapper.
+- KONKRETE BEISPIELWERTE im Body durch passende Platzhalter ersetzen.
+  z. B. "max@example.com" -> {{ user_email }}, "Max Mustermann" -> {{ user_name }},
+  "Drucker druckt nicht" -> {{ subject }}, etc.
+- Nur die unter "Verfügbare Platzhalter" gelisteten Variablen verwenden.
+- Authorization-Header NICHT in "headers" auflisten, stattdessen via
+  auth_type/auth_token/auth_username/...
+- response_mapping mit Punktnotation, z. B. "data.id" -> "ticket_id".
+- Wenn mehrere Endpoints im Input stehen, wähle den passendsten zum
+  "Aktuellen Zweck" oder den ersten POST/PUT.
+- IDs oder Zahlen, für die kein Platzhalter passt, auf 0 oder einen
+  sinnvollen Default lassen und in "notes" erwaehnen.
+
+{$purposeLine}
 {$fieldList}
 TXT;
+
+        // Pre-Parse-Hilfe an die KI weiterreichen
+        $userMsg = $input;
+        if ($preparsed) {
+            $userMsg = "Ich habe diesen curl-Befehl bereits strukturell geparst:\n"
+                .json_encode($preparsed, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                ."\n\nOriginal-curl:\n".$input
+                ."\n\nNimm diese Struktur, ersetze Beispielwerte im Body durch passende Platzhalter und liefere das verlangte JSON.";
+        }
 
         try {
             $r = $client->chat([
                 ['role' => 'system', 'content' => $system],
-                ['role' => 'user', 'content' => $data['description']],
+                ['role' => 'user', 'content' => $userMsg],
             ], 0.1, true);
         } catch (\Throwable $e) {
             return response()->json(['error' => $e->getMessage()], 502);
         }
 
-        // JSON aus Antwort herausfischen (manche Modelle umgeben mit ```json)
         $text = trim($r['text']);
         if (str_starts_with($text, '```')) {
             $text = trim(preg_replace('/^```(json)?|```$/m', '', $text));
@@ -115,11 +171,22 @@ TXT;
             ], 422);
         }
 
+        // Wenn KI auth_token leer lässt, Pre-Parse-Auth übernehmen (Token aus curl).
+        if ($preparsed && ! empty($preparsed['auth'])) {
+            $a = $preparsed['auth'];
+            if (empty($parsed['auth_type']) || $parsed['auth_type'] === 'none') $parsed['auth_type'] = $a['type'] ?? 'none';
+            if (empty($parsed['auth_token']) && ! empty($a['token'])) $parsed['auth_token'] = $a['token'];
+            if (empty($parsed['auth_username']) && ! empty($a['username'])) $parsed['auth_username'] = $a['username'];
+            if (empty($parsed['auth_password']) && ! empty($a['password'])) $parsed['auth_password'] = $a['password'];
+            if (empty($parsed['auth_header_name']) && ! empty($a['header_name'])) $parsed['auth_header_name'] = $a['header_name'];
+        }
+
         $this->audit->log('ai.suggest_http', null, null, [
             'provider' => $client->provider(),
             'method' => $parsed['method'] ?? null,
             'url' => $parsed['url'] ?? null,
-        ], 'KI-Vorschlag fuer HTTP-Knoten generiert', $request->user()->id);
+            'preparsed' => $preparsed !== null,
+        ], 'KI-Vorschlag für HTTP-Call generiert', $request->user()->id);
 
         return response()->json(['suggestion' => $parsed]);
     }
@@ -134,6 +201,12 @@ TXT;
             'description' => ['required', 'string', 'max:6000'],
             'trigger_type' => ['nullable', 'in:form,manual,recurring'],
         ]);
+        if (! $client->isEnabled()) {
+            return response()->json(['error' => 'KI ist global deaktiviert.'], 422);
+        }
+        if (! $client->isFeatureEnabled('workflow_design')) {
+            return response()->json(['error' => 'KI-Feature „Workflow-Entwurf" ist deaktiviert.'], 422);
+        }
         if (! $client->isConfigured()) {
             return response()->json(['error' => 'KI ist nicht konfiguriert.'], 422);
         }
@@ -141,7 +214,7 @@ TXT;
         $trigger = $data['trigger_type'] ?? 'form';
 
         $system = <<<TXT
-Du baust den ersten Entwurf eines Workflows fuer die Open Workflow Engine.
+Du baust den ersten Entwurf eines Workflows für die Open Workflow Engine.
 Antworte AUSSCHLIESSLICH mit reinem JSON (kein Markdown-Codeblock).
 
 JSON-Schema:
@@ -184,13 +257,13 @@ JSON-Schema:
 
 Regeln:
 - Genau ein Knoten "start" und mindestens ein "end".
-- Approval-Ausgaenge: 1=Genehmigt, 2=Abgelehnt, 3=Weitergeleitet (falls allow_forward=true).
+- Approval-Ausgänge: 1=Genehmigt, 2=Abgelehnt, 3=Weitergeleitet (falls allow_forward=true).
 - Condition: pro branches[i] ein Ausgang i (1-basiert), zusaetzlich letzter Ausgang = Else.
 - HTTP: 1=OK, 2=Fehler. Notify und Start haben Ausgang 1. End hat keine.
 - Platzhalter im Body/Subject: {{ initiator_name }}, {{ initiator_email }}, {{ subject_user_email }}, beliebige Formularfeld-Keys, {{ initiator_custom.<key> }}.
 - Trigger-Typ ist: {$trigger}. Wenn "form": baue passendes form_schema. Wenn "recurring": form_schema darf leer sein.
-- Wenn der Nutzer Kostenstellen/Listen-Lookups erwaehnt, setze recipient_type="list_lookup" und benenne lookup_source als den Form-Feld-Key (Liste muss spaeter manuell zugeordnet werden, list_id leer lassen).
-- Keine Erlaeuterungen, nur valide JSON-Antwort.
+- Wenn der Nutzer Kostenstellen/Listen-Lookups erwaehnt, setze recipient_type="list_lookup" und benenne lookup_source als den Form-Feld-Key (Liste muss später manuell zugeordnet werden, list_id leer lassen).
+- Keine Erläuterungen, nur valide JSON-Antwort.
 TXT;
 
         try {
@@ -219,7 +292,7 @@ TXT;
             'nodes' => count($parsed['nodes'] ?? []),
             'edges' => count($parsed['edges'] ?? []),
             'fields' => count($parsed['form_schema'] ?? []),
-        ], 'KI-Vorschlag fuer kompletten Workflow generiert', $request->user()->id);
+        ], 'KI-Vorschlag für kompletten Workflow generiert', $request->user()->id);
 
         return response()->json(['draft' => $parsed]);
     }

@@ -4,7 +4,7 @@
 @endphp
 <x-app-layout>
     <x-slot name="header">{{ $isNew ? 'Neue Liste' : $list->name }}</x-slot>
-    <x-slot name="subheader">Spalten definieren und Eintraege per CSV importieren.</x-slot>
+    <x-slot name="subheader">Spalten definieren und Einträge per CSV importieren.</x-slot>
 
     <div class="mb-4">
         <a href="{{ route('lists.index') }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Listen</a>
@@ -39,7 +39,7 @@
                     </div>
                 </x-card>
 
-                <x-card title="Spaltenstruktur" description="Eine Spalte muss als Schluessel markiert sein. Verantwortlich/Eskalation werden im Workflow als Empfaenger genutzt.">
+                <x-card title="Spaltenstruktur" description="Eine Spalte muss als Schlüssel markiert sein. Verantwortlich/Eskalation werden im Workflow als Empfänger genutzt.">
                     <div class="space-y-3"
                          x-sort:config="{ animation: 150, handle: '.drag-handle' }"
                          x-sort="columns.splice($event.newIndex, 0, columns.splice($event.oldIndex, 1)[0])">
@@ -79,7 +79,7 @@
                                     <div>
                                         <label class="block text-xs font-medium text-slate-600">Rolle</label>
                                         <select x-model="c.role" class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                            <option value="key">Schluessel</option>
+                                            <option value="key">Schlüssel</option>
                                             <option value="responsible">Verantwortlich</option>
                                             <option value="escalation">Eskalation</option>
                                             <option value="other">Sonstige</option>
@@ -90,7 +90,7 @@
                         </template>
                         <button type="button"
                             @click="columns.push({key: 'spalte_' + (columns.length+1), label: 'Spalte ' + (columns.length+1), type: 'text', role: 'other'})"
-                            class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Spalte hinzufuegen</button>
+                            class="w-full rounded-lg border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">+ Spalte hinzufügen</button>
                     </div>
                     <x-input-error :messages="$errors->get('columns')" />
                 </x-card>
@@ -101,7 +101,7 @@
                 </div>
 
                 <x-card title="Zugriff pro Rolle" description="Wenn KEINE Rolle markiert ist, sehen alle mit lists.view die Liste. Sobald mindestens eine Rolle gesetzt ist, sehen nur diese sie.">
-                    @php($pivot = isset($list) && $list->exists ? $list->roles->keyBy('id') : collect())
+                    @php $pivot = isset($list) && $list->exists ? $list->roles->keyBy('id') : collect(); @endphp
                     <table class="min-w-full text-sm">
                         <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                             <th class="py-1 pr-3">Rolle</th>
@@ -111,8 +111,10 @@
                         </tr></thead>
                         <tbody>
                             @foreach(($allRoles ?? []) as $role)
-                                @php($current = $pivot->get($role->id))
-                                @php($access = $current ? ($current->pivot->can_edit ? 'edit' : 'view') : 'none')
+                                @php
+                                    $current = $pivot->get($role->id);
+                                    $access = $current ? ($current->pivot->can_edit ? 'edit' : 'view') : 'none';
+                                @endphp
                                 <tr>
                                     <td class="py-1 pr-3 text-sm">{{ $role->name }} <code class="text-xs text-slate-500">{{ $role->slug }}</code></td>
                                     @foreach(['none', 'view', 'edit'] as $val)
@@ -129,13 +131,13 @@
 
             <div class="space-y-6">
                 @if(! $isNew)
-                    <x-card title="CSV-Import" description="Spaltennamen muessen den Keys oben entsprechen.">
+                    <x-card title="CSV-Import" description="Spaltennamen müssen den Keys oben entsprechen.">
                         <p class="mb-3 text-xs text-slate-500">Tipp: Erst speichern, dann importieren.</p>
                         <a href="{{ route('lists.entries.export', $list) }}" class="inline-flex text-sm text-slate-600 hover:text-slate-900">CSV-Vorlage exportieren &darr;</a>
                     </x-card>
                 @else
                     <x-card title="Hinweis">
-                        <p class="text-xs text-slate-500">Nach dem Anlegen koennen Eintraege manuell oder per CSV erfasst werden.</p>
+                        <p class="text-xs text-slate-500">Nach dem Anlegen koennen Einträge manuell oder per CSV erfasst werden.</p>
                     </x-card>
                 @endif
             </div>
@@ -145,7 +147,7 @@
     @if(! $isNew)
         <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2">
-                <x-card title="Eintraege" description="{{ isset($entries) ? $entries->total() : 0 }} insgesamt.">
+                <x-card title="Einträge" description="{{ isset($entries) ? $entries->total() : 0 }} insgesamt.">
                     @include('lists._entries_table', ['list' => $list, 'entries' => $entries ?? collect()])
                 </x-card>
             </div>

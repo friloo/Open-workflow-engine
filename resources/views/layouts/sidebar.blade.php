@@ -9,6 +9,30 @@
                 }
             })->count()
         : 0;
+
+    // Archive (Dokumenttypen) als Sub-Einträge unter "Dokumente".
+    $documentArchives = [];
+    if ($user?->hasPermission('documents.search')) {
+        $visibleArchives = \App\Support\DocumentTypes::visibleForUser($user);
+        $currentArchive = request()->routeIs('documents.index') ? request()->query('type') : null;
+        foreach ($visibleArchives as $a) {
+            $documentArchives[] = [
+                'name' => $a,
+                'url' => route('documents.index', ['type' => $a]),
+                'active' => request()->routeIs('documents.index') && $currentArchive === $a,
+            ];
+        }
+        $includeUnclassified = $user->hasRole('admin') || (bool) \App\Support\Settings::get('attachments.unclassified_visible_for_all', false);
+        if ($includeUnclassified) {
+            $documentArchives[] = [
+                'name' => 'Unklassifiziert',
+                'url' => route('documents.index', ['type' => '__unclassified__']),
+                'active' => request()->routeIs('documents.index') && $currentArchive === '__unclassified__',
+                'italic' => true,
+            ];
+        }
+    }
+
     $nav = [
         [
             'group' => 'Allgemein',
@@ -22,37 +46,57 @@
             'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.run','forms.view','forms.manage']),
             'items' => [
                 ['name' => 'Workflows', 'route' => 'workflows.index', 'icon' => 'workflow', 'active' => request()->routeIs('workflows.*'), 'when' => $user?->hasAnyPermission(['workflows.view','workflows.design','workflows.run'])],
-                ['name' => 'Vorgaenge', 'route' => 'workflow-instances.index', 'icon' => 'list', 'active' => request()->routeIs('workflow-instances.*'), 'when' => $user !== null],
+                ['name' => 'Vorgänge', 'route' => 'workflow-instances.index', 'icon' => 'list', 'active' => request()->routeIs('workflow-instances.*'), 'when' => $user !== null],
                 ['name' => 'Formulare', 'route' => 'forms.index', 'icon' => 'form', 'active' => request()->routeIs('forms.*'), 'when' => $user?->hasAnyPermission(['forms.view','forms.manage'])],
+                ['name' => 'Reports', 'route' => 'reports.index', 'icon' => 'chart', 'active' => request()->routeIs('reports.*'), 'when' => $user?->hasPermission('reports.view')],
             ],
         ],
         [
             'group' => 'Stammdaten',
-            'when' => $user?->hasAnyPermission(['lists.view','lists.manage','assets.view','assets.manage','documents.search']),
+            'when' => $user?->hasAnyPermission(['lists.view','lists.manage','assets.view','assets.manage','contracts.view','contracts.manage','documents.search']),
             'items' => [
                 ['name' => 'Listen', 'route' => 'lists.index', 'icon' => 'table', 'active' => request()->routeIs('lists.*'), 'when' => $user?->hasAnyPermission(['lists.view','lists.manage'])],
+                ['name' => 'Verträge', 'route' => 'contracts.index', 'icon' => 'document', 'active' => request()->routeIs('contracts.*'), 'when' => $user?->hasAnyPermission(['contracts.view','contracts.manage'])],
                 ['name' => 'Assets', 'route' => 'assets.index', 'icon' => 'badge', 'active' => request()->routeIs('assets.*'), 'when' => $user?->hasAnyPermission(['assets.view','assets.manage'])],
-                ['name' => 'Dokumente', 'route' => 'documents.index', 'icon' => 'list', 'active' => request()->routeIs('documents.*'), 'when' => $user?->hasPermission('documents.search')],
+                ['name' => 'Dokumente', 'route' => 'documents.index', 'icon' => 'list', 'active' => request()->routeIs('documents.*'), 'when' => $user?->hasPermission('documents.search'), 'children' => $documentArchives, 'children_expanded' => request()->routeIs('documents.*')],
                 ['name' => 'Akten', 'route' => 'cases.index', 'icon' => 'document', 'active' => request()->routeIs('cases.*'), 'when' => $user?->hasPermission('documents.search')],
                 ['name' => 'Tags', 'route' => 'tags.index', 'icon' => 'cog', 'active' => request()->routeIs('tags.*'), 'when' => $user?->hasPermission('documents.search')],
                 ['name' => 'Freigaben', 'route' => 'shares.index', 'icon' => 'list', 'active' => request()->routeIs('shares.*'), 'when' => $user?->hasAnyPermission(['shares.create','shares.manage_all'])],
             ],
         ],
         [
-            'group' => 'Verwaltung',
-            'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','roles.view','roles.manage','audit.view','system.settings']),
+            'group' => 'Benutzer & Rechte',
+            'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','roles.view','roles.manage','audit.view']),
             'items' => [
                 ['name' => 'Benutzer', 'route' => 'admin.users.index', 'icon' => 'users', 'active' => request()->routeIs('admin.users.*'), 'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','users.import'])],
                 ['name' => 'Rollen & Rechte', 'route' => 'admin.roles.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.roles.*'), 'when' => $user?->hasAnyPermission(['roles.view','roles.manage'])],
                 ['name' => 'Audit-Log', 'route' => 'admin.audit.index', 'icon' => 'list', 'active' => request()->routeIs('admin.audit.*'), 'when' => $user?->hasPermission('audit.view')],
-                ['name' => 'Systemeinstellungen', 'route' => 'admin.settings.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.settings.*'), 'when' => $user?->hasPermission('system.settings')],
-                ['name' => 'Dokument-Schemas', 'route' => 'admin.document_schemas.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.document_schemas.*'), 'when' => $user?->hasPermission('system.settings')],
+                ['name' => 'Berechtigungs-Report', 'route' => 'admin.reports.permissions', 'icon' => 'shield', 'active' => request()->routeIs('admin.reports.permissions*'), 'when' => $user?->hasPermission('users.view')],
+            ],
+        ],
+        [
+            'group' => 'Integrationen',
+            'when' => $user?->hasAnyPermission(['mailboxes.manage','folder_inboxes.manage','webhooks.manage','incoming_webhooks.manage','secrets.manage']),
+            'items' => [
+                ['name' => 'E-Mail-Postfächer', 'route' => 'admin.mailboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.mailboxes.*'), 'when' => $user?->hasPermission('mailboxes.manage')],
+                ['name' => 'Folder-Inboxen', 'route' => 'admin.folder-inboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.folder-inboxes.*'), 'when' => $user?->hasPermission('folder_inboxes.manage')],
                 ['name' => 'Webhooks (out)', 'route' => 'admin.webhooks.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.webhooks.*'), 'when' => $user?->hasPermission('webhooks.manage')],
                 ['name' => 'Webhooks (in)', 'route' => 'admin.incoming-webhooks.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.incoming-webhooks.*'), 'when' => $user?->hasPermission('incoming_webhooks.manage')],
                 ['name' => 'Secrets', 'route' => 'admin.secrets.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.secrets.*'), 'when' => $user?->hasPermission('secrets.manage')],
-                ['name' => 'E-Mail-Postfaecher', 'route' => 'admin.mailboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.mailboxes.*'), 'when' => $user?->hasPermission('mailboxes.manage')],
-                ['name' => 'Folder-Inboxen', 'route' => 'admin.folder-inboxes.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.folder-inboxes.*'), 'when' => $user?->hasPermission('folder_inboxes.manage')],
+            ],
+        ],
+        [
+            'group' => 'System',
+            'when' => $user?->hasAnyPermission(['system.settings','system.health','system.update','system.backup']),
+            'items' => [
+                ['name' => 'Systemeinstellungen', 'route' => 'admin.settings.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.settings.*'), 'when' => $user?->hasPermission('system.settings')],
+                ['name' => 'Dokument-Schemas', 'route' => 'admin.document_schemas.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.document_schemas.*'), 'when' => $user?->hasPermission('system.settings')],
+                ['name' => 'API-Dokumentation', 'route' => 'admin.api_docs.index', 'icon' => 'document', 'active' => request()->routeIs('admin.api_docs.*'), 'when' => $user?->hasPermission('system.settings')],
+                ['name' => 'DATEV-Export', 'route' => 'admin.datev.index', 'icon' => 'document', 'active' => request()->routeIs('admin.datev.*'), 'when' => $user?->hasPermission('system.settings')],
+                ['name' => 'DSGVO', 'route' => 'admin.gdpr.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.gdpr.*'), 'when' => $user?->hasPermission('system.settings')],
                 ['name' => 'System-Health', 'route' => 'admin.health.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.health.*'), 'when' => $user?->hasPermission('system.health')],
+                ['name' => 'Performance', 'route' => 'admin.perf.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.perf.*'), 'when' => $user?->hasPermission('system.health')],
+                ['name' => 'Queue-Worker', 'route' => 'admin.queue.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.queue.*'), 'when' => $user?->hasPermission('system.health')],
                 ['name' => 'System-Update', 'route' => 'admin.update.index', 'icon' => 'cog', 'active' => request()->routeIs('admin.update.*'), 'when' => $user?->hasPermission('system.update')],
                 ['name' => 'Backups', 'route' => 'admin.backups.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.backups.*'), 'when' => $user?->hasPermission('system.backup')],
             ],
@@ -85,6 +129,18 @@
                                                     <span class="ms-auto inline-flex items-center justify-center rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">{{ $item['badge'] }}</span>
                                                 @endif
                                             </a>
+                                            @if(! empty($item['children']) && ($item['children_expanded'] ?? false))
+                                                <ul class="mt-1 ms-7 space-y-0.5 border-l border-slate-200 ps-3">
+                                                    @foreach($item['children'] as $child)
+                                                        <li>
+                                                            <a href="{{ $child['url'] }}"
+                                                               class="block truncate rounded-md px-2 py-1 text-xs {{ ($child['italic'] ?? false) ? 'italic' : '' }} {{ $child['active'] ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                                                                {{ $child['name'] }}
+                                                            </a>
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            @endif
                                         </li>
                                     @endif
                                 @endforeach
@@ -123,6 +179,16 @@
                                     <span class="ms-auto inline-flex items-center justify-center rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">{{ $item['badge'] }}</span>
                                 @endif
                             </a>
+                            @if(! empty($item['children']) && ($item['children_expanded'] ?? false))
+                                <div class="ms-7 mt-1 space-y-0.5 border-l border-slate-200 ps-3">
+                                    @foreach($item['children'] as $child)
+                                        <a href="{{ $child['url'] }}"
+                                           class="block truncate rounded-md px-2 py-1 text-xs {{ ($child['italic'] ?? false) ? 'italic' : '' }} {{ $child['active'] ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-600 hover:bg-slate-50' }}">
+                                            {{ $child['name'] }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                         @endif
                     @endforeach
                 @endif

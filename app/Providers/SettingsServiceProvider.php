@@ -11,17 +11,162 @@ class SettingsServiceProvider extends ServiceProvider
     {
         $this->applyMailConfig();
         $this->applyM365Config();
+        $this->applyOidcConfig();
+        $this->applyGoogleConfig();
+        $this->applySamlConfig();
+        $this->applyLdapConfig();
         $this->applyBrandingConfig();
+        $this->applyInfrastructureConfig();
+    }
+
+    private function applyLdapConfig(): void
+    {
+        $cfg = Settings::group('auth.ldap');
+        if ($cfg === []) return;
+
+        $current = config('services.ldap', []);
+        foreach ([
+            'host', 'port', 'base_dn', 'bind_dn', 'bind_password',
+            'user_filter', 'email_attribute', 'name_attribute', 'default_role',
+        ] as $k) {
+            if (array_key_exists($k, $cfg) && $cfg[$k] !== '' && $cfg[$k] !== null) {
+                $current[$k] = $cfg[$k];
+            }
+        }
+        $current['enabled'] = (bool) ($cfg['enabled'] ?? false);
+        $current['use_tls'] = (bool) ($cfg['use_tls'] ?? false);
+        $current['auto_provision'] = (bool) ($cfg['auto_provision'] ?? true);
+        if (isset($cfg['port'])) $current['port'] = (int) $cfg['port'];
+        config(['services.ldap' => $current]);
+    }
+
+    private function applyOidcConfig(): void
+    {
+        $cfg = Settings::group('auth.oidc');
+        if ($cfg === []) return;
+
+        $current = config('services.oidc', []);
+        foreach (['issuer', 'client_id', 'client_secret', 'redirect', 'scopes', 'button_label', 'default_role'] as $k) {
+            if (array_key_exists($k, $cfg) && $cfg[$k] !== '' && $cfg[$k] !== null) {
+                $current[$k] = $cfg[$k];
+            }
+        }
+        $current['enabled'] = (bool) ($cfg['enabled'] ?? false);
+        $current['auto_provision'] = (bool) ($cfg['auto_provision'] ?? true);
+        config(['services.oidc' => $current]);
+    }
+
+    private function applyGoogleConfig(): void
+    {
+        $cfg = Settings::group('auth.google');
+        if ($cfg === []) return;
+
+        $current = config('services.google', []);
+        foreach (['client_id', 'client_secret', 'redirect', 'hosted_domain', 'default_role'] as $k) {
+            if (array_key_exists($k, $cfg) && $cfg[$k] !== '' && $cfg[$k] !== null) {
+                $current[$k] = $cfg[$k];
+            }
+        }
+        $current['enabled'] = (bool) ($cfg['enabled'] ?? false);
+        $current['auto_provision'] = (bool) ($cfg['auto_provision'] ?? true);
+        config(['services.google' => $current]);
+    }
+
+    private function applySamlConfig(): void
+    {
+        $cfg = Settings::group('auth.saml');
+        if ($cfg === []) return;
+
+        $current = config('services.saml', []);
+        foreach ([
+            'idp_entity_id', 'idp_sso_url', 'idp_x509_cert',
+            'sp_entity_id', 'email_attribute', 'name_attribute',
+            'button_label', 'default_role',
+        ] as $k) {
+            if (array_key_exists($k, $cfg) && $cfg[$k] !== '' && $cfg[$k] !== null) {
+                $current[$k] = $cfg[$k];
+            }
+        }
+        $current['enabled'] = (bool) ($cfg['enabled'] ?? false);
+        $current['auto_provision'] = (bool) ($cfg['auto_provision'] ?? true);
+        $current['want_assertions_signed'] = (bool) ($cfg['want_assertions_signed'] ?? false);
+        $current['want_messages_signed'] = (bool) ($cfg['want_messages_signed'] ?? false);
+        config(['services.saml' => $current]);
+    }
+
+    /**
+     * Storage / Queue / Suche / Office-Vorschau aus der DB überschreiben.
+     * Default kommt weiter aus .env — die DB-Werte sind nur Overrides,
+     * sodass eine frische Installation ohne UI-Zugriff sofort funktioniert
+     * und das Admin-UI nur die Override-Schicht ist.
+     */
+    private function applyInfrastructureConfig(): void
+    {
+        $infra = Settings::group('infrastructure');
+        if ($infra === []) return;
+
+        // Storage-Disk für Attachments
+        if (! empty($infra['attachments_disk'])) {
+            config(['filesystems.attachments_disk' => $infra['attachments_disk']]);
+        }
+        // S3 / MinIO-Credentials (wenn welche gesetzt sind, überschreiben)
+        $s3 = config('filesystems.disks.s3', []);
+        foreach ([
+            's3_key' => 'key',
+            's3_secret' => 'secret',
+            's3_region' => 'region',
+            's3_bucket' => 'bucket',
+            's3_endpoint' => 'endpoint',
+            's3_url' => 'url',
+        ] as $key => $target) {
+            if (array_key_exists($key, $infra) && $infra[$key] !== '' && $infra[$key] !== null) {
+                $s3[$target] = $infra[$key];
+            }
+        }
+        if (! empty($infra['s3_use_path_style'])) {
+            $s3['use_path_style_endpoint'] = true;
+        }
+        config(['filesystems.disks.s3' => $s3]);
+
+        // Queue
+        if (! empty($infra['queue_connection'])) {
+            config(['queue.default' => $infra['queue_connection']]);
+        }
+        if (array_key_exists('queue_ocr', $infra)) {
+            config(['app.queue_ocr' => (bool) $infra['queue_ocr']]);
+        }
+
+        // Suche
+        if (! empty($infra['search_driver'])) {
+            config(['search.driver' => $infra['search_driver']]);
+        }
+        if (! empty($infra['meilisearch_host'])) {
+            config(['search.meilisearch.host' => $infra['meilisearch_host']]);
+        }
+        if (array_key_exists('meilisearch_key', $infra) && $infra['meilisearch_key'] !== '') {
+            config(['search.meilisearch.key' => $infra['meilisearch_key']]);
+        }
+
+        // Office-Vorschau
+        if (array_key_exists('libreoffice_preview', $infra)) {
+            config(['app.libreoffice_preview' => (bool) $infra['libreoffice_preview']]);
+        }
+        if (! empty($infra['libreoffice_bin'])) {
+            config(['app.libreoffice_bin' => $infra['libreoffice_bin']]);
+        }
     }
 
     private function applyBrandingConfig(): void
     {
         $b = Settings::group('branding');
-        if ($b === []) return;
         config(['branding' => [
             'app_name' => $b['app_name'] ?? config('app.name'),
             'primary_color' => $b['primary_color'] ?? '#6366f1',
             'logo_text' => $b['logo_text'] ?? 'W',
+            'login_bg_from' => $b['login_bg_from'] ?? '#eef2ff',
+            'login_bg_to' => $b['login_bg_to'] ?? '#f1f5f9',
+            'login_bg_image' => $b['login_bg_image'] ?? null,
+            'login_subtitle' => $b['login_subtitle'] ?? null,
         ]]);
         if (! empty($b['app_name'])) config(['app.name' => $b['app_name']]);
     }

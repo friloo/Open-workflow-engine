@@ -53,7 +53,7 @@ class Phase13Test extends TestCase
         $this->assertSame(2, $v2->version_number);
         $this->assertTrue($v2->is_current_version);
         $this->assertFalse($v1->fresh()->is_current_version);
-        // document_type uebernommen, da nicht explizit gesetzt
+        // document_type übernommen, da nicht explizit gesetzt
         $this->assertSame('Vertrag', $v2->document_type);
     }
 

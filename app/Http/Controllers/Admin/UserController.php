@@ -39,7 +39,7 @@ class UserController extends Controller
     {
         return view('admin.users.create', [
             'roles' => Role::orderBy('name')->get(),
-            'supervisors' => User::orderBy('name')->get(['id', 'name', 'email']),
+            'supervisors' => User::humans()->orderBy('name')->get(['id', 'name', 'email']),
             'customFields' => \App\Support\Settings::get('users.custom_fields', []),
         ]);
     }
@@ -69,7 +69,7 @@ class UserController extends Controller
         return view('admin.users.edit', [
             'user' => $user->load('roles'),
             'roles' => Role::orderBy('name')->get(),
-            'supervisors' => User::where('id', '!=', $user->id)->orderBy('name')->get(['id', 'name', 'email']),
+            'supervisors' => User::humans()->where('id', '!=', $user->id)->orderBy('name')->get(['id', 'name', 'email']),
             'customFields' => \App\Support\Settings::get('users.custom_fields', []),
         ]);
     }
@@ -98,15 +98,15 @@ class UserController extends Controller
     public function destroy(Request $request, User $user): RedirectResponse
     {
         if ($user->id === $request->user()->id) {
-            return back()->withErrors(['user' => 'Sie koennen sich nicht selbst loeschen.']);
+            return back()->withErrors(['user' => 'Sie koennen sich nicht selbst löschen.']);
         }
 
         $snapshot = $user->only(['id', 'name', 'email']);
         $user->delete();
 
-        $this->audit->log('user.deleted', $user, $snapshot, null, "Benutzer {$snapshot['email']} geloescht");
+        $this->audit->log('user.deleted', $user, $snapshot, null, "Benutzer {$snapshot['email']} gelöscht");
 
-        return redirect()->route('admin.users.index')->with('status', 'Benutzer geloescht.');
+        return redirect()->route('admin.users.index')->with('status', 'Benutzer gelöscht.');
     }
 
     private function validateUser(Request $request, ?User $user = null): array
@@ -121,16 +121,18 @@ class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:64'],
             'employee_id' => ['nullable', 'string', 'max:64'],
             'is_active' => ['nullable', 'boolean'],
+            'is_service_account' => ['nullable', 'boolean'],
             'email_notifications_enabled' => ['nullable', 'boolean'],
             'prefer_m365_supervisor' => ['nullable', 'boolean'],
             'custom_fields' => ['nullable', 'array'],
         ]) + [
             'is_active' => $request->boolean('is_active', true),
+            'is_service_account' => $request->boolean('is_service_account', false),
             'email_notifications_enabled' => $request->boolean('email_notifications_enabled', true),
             'prefer_m365_supervisor' => $request->boolean('prefer_m365_supervisor', false),
         ];
 
-        // Custom-Felder: nur konfigurierte Keys mit korrektem Typ uebernehmen.
+        // Custom-Felder: nur konfigurierte Keys mit korrektem Typ übernehmen.
         $defined = \App\Support\Settings::get('users.custom_fields', []);
         $cf = [];
         $input = $request->input('custom_fields', []);

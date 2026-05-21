@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">{{ $isAdmin ? 'Alle Freigaben' : 'Meine Freigaben' }}</x-slot>
-    <x-slot name="subheader">Pruefung alle {{ $reviewDays }} Tage per Mail. Max. Ablauf: {{ $maxDays }} Tage.</x-slot>
+    <x-slot name="subheader">Prüfung alle {{ $reviewDays }} Tage per Mail. Max. Ablauf: {{ $maxDays }} Tage.</x-slot>
 
     <x-card>
         @if($shares->isEmpty())
@@ -18,14 +18,14 @@
                         <th class="py-2 pr-4">Status</th>
                         <th class="py-2 pr-4">Laeuft ab</th>
                         <th class="py-2 pr-4">Zugriffe</th>
-                        <th class="py-2 pr-4">Naechste Pruefung</th>
+                        <th class="py-2 pr-4">Nächste Prüfung</th>
                         <th class="py-2"></th>
                     </tr></thead>
                     <tbody class="divide-y divide-slate-100">
                         @foreach($shares as $s)
                             <tr>
                                 <td class="py-3 pr-4">
-                                    <div class="font-medium text-slate-900">{{ $s->attachment?->original_name ?? 'geloescht' }}</div>
+                                    <div class="font-medium text-slate-900">{{ $s->attachment?->original_name ?? 'gelöscht' }}</div>
                                     <div class="text-xs text-slate-500">{{ $s->note }}</div>
                                 </td>
                                 @if($isAdmin)<td class="py-3 pr-4 text-slate-700 text-xs">{{ $s->creator?->name ?? '—' }}</td>@endif
@@ -41,7 +41,7 @@
                                 <td class="py-3 pr-4 text-xs">{{ $s->download_count }}@if($s->max_downloads)/{{ $s->max_downloads }}@endif · {{ $s->accesses_count }} Zugriffe</td>
                                 <td class="py-3 pr-4 text-xs text-slate-500">
                                     @if($s->last_review_response_at)
-                                        bestaetigt {{ $s->last_review_response_at->diffForHumans() }}
+                                        bestätigt {{ $s->last_review_response_at->diffForHumans() }}
                                     @elseif($s->last_review_sent_at)
                                         gesendet {{ $s->last_review_sent_at->diffForHumans() }}
                                     @else
@@ -60,7 +60,7 @@
                             </tr>
                             @if($s->review_response && $s->last_review_response_at)
                                 <tr><td colspan="{{ $isAdmin ? 7 : 6 }}" class="pb-3 ps-4 text-xs text-slate-500">
-                                    <em>Letzte Begruendung:</em> {{ $s->review_response }}
+                                    <em>Letzte Begründung:</em> {{ $s->review_response }}
                                 </td></tr>
                             @endif
                         @endforeach

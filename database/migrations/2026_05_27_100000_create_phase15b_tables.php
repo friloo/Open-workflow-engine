@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->timestamp('two_factor_confirmed_at')->nullable();
         });
 
-        // Persoenliche API-Tokens
+        // Persönliche API-Tokens
         Schema::create('api_tokens', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();

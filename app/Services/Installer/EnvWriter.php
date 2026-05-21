@@ -3,8 +3,8 @@
 namespace App\Services\Installer;
 
 /**
- * Schmale Helper-Klasse, die .env-Eintraege setzt (oder anlegt) ohne
- * existierende Kommentare/Reihenfolge zu zerstoeren. Werte werden bei
+ * Schmale Helper-Klasse, die .env-Einträge setzt (oder anlegt) ohne
+ * existierende Kommentare/Reihenfolge zu zerstören. Werte werden bei
  * Bedarf gequotet.
  */
 class EnvWriter

@@ -45,8 +45,8 @@ XML;
     {
         $admin = $this->admin();
         Storage::fake('local');
-        // Wir bauen ein "PDF" das die ZUGFeRD-XML enthaelt — der Parser
-        // findet sie ueber den Regex-Fallback.
+        // Wir bauen ein "PDF" das die ZUGFeRD-XML enthält — der Parser
+        // findet sie über den Regex-Fallback.
         $xml = <<<XML
 <?xml version="1.0"?>
 <rsm:CrossIndustryInvoice xmlns:rsm="x" xmlns:ram="x" xmlns:udt="x">
@@ -111,7 +111,7 @@ XML;
     public function test_zugferd_data_can_be_attached_to_pdf_attachment(): void
     {
         // Wenn das XML separat angeliefert wird (Mail mit PDF + XML), sollen
-        // die strukturierten Daten ans PDF gehaengt werden koennen.
+        // die strukturierten Daten ans PDF gehängt werden koennen.
         $admin = $this->admin();
         Storage::fake('local');
         $att = app(AttachmentStorage::class)->storeBytes(

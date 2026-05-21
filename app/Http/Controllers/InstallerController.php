@@ -23,7 +23,7 @@ use Illuminate\View\View;
  * Multi-Step-Installer:
  *
  *  1. /install              -> Welcome + System-Check
- *  2. /install/database     -> SQLite/MySQL waehlen + speichern + Migrate
+ *  2. /install/database     -> SQLite/MySQL wählen + speichern + Migrate
  *  3. /install/admin        -> Admin-User anlegen
  *  4. /install/finish       -> Marker setzen + ggf. Branding/Mail-Hinweis
  *
@@ -177,7 +177,7 @@ class InstallerController extends Controller
         $role = Role::where('slug', 'admin')->first();
         if (! $role) {
             return view('install.admin')->withErrors([
-                'name' => 'Admin-Rolle nicht gefunden. Wurde der Seeder im DB-Schritt ausgefuehrt?',
+                'name' => 'Admin-Rolle nicht gefunden. Wurde der Seeder im DB-Schritt ausgeführt?',
             ]);
         }
 
@@ -234,7 +234,7 @@ class InstallerController extends Controller
             'backup_file' => ['required', 'file'],
             'confirm' => ['accepted'],
         ], [
-            'confirm.accepted' => 'Bitte bestaetige, dass bestehende Daten ueberschrieben werden duerfen.',
+            'confirm.accepted' => 'Bitte bestätige, dass bestehende Daten überschrieben werden dürfen.',
         ]);
 
         $upload = $request->file('backup_file');
@@ -250,11 +250,11 @@ class InstallerController extends Controller
         }
         $zipPath = $backup->backupDir().'/'.$safeName;
 
-        // 2. Manifest pruefen
+        // 2. Manifest prüfen
         $zip = new \ZipArchive();
         if ($zip->open($zipPath) !== true) {
             @unlink($zipPath);
-            return $this->restoreError($data, 'ZIP konnte nicht geoeffnet werden.');
+            return $this->restoreError($data, 'ZIP konnte nicht geöffnet werden.');
         }
         $manifest = json_decode((string) $zip->getFromName('manifest.json'), true);
         $zip->close();
@@ -263,18 +263,18 @@ class InstallerController extends Controller
             return $this->restoreError($data, 'Kein OWE-Backup (manifest.json fehlt).');
         }
 
-        // 3. Driver des Backups muss zum gewaehlten Driver passen
+        // 3. Driver des Backups muss zum gewählten Driver passen
         $manifestDriver = (string) ($manifest['driver'] ?? 'sqlite');
         if (! in_array($manifestDriver, ['sqlite', 'mysql', 'mariadb'], true)) {
             @unlink($zipPath);
-            return $this->restoreError($data, "Driver im Backup ({$manifestDriver}) nicht unterstuetzt.");
+            return $this->restoreError($data, "Driver im Backup ({$manifestDriver}) nicht unterstützt.");
         }
         $expectedDriver = $manifestDriver === 'mariadb' ? 'mysql' : $manifestDriver;
         if ($data['driver'] !== $expectedDriver) {
             @unlink($zipPath);
             return $this->restoreError($data,
-                "Backup wurde mit {$manifestDriver} erstellt, du hast {$data['driver']} gewaehlt. ".
-                'Bitte den passenden Treiber waehlen.');
+                "Backup wurde mit {$manifestDriver} erstellt, du hast {$data['driver']} gewählt. ".
+                'Bitte den passenden Treiber wählen.');
         }
 
         // 4. .env schreiben (inkl. APP_KEY)

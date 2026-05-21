@@ -89,7 +89,7 @@ class UserImportController extends Controller
 
                 if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $failed++;
-                    $errors[] = "Zeile {$total}: ungueltige E-Mail";
+                    $errors[] = "Zeile {$total}: ungültige E-Mail";
                     continue;
                 }
                 if ($name === '') {

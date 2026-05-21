@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Eigene Vorlage importieren</x-slot>
-    <x-slot name="subheader">JSON-Datei einer fruehen Export-Aktion oder per Einfuegen.</x-slot>
+    <x-slot name="subheader">JSON-Datei einer frühen Export-Aktion oder per Einfügen.</x-slot>
 
     <x-card title="Aus Datei">
         <form method="POST" action="{{ route('workflows.templates.import.store') }}" enctype="multipart/form-data" class="space-y-4">
@@ -19,7 +19,7 @@
         </form>
     </x-card>
 
-    <x-card title="Aus JSON einfuegen">
+    <x-card title="Aus JSON einfügen">
         <form method="POST" action="{{ route('workflows.templates.import.store') }}" class="space-y-4">
             @csrf
             <input type="hidden" name="source" value="paste">

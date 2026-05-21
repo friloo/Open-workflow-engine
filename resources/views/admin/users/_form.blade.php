@@ -12,7 +12,7 @@
         <x-input-error :messages="$errors->get('email')" />
     </div>
     <div>
-        <x-input-label for="password" value="Passwort {{ isset($user) ? '(leer lassen = unveraendert)' : '' }}" />
+        <x-input-label for="password" value="Passwort {{ isset($user) ? '(leer lassen = unverändert)' : '' }}" />
         <x-text-input id="password" name="password" type="password" autocomplete="new-password" />
         <x-input-error :messages="$errors->get('password')" />
     </div>
@@ -60,12 +60,25 @@
         <input type="checkbox" name="prefer_m365_supervisor" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked(old('prefer_m365_supervisor', $user->prefer_m365_supervisor ?? false))>
         M365-Vorgesetzten verwenden (sofern vorhanden)
     </label>
+
+    <label class="inline-flex items-start gap-2 text-sm text-slate-700">
+        <input type="hidden" name="is_service_account" value="0">
+        <input type="checkbox" name="is_service_account" value="1" class="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked(old('is_service_account', $user->is_service_account ?? false))>
+        <span>
+            <strong>Service-Account</strong> (Konto für API-Integrationen, kein Mensch)
+            <span class="block text-xs text-slate-500 mt-0.5">
+                Erscheint nicht in Empfänger-/Vorgesetzten-Dropdowns, wird von
+                Auswahllisten ausgeschlossen. Token werden über Benutzer-Detail
+                &raquo; API-Tokens vergeben.
+            </span>
+        </span>
+    </label>
 </div>
 
 @if(! empty($customFields))
     <div class="mt-8">
         <h3 class="text-sm font-semibold text-slate-900">Benutzerdefinierte Felder</h3>
-        <p class="text-xs text-slate-500 mb-3">Im Workflow verfuegbar als <code>@{{ initiator_custom.&lt;key&gt; }}</code>.</p>
+        <p class="text-xs text-slate-500 mb-3">Im Workflow verfügbar als <code>@{{ initiator_custom.&lt;key&gt; }}</code>.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @foreach($customFields as $f)
                 @php($val = old("custom_fields.{$f['key']}", $user->custom_fields[$f['key']] ?? null))
@@ -97,7 +110,7 @@
 
 <div class="mt-8">
     <h3 class="text-sm font-semibold text-slate-900">Rollen</h3>
-    <p class="text-xs text-slate-500 mb-3">Berechtigungen werden ausschliesslich ueber Rollen gesteuert.</p>
+    <p class="text-xs text-slate-500 mb-3">Berechtigungen werden ausschliesslich über Rollen gesteuert.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         @foreach($roles as $r)
             <label class="flex items-start gap-2 rounded-lg border border-slate-200 p-3 hover:bg-slate-50">

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">System-Health</x-slot>
-    <x-slot name="subheader">Statuskarten fuer alle wichtigen Komponenten. Aktualisiert sich bei jedem Aufruf.</x-slot>
+    <x-slot name="subheader">Statuskarten für alle wichtigen Komponenten. Aktualisiert sich bei jedem Aufruf.</x-slot>
 
     @php
         $colors = [
@@ -22,7 +22,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         @foreach($checks as $check)
-            @php($c = $colors[$check['status']] ?? $colors['warn'])
+            @php $c = $colors[$check['status']] ?? $colors['warn']; @endphp
             <div class="rounded-lg border {{ $c['border'] }} {{ $c['bg'] }} p-4">
                 <div class="flex items-start justify-between">
                     <div>

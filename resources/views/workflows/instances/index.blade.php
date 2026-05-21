@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">{{ isset($workflow) ? 'Instanzen: '.$workflow->name : 'Workflow-Vorgaenge' }}</x-slot>
+    <x-slot name="header">{{ isset($workflow) ? 'Instanzen: '.$workflow->name : 'Workflow-Vorgänge' }}</x-slot>
     <x-slot name="subheader">{{ $canSeeAll ? 'Alle' : 'Deine' }} laufenden und abgeschlossenen Workflow-Instanzen.</x-slot>
 
     <div class="mb-4">
@@ -33,9 +33,9 @@
         @csrf
         @if(auth()->user()->hasAnyPermission(['workflows.design']))
             <div class="mb-3 flex items-center gap-2 text-sm" x-show="selected.length" style="display:none;">
-                <span x-text="`${selected.length} ausgewaehlt`" class="text-slate-700"></span>
+                <span x-text="`${selected.length} ausgewählt`" class="text-slate-700"></span>
                 <input type="text" name="reason" placeholder="Grund (optional)" class="flex-1 rounded-lg border-slate-300 text-sm shadow-sm focus:border-rose-500 focus:ring-rose-500">
-                <button type="submit" onclick="return confirm('Ausgewaehlte Instanzen abbrechen?')"
+                <button type="submit" onclick="return confirm('Ausgewählte Instanzen abbrechen?')"
                     class="inline-flex items-center justify-center rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50">Abbrechen</button>
             </div>
         @endif
@@ -66,15 +66,15 @@
                             @if(! isset($workflow))<td class="py-3 pr-4 font-medium text-slate-900">{{ $i->workflow->name }}</td>@endif
                             <td class="py-3 pr-4">
                                 @switch($i->status)
-                                    @case('running')<span class="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">laeuft</span>@break
+                                    @case('running')<span class="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">läuft</span>@break
                                     @case('completed')<span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">abgeschlossen</span>@break
                                     @case('cancelled')<span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">abgebrochen</span>@break
                                     @case('failed')<span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">fehlgeschlagen</span>@break
                                 @endswitch
                             </td>
                             <td class="py-3 pr-4 text-slate-700">{{ $nodeLabel ?? '—' }}</td>
-                            <td class="py-3 pr-4 text-slate-700">{{ $i->starter?->name ?? 'oeffentlich' }}</td>
-                            <td class="py-3 pr-4 text-xs text-slate-500">{{ $i->started_at?->diffForHumans() }}</td>
+                            <td class="py-3 pr-4 text-slate-700">{{ $i->starter?->name ?? 'öffentlich' }}</td>
+                            <td class="py-3 pr-4 text-xs text-slate-500"><x-fmt-date :value="$i->started_at" format="relative" /></td>
                             <td class="py-3 text-right">
                                 <a href="{{ route('workflow-instances.show', $i) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Details</a>
                             </td>

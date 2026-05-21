@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">Wiedervorlagen: {{ $workflow->name }}</x-slot>
-    <x-slot name="subheader">Wiederkehrende Auswertungen, z. B. „Fuehrerschein pruefen alle 6 Monate".</x-slot>
+    <x-slot name="subheader">Wiederkehrende Auswertungen, z. B. „Führerschein prüfen alle 6 Monate".</x-slot>
 
     <div class="mb-4">
         <a href="{{ route('workflows.index') }}" class="text-sm text-slate-500 hover:text-slate-700">&larr; Workflows</a>
@@ -20,7 +20,7 @@
             </div>
             <div class="sm:col-span-2">
                 <x-input-label for="subject_label" value="Bezeichnung" />
-                <x-text-input id="subject_label" name="subject_label" placeholder="z. B. Fuehrerschein Klasse B" />
+                <x-text-input id="subject_label" name="subject_label" placeholder="z. B. Führerschein Klasse B" />
             </div>
             <div>
                 <x-input-label for="interval_value" value="Intervall" />
@@ -36,7 +36,7 @@
                 </select>
             </div>
             <div class="sm:col-span-3">
-                <x-input-label for="next_run_at" value="Naechste Ausfuehrung" />
+                <x-input-label for="next_run_at" value="Nächste Ausführung" />
                 <x-text-input id="next_run_at" name="next_run_at" type="datetime-local" value="{{ now()->addMonths(6)->format('Y-m-d\TH:i') }}" required />
             </div>
             <div class="sm:col-span-3 flex items-end">
@@ -55,16 +55,17 @@
     <div class="mt-6">
         <x-card title="Eingeplante Wiedervorlagen">
             @if($schedules->isEmpty())
-                <p class="text-sm text-slate-500">Noch keine Wiedervorlagen.</p>
+                <x-empty-state title="Noch keine Wiedervorlagen" description="Plane oben einen wiederkehrenden Trigger für einen Workflow." />
             @else
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+<table class="min-w-full divide-y divide-slate-200 text-sm">
                         <thead>
                             <tr class="text-left text-xs font-semibold uppercase text-slate-500">
                                 <th class="py-2 pr-4">Person</th>
                                 <th class="py-2 pr-4">Bezeichnung</th>
                                 <th class="py-2 pr-4">Intervall</th>
-                                <th class="py-2 pr-4">Naechste Ausf.</th>
+                                <th class="py-2 pr-4">Nächste Ausf.</th>
                                 <th class="py-2 pr-4">Zuletzt</th>
                                 <th class="py-2 pr-4">Aktiv</th>
                                 <th class="py-2"></th>
@@ -84,15 +85,16 @@
                                         @endif
                                     </td>
                                     <td class="py-3 text-right">
-                                        <form method="POST" action="{{ route('workflows.schedules.destroy', [$workflow, $s]) }}" class="inline" onsubmit="return confirm('Wiedervorlage loeschen?')">
+                                        <form method="POST" action="{{ route('workflows.schedules.destroy', [$workflow, $s]) }}" class="inline" onsubmit="return confirm('Wiedervorlage löschen?')">
                                             @csrf @method('DELETE')
-                                            <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                            <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                         </form>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+</div>
                 </div>
                 <div class="mt-4">{{ $schedules->links() }}</div>
             @endif

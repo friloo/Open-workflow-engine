@@ -14,6 +14,9 @@ class Settings
     private const ENCRYPTED_KEYS = [
         'mail.password',
         'auth.m365.client_secret',
+        'auth.oidc.client_secret',
+        'auth.google.client_secret',
+        'auth.ldap.bind_password',
         'ai.api_key',
     ];
 

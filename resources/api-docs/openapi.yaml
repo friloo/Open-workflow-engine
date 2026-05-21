@@ -1,0 +1,872 @@
+openapi: 3.0.3
+info:
+  title: Open Workflow Engine API
+  version: "1.0"
+  description: |
+    REST-API und Webhook-Schnittstellen der Open Workflow Engine.
+
+    Diese Dokumentation ist intern (nur fuer Admins sichtbar). Aenderungen an
+    Routen oder Payloads sollten hier nachgepflegt werden — die Spec wird
+    HAND-curiert, nicht automatisch generiert.
+
+    Konventionen:
+    - Alle Datums-Werte sind ISO-8601 (UTC mit Offset).
+    - Geld-Betraege sind Strings im Format "1234.56".
+    - Boolean-Flags sind echte JSON-Booleans (true/false).
+
+servers:
+  - url: "{baseUrl}"
+    variables:
+      baseUrl:
+        default: https://owe.example.org
+        description: Basis-URL deiner OWE-Instanz.
+
+tags:
+  - name: Inbound · Auth
+    description: API-Token-basierte Endpunkte (Authorization-Header).
+  - name: Inbound · Workflows
+    description: Workflow-Steuerung von extern.
+  - name: Inbound · Tasks
+    description: Eigene Aufgaben listen und Entscheidungen treffen.
+  - name: Inbound · Documents
+    description: Dokumente lesen, suchen, hochladen, Indexfelder pflegen.
+  - name: Inbound · Webhooks
+    description: Workflows von extern via HTTP-POST ausloesen.
+  - name: Outbound · Payloads
+    description: |
+      Schemas der Daten die OWE NACH extern sendet (Outgoing Webhooks +
+      Workflow-Knoten "HTTP-Request"). Hier sind nur die OWE-seitig
+      definierten Strukturen dokumentiert; die Ziel-URLs sind frei
+      konfigurierbar.
+
+paths:
+  /api/v1/me:
+    get:
+      tags: [Inbound · Auth]
+      summary: Identitaet des aktuellen API-Tokens
+      description: Liefert User-Profil + Token-Eigenschaften.
+      security:
+        - apiToken: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/workflows/{workflow}/start:
+    post:
+      tags: [Inbound · Workflows]
+      summary: Workflow-Instanz starten
+      description: |
+        Startet einen Workflow programmatisch mit Form-Daten. Erfordert
+        das Token-Recht **workflows.run**. Der Workflow muss im Status
+        `active` sein.
+      security:
+        - apiToken: [workflows.run]
+      parameters:
+        - in: path
+          name: workflow
+          required: true
+          schema:
+            type: integer
+          description: Workflow-ID (NICHT der Slug).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  description: Form-Daten. Schluessel = Form-Feld-Keys.
+                  additionalProperties: true
+              example:
+                data:
+                  betrag: "1234.50"
+                  kostenstelle: "K-100"
+                  bemerkung: "Eilantrag"
+      responses:
+        "201":
+          description: Instanz angelegt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceStartedResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Token hat workflows.run nicht.
+        "422":
+          description: Workflow inaktiv oder Validierung fehlgeschlagen.
+
+  /api/incoming/{token}:
+    post:
+      tags: [Inbound · Webhooks]
+      summary: Workflow per Incoming-Webhook ausloesen
+      description: |
+        Oeffentlicher Endpunkt mit Token-Auth in der URL. Optional
+        HMAC-Pruefung via `X-OWE-Signature: sha256=<hex>` (HMAC-SHA256 des
+        Bodys mit dem konfigurierten Webhook-Secret).
+
+        Der Body wird gemaess dem konfigurierten Field-Mapping (im
+        Admin-UI gepflegt) auf das Workflow-Formular gemapped.
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+          description: Token aus /admin/incoming-webhooks.
+        - in: header
+          name: X-OWE-Signature
+          required: false
+          schema:
+            type: string
+            example: sha256=8b3f...
+          description: Optional. Nur wenn Secret konfiguriert ist.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: Beliebige JSON-Payload — gemapped per Konfig.
+      responses:
+        "201":
+          description: Workflow gestartet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceStartedResponse"
+        "401":
+          description: Signatur ungueltig.
+        "404":
+          description: Token unbekannt oder inaktiv.
+        "422":
+          description: Workflow nicht aktiv.
+
+  /api/v1/tasks:
+    get:
+      tags: [Inbound · Tasks]
+      summary: Eigene offene Aufgaben
+      description: |
+        Liefert eine Liste der offenen Aufgaben des aktuellen Tokens-Users
+        (max 100). Snoozed Tasks (Wiedervorlage) sind ausgeblendet bis
+        die Frist erreicht ist.
+      security:
+        - apiToken: [tasks.read]
+      responses:
+        "200":
+          description: Liste
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/TaskItem" }
+                  count: { type: integer }
+
+  /api/v1/tasks/{step}/decide:
+    post:
+      tags: [Inbound · Tasks]
+      summary: Entscheidung zur Aufgabe abgeben
+      security:
+        - apiToken: [tasks.write]
+      parameters:
+        - in: path
+          name: step
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approved, rejected, forwarded] }
+                comment:  { type: string, maxLength: 2000 }
+                extra:    { type: object, additionalProperties: true }
+                forward_user_id: { type: integer }
+              example:
+                decision: approved
+                comment: "Sachlich richtig."
+      responses:
+        "200": { description: OK }
+        "403": { description: Nicht zustaendig. }
+        "410": { description: Schritt bereits abgeschlossen. }
+        "422": { description: Validierungs-Fehler. }
+
+  /api/v1/documents:
+    get:
+      tags: [Inbound · Documents]
+      summary: Dokumente suchen
+      security:
+        - apiToken: [documents.read]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Volltext-Suche ueber Dateiname, Label, OCR-Text.
+        - in: query
+          name: type
+          schema: { type: string }
+          description: Dokument-Typ filtern.
+        - in: query
+          name: status
+          schema: { type: string, enum: [done, pending, failed, skipped] }
+        - in: query
+          name: per_page
+          schema: { type: integer, default: 25, maximum: 100 }
+      responses:
+        "200":
+          description: Paginierte Liste
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/DocumentSummary" }
+                  meta:  { $ref: "#/components/schemas/PaginationMeta" }
+    post:
+      tags: [Inbound · Documents]
+      summary: Dokument hochladen
+      security:
+        - apiToken: [documents.write]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                document_type: { type: string }
+                label: { type: string }
+      responses:
+        "201":
+          description: Erstellt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/DocumentDetail" }
+        "409":
+          description: Duplikat (gleicher SHA-256).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string, example: duplicate }
+                  message: { type: string }
+                  original_id: { type: integer }
+
+  /api/v1/documents/{attachment}:
+    get:
+      tags: [Inbound · Documents]
+      summary: Detail mit Indexfeldern
+      security:
+        - apiToken: [documents.read]
+      parameters:
+        - in: path
+          name: attachment
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: "#/components/schemas/DocumentDetail" }
+        "403": { description: Kein Zugriff. }
+    patch:
+      tags: [Inbound · Documents]
+      summary: Indexfelder + Label + Doku-Typ aktualisieren
+      security:
+        - apiToken: [documents.write]
+      parameters:
+        - in: path
+          name: attachment
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label: { type: string }
+                document_type: { type: string }
+                indexed_fields: { type: object, additionalProperties: true }
+      responses:
+        "200": { description: OK }
+        "403": { description: Kein Zugriff. }
+
+  /api/v1/documents/{attachment}/download:
+    get:
+      tags: [Inbound · Documents]
+      summary: Datei herunterladen (Stream)
+      security:
+        - apiToken: [documents.read]
+      parameters:
+        - in: path
+          name: attachment
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Binary-Stream
+          content:
+            application/octet-stream: {}
+        "403": { description: Kein Zugriff. }
+
+  /api/v1/workflows:
+    get:
+      tags: [Inbound · Workflows]
+      summary: Aktive Workflows listen
+      security:
+        - apiToken: [workflows.read]
+      responses:
+        "200":
+          description: Liste
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        name: { type: string }
+                        slug: { type: string }
+                        trigger_type: { type: string }
+
+  /api/v1/workflow-instances:
+    get:
+      tags: [Inbound · Workflows]
+      summary: Eigene gestartete Vorgaenge
+      security:
+        - apiToken: [workflows.read]
+      parameters:
+        - in: query
+          name: workflow_id
+          schema: { type: integer }
+        - in: query
+          name: status
+          schema: { type: string, enum: [running, completed, cancelled, failed] }
+      responses:
+        "200":
+          description: Liste mit Pagination
+
+  /api/v1/workflow-instances/{instance}:
+    get:
+      tags: [Inbound · Workflows]
+      summary: Vorgang-Detail mit allen Schritten
+      security:
+        - apiToken: [workflows.read]
+      parameters:
+        - in: path
+          name: instance
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Detail
+
+  /api/v1/contracts:
+    get:
+      summary: Liste aller fuer den Token-User sichtbaren Vertraege
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.view] }]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string, enum: [active, notice_due, expired] }
+        - in: query
+          name: type_id
+          schema: { type: integer }
+      responses:
+        "200": { description: Vertragsliste }
+    post:
+      summary: Neuen Vertrag anlegen
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.manage] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                party: { type: string }
+                contract_type_id: { type: integer, nullable: true }
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+                notice_period_days: { type: integer }
+                owner_user_id: { type: integer }
+      responses:
+        "201": { description: Angelegt }
+
+  /api/v1/contracts/{contract}:
+    get:
+      summary: Vertragsdetail
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.view] }]
+      parameters:
+        - { in: path, name: contract, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Detail mit Anhaengen + Rollen }
+        "403": { description: Keine Sichtbarkeit }
+    patch:
+      summary: Vertrag aktualisieren
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.manage] }]
+      parameters:
+        - { in: path, name: contract, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Aktualisiert }
+
+  /api/v1/contracts/{contract}/attachments:
+    post:
+      summary: PDF/Datei am Vertrag anhaengen
+      tags: [Contracts]
+      security: [{ apiToken: [contracts.manage] }]
+      parameters:
+        - { in: path, name: contract, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                label: { type: string }
+      responses:
+        "201": { description: Hochgeladen }
+
+  /api/v1/cases:
+    get:
+      summary: Akten-Liste
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      responses:
+        "200": { description: Liste }
+    post:
+      summary: Akte anlegen
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                reference: { type: string }
+                description: { type: string }
+      responses:
+        "201": { description: Angelegt }
+
+  /api/v1/cases/{case}:
+    get:
+      summary: Akten-Detail inkl. verknuepfter Dokumente/Vorgaenge/Vertraege/Notizen
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      parameters:
+        - { in: path, name: case, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: Detail }
+
+  /api/v1/cases/{case}/contracts:
+    post:
+      summary: Vertrag an Akte heften
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      parameters:
+        - { in: path, name: case, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [contract_id]
+              properties: { contract_id: { type: integer } }
+      responses:
+        "201": { description: Geheftet }
+
+  /api/v1/cases/{case}/workflow-instances:
+    post:
+      summary: Workflow-Vorgang an Akte heften
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      parameters:
+        - { in: path, name: case, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [workflow_instance_id]
+              properties: { workflow_instance_id: { type: integer } }
+      responses:
+        "201": { description: Geheftet }
+
+  /api/v1/cases/{case}/notes:
+    post:
+      summary: Notiz an Akte anfuegen
+      tags: [Cases]
+      security: [{ apiToken: [documents.search] }]
+      parameters:
+        - { in: path, name: case, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties: { body: { type: string } }
+      responses:
+        "201": { description: Notiz erstellt }
+
+  /api/v1/reports/kpis:
+    get:
+      summary: KPI-Snapshot (Volumen, Lead-Times, SLA, Bottlenecks, Top-Empfaenger)
+      tags: [Reports]
+      security: [{ apiToken: [reports.view] }]
+      parameters:
+        - in: query
+          name: days
+          schema: { type: integer, default: 30, minimum: 7, maximum: 365 }
+      responses:
+        "200": { description: KPI-Objekt }
+
+  /api/v1/audit-logs:
+    get:
+      summary: Audit-Log lesen (Compliance / SIEM)
+      tags: [Audit]
+      security: [{ apiToken: [audit.view] }]
+      parameters:
+        - { in: query, name: event,        schema: { type: string }, description: "Prefix-Filter, z. B. contract." }
+        - { in: query, name: user_id,      schema: { type: integer } }
+        - { in: query, name: from,         schema: { type: string, format: date-time } }
+        - { in: query, name: to,           schema: { type: string, format: date-time } }
+        - { in: query, name: subject_type, schema: { type: string } }
+        - { in: query, name: subject_id,   schema: { type: integer } }
+        - { in: query, name: per_page,     schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        "200": { description: Paginierte Audit-Eintraege }
+
+  /api/v1/users:
+    get:
+      summary: Benutzerliste (read-only)
+      tags: [Users]
+      security: [{ apiToken: [users.view] }]
+      parameters:
+        - { in: query, name: q,           schema: { type: string } }
+        - { in: query, name: role,        schema: { type: string } }
+        - { in: query, name: active_only, schema: { type: boolean } }
+        - { in: query, name: per_page,    schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        "200": { description: Liste }
+
+  /api/v1/users/{user}:
+    get:
+      summary: User-Detail
+      tags: [Users]
+      security: [{ apiToken: [users.view] }]
+      parameters:
+        - { in: path, name: user, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: User-Objekt }
+
+  /api/v1/lists:
+    get:
+      summary: Alle Lookup-Listen
+      tags: [Lists]
+      security: [{ apiToken: [lists.view] }]
+      responses:
+        "200": { description: Listen-Metadaten }
+
+  /api/v1/lists/{slug}:
+    get:
+      summary: Listen-Definition (Spalten)
+      tags: [Lists]
+      security: [{ apiToken: [lists.view] }]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      responses:
+        "200": { description: Liste }
+
+  /api/v1/lists/{slug}/entries:
+    get:
+      summary: Eintraege einer Liste
+      tags: [Lists]
+      security: [{ apiToken: [lists.view] }]
+      parameters:
+        - { in: path,  name: slug,     required: true, schema: { type: string } }
+        - { in: query, name: q,        schema: { type: string } }
+        - { in: query, name: per_page, schema: { type: integer, default: 100, maximum: 500 } }
+      responses:
+        "200": { description: Eintraege }
+    post:
+      summary: Eintrag anlegen oder aktualisieren (upsert via key)
+      tags: [Lists]
+      security: [{ apiToken: [lists.manage] }]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [key]
+              properties:
+                key:  { type: string }
+                data: { type: object, additionalProperties: true }
+      responses:
+        "200": { description: Aktualisiert }
+        "201": { description: Neu angelegt }
+
+  /api/v1/notifications:
+    get:
+      summary: Eigene In-App-Notifications
+      tags: [Notifications]
+      security: [{ apiToken: [] }]
+      parameters:
+        - { in: query, name: unread_only, schema: { type: boolean } }
+        - { in: query, name: per_page,    schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        "200": { description: Liste }
+
+  /api/v1/notifications/{notification}/read:
+    post:
+      summary: Eigene Notification als gelesen markieren
+      tags: [Notifications]
+      security: [{ apiToken: [] }]
+      parameters:
+        - { in: path, name: notification, required: true, schema: { type: integer } }
+      responses:
+        "200": { description: OK }
+        "403": { description: Fremde Notification }
+
+  /api/v1/notifications/read-all:
+    post:
+      summary: Alle eigenen Notifications als gelesen markieren
+      tags: [Notifications]
+      security: [{ apiToken: [] }]
+      responses:
+        "200": { description: OK }
+
+  /api/v1/search:
+    get:
+      summary: Globale Suche ueber Dokumente, Vertraege, Akten, Workflows, Benutzer
+      description: |
+        Permission-gehaertet: pro Bereich wird nur dann gesucht, wenn der
+        User die entsprechende Permission hat. Liefert pro Bereich max
+        10 Treffer mit URL fuer Deep-Link.
+      tags: [Search]
+      security: [{ apiToken: [] }]
+      parameters:
+        - { in: query, name: q,     required: true, schema: { type: string, minLength: 2, maxLength: 128 } }
+        - { in: query, name: limit, schema: { type: integer, default: 10, minimum: 1, maximum: 50 } }
+      responses:
+        "200":
+          description: |
+            JSON mit den Buckets `documents`, `contracts`, `cases`,
+            `workflows`, `users`. Leere Bucket-Arrays bedeuten "keine
+            Treffer ODER fehlende Permission".
+
+components:
+  securitySchemes:
+    apiToken:
+      type: http
+      scheme: bearer
+      bearerFormat: owe_xxxxxxxxxxxxxxxx
+      description: |
+        Token aus /tokens (User-Menue -> API-Tokens). Bei jedem Token
+        kannst du eine Liste von Abilities setzen — z. B. ["workflows.run"].
+        Pruefung erfolgt pro Endpunkt.
+
+  responses:
+    Unauthorized:
+      description: Kein gueltiges API-Token im Authorization-Header.
+
+  schemas:
+    MeResponse:
+      type: object
+      properties:
+        id:    { type: integer, example: 42 }
+        name:  { type: string, example: "Anna Beispiel" }
+        email: { type: string, format: email }
+        roles:
+          type: array
+          items: { type: string, example: "admin" }
+        token:
+          type: object
+          properties:
+            name: { type: string, example: "CI-Script" }
+            abilities:
+              type: array
+              items: { type: string, example: "workflows.run" }
+
+    InstanceStartedResponse:
+      type: object
+      properties:
+        instance_id:      { type: integer, example: 1234 }
+        status:           { type: string, enum: [running, completed, cancelled, failed], example: running }
+        current_step_key: { type: string, example: "node-1", nullable: true }
+
+    OutgoingWebhookPayload:
+      type: object
+      description: |
+        **Outbound** — Format der Daten die OWE an konfigurierte
+        Outgoing-Webhooks (/admin/webhooks) sendet. HMAC-Signatur kommt
+        im Header `X-OWE-Signature: sha256=<hex>`.
+
+        Events (siehe `event`-Feld): `instance.started`,
+        `instance.completed`, `instance.failed`, `step.approved`,
+        `step.rejected`, `step.forwarded`.
+      properties:
+        event:     { type: string, example: "instance.completed" }
+        timestamp: { type: string, format: date-time }
+        instance:
+          type: object
+          properties:
+            id:            { type: integer }
+            status:        { type: string }
+            workflow_id:   { type: integer }
+            workflow_name: { type: string }
+            started_by:    { type: string, format: email, nullable: true }
+            data:
+              type: object
+              description: Vollstaendige Form-Daten der Instanz.
+              additionalProperties: true
+        extra:
+          type: object
+          description: Event-spezifische Zusatzdaten (z. B. step-Infos).
+          additionalProperties: true
+      required: [event, timestamp, instance]
+      example:
+        event: instance.completed
+        timestamp: "2026-05-19T14:32:11+02:00"
+        instance:
+          id: 1234
+          status: completed
+          workflow_id: 7
+          workflow_name: "Rechnungseingang"
+          started_by: "anna@example.org"
+          data:
+            betrag: "1234.50"
+            kostenstelle: "K-100"
+
+    HttpNodeRequest:
+      type: object
+      description: |
+        **Outbound** — wie der Workflow-Knoten "HTTP-Request" externe APIs
+        aufruft. Method + URL kommen aus der Knoten-Konfig, Headers werden
+        zusammengefuehrt, der Body ist ein gerendertes Template
+        (Platzhalter wie `{{ initiator_email }}` werden aufgeloest).
+      properties:
+        method: { type: string, enum: [GET, POST, PUT, PATCH, DELETE] }
+        url:    { type: string, format: uri }
+        headers:
+          type: object
+          additionalProperties: { type: string }
+        body:
+          oneOf:
+            - { type: object, additionalProperties: true }
+            - { type: string }
+          description: JSON-Objekt oder Roh-String, je nach body_type.
+        timeout_seconds: { type: integer, example: 30 }
+
+    WebhookTestPayload:
+      type: object
+      description: Payload des Test-Aufrufs aus /admin/webhooks.
+      properties:
+        event:     { type: string, enum: [test] }
+        timestamp: { type: string, format: date-time }
+        message:   { type: string, example: "Test-Aufruf aus OWE" }
+
+    TaskItem:
+      type: object
+      properties:
+        id: { type: integer }
+        step_key: { type: string }
+        label: { type: string }
+        workflow:
+          type: object
+          properties:
+            id: { type: integer }
+            name: { type: string }
+        instance_id: { type: integer }
+        starter_email: { type: string, format: email, nullable: true }
+        assigned_at: { type: string, format: date-time }
+        due_at: { type: string, format: date-time, nullable: true }
+        overdue: { type: boolean }
+
+    DocumentSummary:
+      type: object
+      properties:
+        id: { type: integer }
+        original_name: { type: string }
+        mime_type: { type: string }
+        size: { type: integer }
+        document_type: { type: string, nullable: true }
+        content_hash: { type: string }
+        created_at: { type: string, format: date-time }
+        version_number: { type: integer }
+        is_current_version: { type: boolean }
+
+    DocumentDetail:
+      allOf:
+        - $ref: "#/components/schemas/DocumentSummary"
+        - type: object
+          properties:
+            indexed_fields:
+              type: object
+              additionalProperties: true
+            ocr_status: { type: string, enum: [done, pending, failed, skipped] }
+            ocr_tool: { type: string, nullable: true }
+            label: { type: string, nullable: true }
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page: { type: integer }
+        last_page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }

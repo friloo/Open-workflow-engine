@@ -75,8 +75,8 @@ class AssetController extends Controller
     {
         $snapshot = $asset->only(['id', 'name', 'type']);
         $asset->delete();
-        $this->audit->log('asset.deleted', null, $snapshot, null, "Asset {$snapshot['name']} geloescht");
-        return redirect()->route('assets.index')->with('status', 'Asset geloescht.');
+        $this->audit->log('asset.deleted', null, $snapshot, null, "Asset {$snapshot['name']} gelöscht");
+        return redirect()->route('assets.index')->with('status', 'Asset gelöscht.');
     }
 
     public function import(Request $request): RedirectResponse
@@ -130,10 +130,10 @@ class AssetController extends Controller
         fclose($handle);
 
         $this->audit->log('asset.imported', null, null, compact('imported', 'skipped'),
-            "Asset-CSV-Import: {$imported} angelegt, {$skipped} uebersprungen, ".count($errors)." Fehler",
+            "Asset-CSV-Import: {$imported} angelegt, {$skipped} übersprungen, ".count($errors)." Fehler",
             $request->user()->id);
 
-        return back()->with('status', "Import abgeschlossen: {$imported} angelegt, {$skipped} uebersprungen, ".count($errors)." Fehler.")
+        return back()->with('status', "Import abgeschlossen: {$imported} angelegt, {$skipped} übersprungen, ".count($errors)." Fehler.")
             ->with('importErrors', $errors);
     }
 

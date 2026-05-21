@@ -14,14 +14,14 @@ use Illuminate\Console\Command;
  *   ["Rechnung" => ["min_years"=>10, "max_years"=>11, "on_expiry"=>"mark_for_review"]]
  *
  * - Solange juenger als max_years: nichts
- * - Sobald erreicht: Aktion gemaess on_expiry
+ * - Sobald erreicht: Aktion gemäß on_expiry
  *   - mark_for_review: Audit-Eintrag, weiterhin sichtbar
  *   - archive: Soft-Delete (Datei bleibt physisch)
  *   - delete: ForceDelete (Datei und DB-Eintrag weg)
  */
 class CheckDocumentRetention extends Command
 {
-    protected $signature = 'documents:retention-check {--dry-run : nur ausgeben, nicht ausfuehren}';
+    protected $signature = 'documents:retention-check {--dry-run : nur ausgeben, nicht ausführen}';
     protected $description = 'Wendet Aufbewahrungsregeln auf abgelaufene Dokumente an.';
 
     public function handle(AuditLogger $audit): int
@@ -57,7 +57,7 @@ class CheckDocumentRetention extends Command
         }
 
         $this->info(sprintf(
-            'Markiert: %d · Archiviert: %d · Endgueltig geloescht: %d',
+            'Markiert: %d · Archiviert: %d · Endgültig gelöscht: %d',
             $stats['mark_for_review'], $stats['archive'], $stats['delete']
         ));
         return self::SUCCESS;
@@ -86,6 +86,6 @@ class CheckDocumentRetention extends Command
     {
         $att->forceDelete();
         $audit->log('document.retention.deleted', null, $snapshot, null,
-            "Dokument endgueltig geloescht: {$snapshot['original_name']}");
+            "Dokument endgültig gelöscht: {$snapshot['original_name']}");
     }
 }

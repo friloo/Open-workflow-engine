@@ -10,14 +10,17 @@ class WorkflowStepExecution extends Model
     protected $fillable = [
         'workflow_instance_id', 'step_key', 'step_type',
         'assigned_to_user_id', 'assigned_to_role_id',
-        'assigned_at', 'last_reminded_at', 'due_at', 'completed_at', 'completed_by',
+        'assigned_at', 'last_reminded_at', 'due_at', 'snoozed_until',
+        'completed_at', 'completed_by',
         'decision', 'comment', 'data_snapshot', 'escalated_from_step_id',
+        'children_count', 'children_completed_count',
     ];
 
     protected $casts = [
         'assigned_at' => 'datetime',
         'last_reminded_at' => 'datetime',
         'due_at' => 'datetime',
+        'snoozed_until' => 'datetime',
         'completed_at' => 'datetime',
         'data_snapshot' => 'array',
     ];

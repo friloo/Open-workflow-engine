@@ -182,7 +182,7 @@ class Phase15iTest extends TestCase
         $this->assertNotFalse($zip->getFromName('manifest.json'));
         $zip->close();
 
-        // Aufraeumen
+        // Aufräumen
         @unlink($path);
     }
 
@@ -199,7 +199,7 @@ class Phase15iTest extends TestCase
         $list = app(BackupService::class)->list();
         $this->assertNotEmpty($list);
 
-        // Aufraeumen
+        // Aufräumen
         foreach ($list as $b) {
             @unlink(app(BackupService::class)->path($b['file']));
         }

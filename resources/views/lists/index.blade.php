@@ -10,14 +10,20 @@
 
     <x-card>
         @if($lists->isEmpty())
-            <p class="text-sm text-slate-500">Noch keine Listen.</p>
+            <x-empty-state icon="list" title="Noch keine Listen"
+                description="Listen sind Lookup-Tabellen (z. B. Kostenstellen, Lieferanten) — Workflows greifen darauf zu.">
+                @if(auth()->user()->hasPermission('lists.manage'))
+                    <a href="{{ route('lists.create') }}"><x-primary-button type="button">Neue Liste anlegen</x-primary-button></a>
+                @endif
+                <a href="{{ route('help.show', 'lists') }}" class="text-sm text-slate-600 hover:text-slate-900">Anleitung lesen</a>
+            </x-empty-state>
         @else
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-200 text-sm">
                     <thead><tr class="text-left text-xs font-semibold uppercase text-slate-500">
                         <th class="py-2 pr-4">Name</th>
                         <th class="py-2 pr-4">Spalten</th>
-                        <th class="py-2 pr-4">Eintraege</th>
+                        <th class="py-2 pr-4">Einträge</th>
                         <th class="py-2"></th>
                     </tr></thead>
                     <tbody class="divide-y divide-slate-100">
@@ -44,9 +50,9 @@
                                 <td class="py-3 text-right space-x-3">
                                     <a href="{{ route('lists.edit', $l) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
                                     @if(auth()->user()->hasPermission('lists.manage'))
-                                        <form method="POST" action="{{ route('lists.destroy', $l) }}" class="inline" onsubmit="return confirm('Liste wirklich loeschen?')">
+                                        <form method="POST" action="{{ route('lists.destroy', $l) }}" class="inline" onsubmit="return confirm('Liste wirklich löschen?')">
                                             @csrf @method('DELETE')
-                                            <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                            <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                         </form>
                                     @endif
                                 </td>

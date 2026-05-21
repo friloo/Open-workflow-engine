@@ -28,8 +28,10 @@ class Phase15mTest extends TestCase
     private function makeAttachment(User $admin, string $name = 'a.pdf', ?string $type = 'Rechnung'): Attachment
     {
         Storage::fake('local');
+        // Unique-Inhalt pro Aufruf damit der Duplikat-Hash-Check nicht greift.
+        $bytes = $name.'_'.uniqid('', true).str_repeat('x', 100);
         return app(AttachmentStorage::class)->storeBytes(
-            str_repeat('x', 100), $name, 'application/pdf', null, null, $admin->id, $type
+            $bytes, $name, 'application/pdf', null, null, $admin->id, $type
         );
     }
 

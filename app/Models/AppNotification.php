@@ -31,12 +31,25 @@ class AppNotification extends Model
     public static function send(?User $user, string $type, string $title, ?string $body = null, ?string $url = null): ?self
     {
         if (! $user) return null;
-        return self::create([
+        $n = self::create([
             'user_id' => $user->id,
             'type' => $type,
             'title' => $title,
             'body' => $body,
             'url' => $url,
         ]);
+
+        // Best-effort Web-Push (verschluckt Fehler — In-App-Nachricht ist
+        // schon gespeichert und reicht aus, wenn Push scheitert).
+        try {
+            $sender = app(\App\Services\WebPushSender::class);
+            if ($sender->isEnabled()) {
+                $sender->sendToUser($user, $title, $body, $url);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('webpush dispatch failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+        }
+
+        return $n;
     }
 }

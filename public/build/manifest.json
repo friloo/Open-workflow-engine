@@ -11,18 +11,18 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-RiW4cNPS.css",
+    "file": "assets/app-C9_tjKr3.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BFXdhL8Q.js",
+    "file": "assets/app-CdGGlX-M.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
   },
   "resources/js/designer/index.js": {
-    "file": "assets/index-DApt7Go0.js",
+    "file": "assets/index-fGlZwRuO.js",
     "name": "index",
     "src": "resources/js/designer/index.js",
     "isEntry": true,

@@ -83,8 +83,8 @@ class FolderInboxController extends Controller
     {
         $name = $folderInbox->name;
         $folderInbox->delete();
-        $this->audit->log('folder_inbox.deleted', null, ['name' => $name], null, "Folder-Inbox {$name} geloescht");
-        return redirect()->route('admin.folder-inboxes.index')->with('status', 'Folder geloescht.');
+        $this->audit->log('folder_inbox.deleted', null, ['name' => $name], null, "Folder-Inbox {$name} gelöscht");
+        return redirect()->route('admin.folder-inboxes.index')->with('status', 'Folder gelöscht.');
     }
 
     public function scan(FolderInbox $folderInbox, FolderInboxScanner $scanner): RedirectResponse

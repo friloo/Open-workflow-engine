@@ -28,12 +28,21 @@ class User extends Authenticatable
         'm365_object_id',
         'm365_supervisor_object_id',
         'prefer_m365_supervisor',
+        'oidc_subject',
+        'google_subject',
+        'saml_nameid',
+        'ldap_dn',
+        'ical_token',
+        'is_service_account',
+        'onboarding_completed_at',
+        'onboarding_dismissed_at',
         'department',
         'job_title',
         'phone',
         'employee_id',
         'is_active',
         'email_notifications_enabled',
+        'locale',
         'custom_fields',
         'last_login_at',
         'created_by',
@@ -43,6 +52,23 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    /**
+     * Scope: nur menschliche Benutzer (keine Service-Accounts).
+     * Verwendet in allen User-Auswahllisten — Service-Accounts sollen
+     * nicht als Approver, Supervisor o.ae. ausgewählt werden.
+     */
+    public function scopeHumans($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('is_service_account', false)->orWhereNull('is_service_account');
+        });
+    }
+
+    public function isServiceAccount(): bool
+    {
+        return (bool) $this->is_service_account;
+    }
 
     protected function casts(): array
     {
@@ -54,6 +80,9 @@ class User extends Authenticatable
             'delegate_to' => 'date',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_service_account' => 'boolean',
+            'onboarding_completed_at' => 'datetime',
+            'onboarding_dismissed_at' => 'datetime',
             'email_notifications_enabled' => 'boolean',
             'prefer_m365_supervisor' => 'boolean',
             'custom_fields' => 'array',

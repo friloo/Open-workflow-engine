@@ -17,6 +17,34 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Performance-Audit
+    |--------------------------------------------------------------------------
+    |
+    | Konfiguriert die PerformanceAudit-Middleware. Wenn eine Route die
+    | Threshold-Werte ueberschreitet, wandert ein Eintrag in den 'perf'-Log.
+    */
+    'perf_audit' => [
+        'threshold_ms' => (int) env('PERF_THRESHOLD_MS', 500),
+        'threshold_queries' => (int) env('PERF_THRESHOLD_QUERIES', 40),
+        'send_header' => (bool) env('APP_PERF_HEADER', false),
+    ],
+
+    // Wenn true: OCR + Feld-Indexierung laufen als Queue-Job statt
+    // synchron im Upload-Request. Sinnvoll bei vielen / grossen
+    // Uploads — Uploads sind sofort fertig, OCR passiert im Hintergrund.
+    // Voraussetzung: laufender 'php artisan queue:work' und QUEUE_CONNECTION
+    // != 'sync' (database / redis).
+    'queue_ocr' => (bool) env('QUEUE_OCR', false),
+
+    // LibreOffice-Office-Vorschau. Schaltet sich automatisch ein, wenn
+    // das libreoffice-Binary auf dem Server gefunden wird; per LIBREOFFICE_PREVIEW=false
+    // explizit aus. LIBREOFFICE_BIN ueberschreibt die Auto-Suche im PATH.
+    'libreoffice_preview' => (bool) env('LIBREOFFICE_PREVIEW', true),
+    'libreoffice_bin' => env('LIBREOFFICE_BIN'),
+
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
@@ -78,11 +106,26 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'de'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'de'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'de_DE'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Verfügbare Sprachen für die UI
+    |--------------------------------------------------------------------------
+    |
+    | Liste der Locales, die der User im Profil auswählen kann. Eintrag-Form:
+    | locale-code => 'Anzeige-Name'. Wird automatisch aufgefüllt, sobald
+    | `php artisan locale:add <code>` eine neue `lang/<code>.json` erzeugt.
+    | Die Spracheinstellung pro User liegt in users.locale; ist sie leer,
+    | gilt der Default 'locale' von oben.
+    */
+    'available_locales' => [
+        'de' => 'Deutsch',
+    ],
 
     /*
     |--------------------------------------------------------------------------

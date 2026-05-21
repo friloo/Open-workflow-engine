@@ -18,6 +18,9 @@
                             @if($r->is_system)
                                 <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">System</span>
                             @endif
+                            @if($r->requires_2fa)
+                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700" title="Mitglieder dieser Rolle müssen 2FA aktivieren">2FA Pflicht</span>
+                            @endif
                         </div>
                         <p class="text-sm text-slate-500">{{ $r->description ?? '—' }}</p>
                         <p class="mt-2 text-xs text-slate-500">{{ $r->users_count }} zugewiesene Benutzer</p>
@@ -25,10 +28,11 @@
                     <div class="text-right space-y-2 shrink-0">
                         @if(auth()->user()->hasPermission('roles.manage'))
                             <a href="{{ route('admin.roles.edit', $r) }}" class="block text-sm text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
+                            <a href="{{ route('admin.roles.create', ['copy_from' => $r->id]) }}" class="block text-sm text-slate-600 hover:text-slate-900">Kopieren</a>
                             @if(! $r->is_system)
-                                <form method="POST" action="{{ route('admin.roles.destroy', $r) }}" onsubmit="return confirm('Rolle wirklich loeschen?')">
+                                <form method="POST" action="{{ route('admin.roles.destroy', $r) }}" onsubmit="return confirm('Rolle wirklich löschen?')">
                                     @csrf @method('DELETE')
-                                    <button class="text-sm text-rose-600 hover:text-rose-500">Loeschen</button>
+                                    <button class="text-sm text-rose-600 hover:text-rose-500">Löschen</button>
                                 </form>
                             @endif
                         @endif

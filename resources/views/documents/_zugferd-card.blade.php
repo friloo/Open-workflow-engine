@@ -6,7 +6,7 @@
         'amount_net' => 'Netto',
         'amount_tax' => 'USt-Betrag',
         'amount_gross' => 'Brutto',
-        'currency' => 'Waehrung',
+        'currency' => 'Währung',
         'vendor_name' => 'Lieferant',
         'vendor_vat_id' => 'USt-IdNr. Lieferant',
         'iban' => 'IBAN',

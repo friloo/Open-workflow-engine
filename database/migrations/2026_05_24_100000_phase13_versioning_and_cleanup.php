@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_current_version')->default(true)->index()->after('version_number');
         });
 
-        // Bestehende Anhaenge bekommen je eine eigene Chain (Version 1, current=true)
+        // Bestehende Anhänge bekommen je eine eigene Chain (Version 1, current=true)
         foreach (DB::table('attachments')->whereNull('version_chain_id')->cursor() as $row) {
             DB::table('attachments')->where('id', $row->id)->update([
                 'version_chain_id' => (string) Str::uuid(),
@@ -27,8 +27,8 @@ return new class extends Migration
             ]);
         }
 
-        // 2) Orphan-Dokumente erlauben (kein Parent-Objekt noetig)
-        // SQLite kann morphs nicht ohne weiteres aendern — auf MySQL ist es safe.
+        // 2) Orphan-Dokumente erlauben (kein Parent-Objekt nötig)
+        // SQLite kann morphs nicht ohne weiteres ändern — auf MySQL ist es safe.
         if (DB::connection()->getDriverName() !== 'sqlite') {
             Schema::table('attachments', function (Blueprint $table) {
                 $table->string('attachable_type')->nullable()->change();
@@ -67,7 +67,7 @@ return new class extends Migration
             $table->dropColumn(['is_public', 'public_slug']);
         });
 
-        // 4) trigger_type=schedule entfernen — uebrige Eintraege auf recurring umstellen.
+        // 4) trigger_type=schedule entfernen — übrige Einträge auf recurring umstellen.
         DB::table('workflows')->where('trigger_type', 'schedule')->update(['trigger_type' => 'recurring']);
     }
 

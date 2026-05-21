@@ -79,8 +79,8 @@ class FormController extends Controller
     {
         $snapshot = $form->only(['id', 'name', 'slug']);
         $form->delete();
-        $this->audit->log('form.deleted', null, $snapshot, null, "Formular {$snapshot['name']} geloescht");
-        return redirect()->route('forms.index')->with('status', 'Formular geloescht.');
+        $this->audit->log('form.deleted', null, $snapshot, null, "Formular {$snapshot['name']} gelöscht");
+        return redirect()->route('forms.index')->with('status', 'Formular gelöscht.');
     }
 
     // -- public --
@@ -119,7 +119,7 @@ class FormController extends Controller
         foreach ($this->validator->fileFields($schema) as $field) {
             if (! $request->hasFile($field['key'])) continue;
             try {
-                // Datei an die Submission haengen (immer) und zusaetzlich an
+                // Datei an die Submission hängen (immer) und zusaetzlich an
                 // die Workflow-Instanz, damit Approver sie sehen.
                 $att = $this->attachments->store($request->file($field['key']), $submission, $field['label'] ?? $field['key'], null);
                 if ($instance) {
