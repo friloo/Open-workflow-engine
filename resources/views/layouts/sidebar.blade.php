@@ -71,6 +71,7 @@
                 ['name' => 'Benutzer', 'route' => 'admin.users.index', 'icon' => 'users', 'active' => request()->routeIs('admin.users.*'), 'when' => $user?->hasAnyPermission(['users.view','users.create','users.update','users.delete','users.import'])],
                 ['name' => 'Rollen & Rechte', 'route' => 'admin.roles.index', 'icon' => 'shield', 'active' => request()->routeIs('admin.roles.*'), 'when' => $user?->hasAnyPermission(['roles.view','roles.manage'])],
                 ['name' => 'Audit-Log', 'route' => 'admin.audit.index', 'icon' => 'list', 'active' => request()->routeIs('admin.audit.*'), 'when' => $user?->hasPermission('audit.view')],
+                ['name' => 'Berechtigungs-Report', 'route' => 'admin.reports.permissions', 'icon' => 'shield', 'active' => request()->routeIs('admin.reports.permissions*'), 'when' => $user?->hasPermission('users.view')],
             ],
         ],
         [

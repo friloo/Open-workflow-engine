@@ -341,6 +341,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             ->middleware('permission:users.import');
         Route::resource('users', UserController::class)->except(['show']);
 
+        // Berechtigungs-Report: User x Rolle x Permission
+        Route::get('reports/permissions', [\App\Http\Controllers\Admin\PermissionsReportController::class, 'index'])->name('reports.permissions');
+        Route::get('reports/permissions.csv', [\App\Http\Controllers\Admin\PermissionsReportController::class, 'csv'])->name('reports.permissions.csv');
+        Route::get('reports/permissions.pdf', [\App\Http\Controllers\Admin\PermissionsReportController::class, 'pdf'])->name('reports.permissions.pdf');
+
         // Admin-Token-Verwaltung pro Benutzer (auch fuer Service-Accounts)
         Route::get('users/{user}/tokens', [\App\Http\Controllers\Admin\UserApiTokenController::class, 'index'])->name('users.tokens.index');
         Route::post('users/{user}/tokens', [\App\Http\Controllers\Admin\UserApiTokenController::class, 'store'])->name('users.tokens.store');
