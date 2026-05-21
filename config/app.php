@@ -106,11 +106,26 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'de'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'de'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'de_DE'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Verfügbare Sprachen für die UI
+    |--------------------------------------------------------------------------
+    |
+    | Liste der Locales, die der User im Profil auswählen kann. Eintrag-Form:
+    | locale-code => 'Anzeige-Name'. Wird automatisch aufgefüllt, sobald
+    | `php artisan locale:add <code>` eine neue `lang/<code>.json` erzeugt.
+    | Die Spracheinstellung pro User liegt in users.locale; ist sie leer,
+    | gilt der Default 'locale' von oben.
+    */
+    'available_locales' => [
+        'de' => 'Deutsch',
+    ],
 
     /*
     |--------------------------------------------------------------------------

@@ -42,6 +42,7 @@ class User extends Authenticatable
         'employee_id',
         'is_active',
         'email_notifications_enabled',
+        'locale',
         'custom_fields',
         'last_login_at',
         'created_by',
