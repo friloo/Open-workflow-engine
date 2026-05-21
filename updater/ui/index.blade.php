@@ -76,9 +76,6 @@
                         <div class="space-y-2">
                             <div class="text-sm text-slate-700">
                                 Neue Version verfügbar: <strong x-text="checkResult.latest_sha?.substr(0,7)"></strong>
-                                <span class="text-slate-500" x-show="checkResult.versions_behind">
-                                    (<span x-text="checkResult.versions_behind"></span> Commits hinten)
-                                </span>
                             </div>
                             <template x-if="checkResult.latest_commit">
                                 <div class="rounded border border-slate-200 bg-slate-50 p-2 text-xs">
@@ -180,13 +177,18 @@
                         if (! confirm('Update jetzt installieren? Während der Installation ist das Frontend für alle User mit 503 gesperrt.')) return;
                         this.busy = true; this.error = null;
                         this._poll = setInterval(() => this.loadProgress(), 1500);
+                        let ok = false;
                         try {
                             const r = await fetch(@js(route('admin.update.install')), {
                                 method: 'POST',
                                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() },
                             });
                             const data = await r.json();
-                            if (! data.ok) { this.error = data.error || 'Installation fehlgeschlagen'; }
+                            if (data.ok) {
+                                ok = true;
+                            } else {
+                                this.error = data.error || 'Installation fehlgeschlagen';
+                            }
                         } catch (e) {
                             this.error = 'Netzwerkfehler: ' + e.message;
                         }
@@ -194,6 +196,14 @@
                         await this.loadProgress();
                         this.busy = false;
                         await this.loadMigrations();
+
+                        // Bei Erfolg laedt die Seite automatisch neu, damit der
+                        // neue Code (Assets, Routes, View-Caches) sichtbar wird.
+                        // Kurzer Delay damit der finale 'done'-Progress noch zu
+                        // sehen ist.
+                        if (ok) {
+                            setTimeout(() => window.location.reload(), 1200);
+                        }
                     },
                     async loadProgress() {
                         try {
