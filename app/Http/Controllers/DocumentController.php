@@ -547,6 +547,37 @@ class DocumentController extends Controller
         return redirect()->route('documents.show', $new)->with('status', "Neue Version v{$new->version_number} gespeichert.");
     }
 
+    public function diff(Attachment $attachment, Attachment $other, Request $request): View
+    {
+        if (! $attachment->visibleTo($request->user())) abort(403);
+        if (! $other->visibleTo($request->user())) abort(403);
+
+        // Beide Versionen müssen zur gleichen Versionskette gehören
+        if ($attachment->version_chain_id !== $other->version_chain_id) {
+            abort(404, 'Dokumente gehören zu verschiedenen Versionsketten.');
+        }
+
+        // Reihenfolge: ältere Version links, neuere rechts
+        [$left, $right] = $attachment->version_number <= $other->version_number
+            ? [$attachment, $other]
+            : [$other, $attachment];
+
+        $result = app(\App\Services\DocumentDiffer::class)->diff($left, $right);
+
+        $this->audit->log('document.diff_viewed', $left, null, [
+            'chain' => $left->version_chain_id,
+            'left' => $left->version_number,
+            'right' => $right->version_number,
+        ], "Diff angesehen: v{$left->version_number} ↔ v{$right->version_number} von '{$left->original_name}'");
+
+        return view('documents.diff', [
+            'left' => $left,
+            'right' => $right,
+            'allVersions' => $left->versions()->with('uploader')->get(),
+            'result' => $result,
+        ]);
+    }
+
     public function bulkUploadShow(): View
     {
         return view('documents.bulk', [

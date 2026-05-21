@@ -297,11 +297,17 @@
                                     <x-fmt-date :value="$v->created_at" format="d.m.Y H:i" />@if($v->uploader) · {{ $v->uploader->name }}@endif
                                 </div>
                             </div>
-                            <a href="{{ route('attachments.download', $v) }}" class="text-xs text-indigo-600 hover:text-indigo-500 shrink-0">Download</a>
+                            <div class="flex items-center gap-2 shrink-0">
+                                @if($v->id !== $attachment->id)
+                                    <a href="{{ route('documents.diff', ['attachment' => $v, 'other' => $attachment]) }}"
+                                       class="text-xs text-slate-600 hover:text-slate-900" title="Mit aktuell angezeigter Version vergleichen">Vergleichen</a>
+                                @endif
+                                <a href="{{ route('attachments.download', $v) }}" class="text-xs text-indigo-600 hover:text-indigo-500">Download</a>
+                            </div>
                         </li>
                     @endforeach
                 </ul>
-                <p class="mt-3 text-xs text-slate-500">Eine neue Version lädst du oben über den <em>Neue Version</em>-Button hoch.</p>
+                <p class="mt-3 text-xs text-slate-500">Eine neue Version lädst du oben über den <em>Neue Version</em>-Button hoch. <em>Vergleichen</em> zeigt Text-Unterschiede zwischen zwei Versionen.</p>
             </x-card>
         </div>
 
