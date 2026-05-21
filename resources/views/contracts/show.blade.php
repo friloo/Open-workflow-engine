@@ -123,22 +123,13 @@
 
             <x-card title="Dokumente" description="Vertragsdatei, Anlagen, Schriftverkehr.">
                 @if($canManage)
-                    <form method="POST" action="{{ route('attachments.store', ['type' => 'contract', 'id' => $contract->id]) }}"
-                          enctype="multipart/form-data" class="mb-4 flex flex-wrap items-end gap-2">
-                        @csrf
-                        <div class="flex-1 min-w-[200px]">
-                            <x-input-label for="file" value="Datei (PDF / DOCX / Bild, max. 15 MB)" />
-                            <input id="file" type="file" name="file" required
-                                   accept="application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                   class="block w-full text-sm text-slate-700">
-                            <x-input-error :messages="$errors->get('file')" />
+                    <x-dropzone :upload-url="route('attachments.store', ['type' => 'contract', 'id' => $contract->id])"
+                                label="Datei zum Vertrag hinzufügen"
+                                class="mb-4">
+                        <div class="rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-3 text-xs text-slate-500">
+                            Beliebig viele Dateien hierher ziehen (PDF / DOCX / Bild, max. 15 MB pro Datei).
                         </div>
-                        <div class="flex-1 min-w-[180px]">
-                            <x-input-label for="label" value="Beschriftung (optional)" />
-                            <x-text-input id="label" name="label" placeholder="z. B. Hauptvertrag, Anlage 1, AGB" maxlength="128" />
-                        </div>
-                        <x-secondary-button type="submit">Hochladen</x-secondary-button>
-                    </form>
+                    </x-dropzone>
 
                     {{-- PDF aus Vorlage erzeugen --}}
                     @php($templates = \App\Models\ContractTemplate::query()

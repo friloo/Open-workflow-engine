@@ -21,7 +21,7 @@ class AttachmentController extends Controller
         private readonly AuditLogger $audit,
     ) {}
 
-    public function store(Request $request, string $type, int $id): RedirectResponse
+    public function store(Request $request, string $type, int $id)
     {
         $request->validate([
             'file' => ['required', 'file', 'max:15360'],
@@ -43,11 +43,16 @@ class AttachmentController extends Controller
                 (bool) $request->boolean('force'),
             );
         } catch (\App\Exceptions\DuplicateAttachmentException $e) {
-            return back()->withErrors([
-                'file' => $e->getMessage().' Original: '.route('documents.show', $e->original).'. '
-                    .'Trotzdem hochladen? Setze beim erneuten Senden das Feld "force=1".',
-            ]);
+            $msg = $e->getMessage().' Original: '.route('documents.show', $e->original).'. '
+                .'Trotzdem hochladen? Setze beim erneuten Senden das Feld "force=1".';
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['ok' => false, 'error' => $msg, 'duplicate' => true], 409);
+            }
+            return back()->withErrors(['file' => $msg]);
         } catch (\Throwable $e) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['ok' => false, 'error' => $e->getMessage()], 422);
+            }
             return back()->withErrors(['file' => $e->getMessage()]);
         }
 
@@ -59,6 +64,16 @@ class AttachmentController extends Controller
             'sha256' => $attachment->content_hash,
         ], "Datei {$attachment->original_name} hochgeladen (sha256: ".substr($attachment->content_hash, 0, 12).")");
 
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'ok' => true,
+                'id' => $attachment->id,
+                'name' => $attachment->original_name,
+                'size' => $attachment->size,
+                'mime' => $attachment->mime_type,
+                'url' => route('documents.show', $attachment),
+            ]);
+        }
         return back()->with('status', "Datei {$attachment->original_name} hochgeladen.");
     }
 

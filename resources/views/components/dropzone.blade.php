@@ -1,24 +1,42 @@
 @props([
     'uploadUrl',           // POST-Ziel (z. B. route('attachments.store', ['type'=>..., 'id'=>...]))
     'label' => 'Datei zum Hochladen hier ablegen',
+    'browse' => true,      // Browser-Picker zusätzlich zum Drag-and-Drop anbieten
+    'documentType' => null,// Pre-Fill für document_type
 ])
 
 {{-- Wickelt einen beliebigen Container in eine Drop-Zone. Bei Drag-Over
-     erscheint ein gestrichelter Overlay; bei Drop wird die Datei via fetch
-     POSTet und die Seite neu geladen. Duplikate / Fehler kommen als Alert.
+     erscheint ein gestrichelter Overlay; bei Drop wird die Datei via XHR
+     POSTet. Multifile mit per-Datei-Progress.
 
      Nutzung:
        <x-dropzone uploadUrl="{{ route('attachments.store', ['type'=>'instance','id'=>$instance->id]) }}">
            ... bestehender Inhalt ...
        </x-dropzone>
 --}}
-<div x-data="dropzone(@js($uploadUrl))"
+<div x-data="dropzone(@js($uploadUrl), {{ $browse ? 'true' : 'false' }}, @js($documentType))"
      @dragover.prevent="onDragOver($event)"
      @dragleave="onDragLeave($event)"
      @drop.prevent="onDrop($event)"
      class="relative">
+
+    @if($browse)
+        {{-- Optional: Click-To-Pick-Button oben, ohne den Slot zu blockieren --}}
+        <div class="mb-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <button type="button" @click="$refs.fileInput.click()"
+                    class="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                Dateien wählen
+            </button>
+            <span>oder hierher ziehen — beliebig viele Dateien gleichzeitig</span>
+            <input type="file" multiple x-ref="fileInput" class="sr-only"
+                   @change="onPickFiles($event)">
+        </div>
+    @endif
+
     {{ $slot }}
 
+    {{-- Drag-Overlay --}}
     <div x-show="active"
          x-transition.opacity
          class="pointer-events-none absolute inset-0 z-30 grid place-items-center rounded-xl border-2 border-dashed border-indigo-500 bg-indigo-50/85"
@@ -30,73 +48,158 @@
         </div>
     </div>
 
-    <div x-show="busy" x-cloak class="pointer-events-none absolute inset-0 z-30 grid place-items-center rounded-xl bg-white/80">
-        <div class="flex items-center gap-2 text-sm text-slate-700">
-            <svg class="h-4 w-4 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-            <span x-text="progress"></span>
+    {{-- Pro-Datei-Status-Liste — bleibt sichtbar bis Reload --}}
+    <template x-if="queue.length > 0">
+        <div class="mt-3 rounded-lg border border-slate-200 bg-white">
+            <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 text-xs text-slate-500">
+                <span><strong x-text="queue.length"></strong> Datei(en) · <strong class="text-emerald-700" x-text="doneCount()"></strong> fertig · <strong class="text-rose-700" x-text="errorCount()"></strong> Fehler</span>
+                <button type="button" @click="queue = []" x-show="! anyUploading()" class="text-xs text-slate-500 hover:text-slate-900">aufräumen</button>
+            </div>
+            <ul class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                <template x-for="item in queue" :key="item.id">
+                    <li class="px-3 py-2 flex items-center gap-3 text-sm">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-slate-900 truncate" x-text="item.name"></span>
+                                <span class="text-xs text-slate-500" x-text="formatBytes(item.size)"></span>
+                            </div>
+                            <div class="mt-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                <div class="h-full transition-all"
+                                     :class="{
+                                         'bg-indigo-500': item.status === 'uploading',
+                                         'bg-emerald-500': item.status === 'done',
+                                         'bg-rose-500': item.status === 'error',
+                                         'bg-slate-300': item.status === 'queued',
+                                     }"
+                                     :style="`width: ${item.progress}%`"></div>
+                            </div>
+                            <div class="mt-0.5 text-xs"
+                                 :class="{
+                                     'text-slate-500': item.status === 'uploading' || item.status === 'queued',
+                                     'text-emerald-700': item.status === 'done',
+                                     'text-rose-700': item.status === 'error',
+                                 }"
+                                 x-text="item.message"></div>
+                        </div>
+                    </li>
+                </template>
+            </ul>
         </div>
-    </div>
+    </template>
 </div>
 
 @once
     @push('scripts')
         <script>
-            window.dropzone = function (uploadUrl) {
+            window.dropzone = function (uploadUrl, browseMode, docType) {
                 return {
+                    uploadUrl,
+                    browseMode,
+                    docType,
                     active: false,
-                    busy: false,
-                    progress: 'Lade hoch ...',
+                    queue: [],
+                    _nextId: 1,
                     _dragDepth: 0,
+
                     onDragOver(e) {
                         if (!e.dataTransfer || ![...(e.dataTransfer.types || [])].includes('Files')) return;
                         this.active = true;
                     },
                     onDragLeave() {
-                        // dragleave feuert beim Wechsel zwischen Kindern — kurze Verzögerung damit's nicht flackert
                         setTimeout(() => { if (!this._dragDepth) this.active = false; }, 50);
                     },
-                    async onDrop(e) {
+                    onDrop(e) {
                         this.active = false;
                         const files = [...(e.dataTransfer?.files || [])];
-                        if (files.length === 0) return;
-                        this.busy = true;
-                        let ok = 0; let fails = [];
-                        for (const file of files) {
-                            this.progress = `${ok + 1} / ${files.length}: ${file.name}`;
-                            try {
-                                await this.upload(file);
-                                ok++;
-                            } catch (err) {
-                                fails.push(`${file.name}: ${err.message || err}`);
-                            }
-                        }
-                        this.busy = false;
-                        if (fails.length) {
-                            alert(`Hochgeladen: ${ok}\n\nFehlgeschlagen:\n` + fails.join('\n'));
-                        }
-                        // Nach erfolgreichen Uploads die Seite neu laden, damit die
-                        // neue Datei in der bestehenden Liste auftaucht.
-                        if (ok > 0) window.location.reload();
+                        this.enqueue(files);
                     },
-                    async upload(file) {
-                        const fd = new FormData();
-                        fd.append('file', file);
-                        const csrf = document.querySelector('meta[name=csrf-token]')?.content;
-                        const r = await fetch(uploadUrl, {
-                            method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json, text/html' },
-                            body: fd,
-                            redirect: 'follow',
+                    onPickFiles(e) {
+                        const files = [...(e.target.files || [])];
+                        e.target.value = '';
+                        this.enqueue(files);
+                    },
+
+                    enqueue(files) {
+                        if (!files.length) return;
+                        const wasIdle = !this.anyUploading();
+                        files.forEach(f => {
+                            this.queue.push({
+                                id: this._nextId++,
+                                name: f.name,
+                                size: f.size,
+                                file: f,
+                                status: 'queued',
+                                progress: 0,
+                                message: 'wartend',
+                            });
                         });
-                        if (!r.ok && r.status !== 302) {
-                            // Validierungs- oder Duplikat-Fehler — wir lesen den Body für Detail.
-                            let msg = `HTTP ${r.status}`;
-                            try {
-                                const j = await r.clone().json();
-                                msg = j.message || j.errors?.file?.[0] || msg;
-                            } catch (_) {}
-                            throw new Error(msg);
+                        if (wasIdle) this.processQueue();
+                    },
+
+                    async processQueue() {
+                        const next = this.queue.find(i => i.status === 'queued');
+                        if (!next) {
+                            // Alles fertig — wenn mind. eine Datei OK war, Seite neu laden,
+                            // damit die neuen Anhänge in der bestehenden Liste auftauchen.
+                            if (this.queue.some(i => i.status === 'done')) {
+                                setTimeout(() => window.location.reload(), 800);
+                            }
+                            return;
                         }
+                        next.status = 'uploading';
+                        next.message = 'hochladen…';
+                        await this.upload(next);
+                        this.processQueue();
+                    },
+
+                    upload(item) {
+                        return new Promise((resolve) => {
+                            const fd = new FormData();
+                            fd.append('file', item.file);
+                            if (this.docType) fd.append('document_type', this.docType);
+                            const csrf = document.querySelector('meta[name=csrf-token]')?.content;
+
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('POST', this.uploadUrl);
+                            xhr.setRequestHeader('Accept', 'application/json');
+                            xhr.setRequestHeader('X-CSRF-TOKEN', csrf);
+                            xhr.upload.onprogress = e => {
+                                if (e.lengthComputable) {
+                                    item.progress = Math.round((e.loaded / e.total) * 100);
+                                }
+                            };
+                            xhr.onload = () => {
+                                let data = {};
+                                try { data = JSON.parse(xhr.responseText || '{}'); } catch (_) {}
+                                if (xhr.status >= 200 && xhr.status < 300 && data.ok) {
+                                    item.status = 'done';
+                                    item.progress = 100;
+                                    item.message = 'hochgeladen';
+                                } else {
+                                    item.status = 'error';
+                                    item.message = data.error || `Fehler (HTTP ${xhr.status})`;
+                                }
+                                resolve();
+                            };
+                            xhr.onerror = () => {
+                                item.status = 'error';
+                                item.message = 'Netzwerkfehler';
+                                resolve();
+                            };
+                            xhr.send(fd);
+                        });
+                    },
+
+                    anyUploading() {
+                        return this.queue.some(i => i.status === 'uploading' || i.status === 'queued');
+                    },
+                    doneCount() { return this.queue.filter(i => i.status === 'done').length; },
+                    errorCount() { return this.queue.filter(i => i.status === 'error').length; },
+
+                    formatBytes(b) {
+                        if (b < 1024) return b + ' B';
+                        if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' KB';
+                        return (b / (1024 * 1024)).toFixed(1) + ' MB';
                     },
                 };
             };
