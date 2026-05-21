@@ -28,10 +28,13 @@ class Phase10Test extends TestCase
 
     private function configureAI(): void
     {
+        Settings::set('ai.enabled', true);
         Settings::set('ai.provider', 'openai');
         Settings::set('ai.base_url', 'https://api.test/v1');
         Settings::set('ai.model', 'gpt-test');
         Settings::set('ai.api_key', 'sk-test');
+        Settings::set('ai.feature.workflow_design', true);
+        Settings::set('ai.feature.http_suggest', true);
     }
 
     public function test_uploaded_file_gets_sha256_hash_and_verifies(): void

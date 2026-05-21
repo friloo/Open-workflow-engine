@@ -21,15 +21,14 @@ class AiFeatureTogglesTest extends TestCase
         Settings::set('ai.model', 'gpt-4o-mini', null);
     }
 
-    public function test_per_feature_defaults_match_data_sensitivity(): void
+    public function test_per_feature_default_is_off_for_all(): void
     {
         $this->aiConfigured();
         $c = app(AIClient::class);
-        // Workflow-Design, HTTP-Suggest, Field-Extract default an
-        $this->assertTrue($c->isFeatureEnabled('workflow_design'));
-        $this->assertTrue($c->isFeatureEnabled('http_suggest'));
-        $this->assertTrue($c->isFeatureEnabled('field_extract'));
-        // NL-Search default AUS (Opt-in wegen Produktivdaten)
+        // Default AUS für jede Feature — KI ist komplett Opt-in
+        $this->assertFalse($c->isFeatureEnabled('workflow_design'));
+        $this->assertFalse($c->isFeatureEnabled('http_suggest'));
+        $this->assertFalse($c->isFeatureEnabled('field_extract'));
         $this->assertFalse($c->isFeatureEnabled('nl_search'));
     }
 

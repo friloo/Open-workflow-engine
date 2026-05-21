@@ -22,43 +22,31 @@ class AIClient
     /**
      * Globaler Master-Schalter — wenn false, sind ALLE KI-Features in der
      * Anwendung deaktiviert (Workflow-Entwurf, HTTP-Vorschlag, NL-Suche,
-     * Field-Extractor etc.). Default = true, damit bestehende Installationen
-     * wie bisher funktionieren.
+     * Field-Extractor etc.). Default = AUS: KI ist eine Opt-in-Funktion
+     * und muss vom Admin bewusst aktiviert werden.
      */
     public function isEnabled(): bool
     {
-        $flag = Settings::get('ai.enabled', true);
-        return $flag === null || (bool) $flag;
+        return (bool) Settings::get('ai.enabled', false);
     }
 
     /**
-     * Pro-Feature-Schalter. Default-Werte unterscheiden bewusst nach
-     * Datensensibilitaet:
-     *  - workflow_design / http_suggest: liefern nur Templates, kein
-     *    Zugriff auf Produktivdaten -> Default an.
-     *  - field_extract: liest Dokument-Inhalte fuer Feld-Extraktion ->
-     *    Default an (war schon vorhanden).
-     *  - nl_search: liest Vertraege, Akten, Vorgaenge -> Default AUS
-     *    (Opt-in), weil neues Feature mit Zugriff auf Produktivdaten.
+     * Pro-Feature-Schalter. Default-Wert fuer JEDE Feature ist AUS — KI
+     * muss Admin-seitig pro Funktion explizit eingeschaltet werden,
+     * unabhaengig von Produktivdaten-Sensibilitaet.
      */
     public function isFeatureEnabled(string $feature): bool
     {
         if (! $this->isEnabled()) return false;
 
-        $defaults = [
-            'workflow_design' => true,
-            'http_suggest' => true,
-            'field_extract' => true,
-            'nl_search' => false,
-        ];
-        $default = $defaults[$feature] ?? false;
-        $value = Settings::get("ai.feature.{$feature}", $default);
-        return $value === null ? $default : (bool) $value;
+        $value = Settings::get("ai.feature.{$feature}", false);
+        return (bool) $value;
     }
 
     /**
      * Liefert die bekannten Feature-Keys mit Default-Wert und Beschreibung
-     * fuer das Admin-UI.
+     * fuer das Admin-UI. Alle Features sind Default AUS — KI ist eine
+     * Opt-in-Funktionalitaet pro Feature.
      *
      * @return array<string, array{label: string, description: string, data_access: bool, default: bool}>
      */
@@ -69,19 +57,19 @@ class AIClient
                 'label' => 'Workflow-Entwurf aus Freitext',
                 'description' => 'Designer-Button „KI-Entwurf". Erzeugt nur Vorlagen — keinen Zugriff auf Produktivdaten.',
                 'data_access' => false,
-                'default' => true,
+                'default' => false,
             ],
             'http_suggest' => [
                 'label' => 'HTTP-Knoten-Vorschlag aus curl/OpenAPI',
                 'description' => 'Übersetzt curl-Befehle und API-Dokus in HTTP-Knoten-Konfiguration. Keine Produktivdaten.',
                 'data_access' => false,
-                'default' => true,
+                'default' => false,
             ],
             'field_extract' => [
                 'label' => 'Dokument-Feld-Extraktor (OCR-Nachgang)',
                 'description' => 'Liest OCR-Text hochgeladener Dokumente und extrahiert konfigurierte Felder per KI.',
                 'data_access' => true,
-                'default' => true,
+                'default' => false,
             ],
             'nl_search' => [
                 'label' => 'Natürlich-sprachliche Suche',
