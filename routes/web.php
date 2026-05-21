@@ -540,3 +540,6 @@ Route::prefix('install')->name('install.')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Updater-Routen — siehe updater/README.md fuer Rueckbau-Anleitung.
+require __DIR__.'/../updater/routes.php';
