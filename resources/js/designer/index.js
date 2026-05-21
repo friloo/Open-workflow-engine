@@ -38,6 +38,9 @@ const NODE_TEMPLATES = {
             quorum_mode: 'single',
             quorum_min: 2,
             extra_fields: [],
+            // Teams: optional pro Knoten anderen Channel ansteuern
+            notify_teams: true,
+            teams_webhook_url: '',
             // Stempel-Feature: gestempeltes PDF als neue Version anlegen
             stamp_pdf: false,
             stamp_pdf_only_on: 'approved',

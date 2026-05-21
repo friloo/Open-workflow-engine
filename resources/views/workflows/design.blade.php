@@ -434,6 +434,29 @@
                                             </div>
                                         </div>
 
+                                        {{-- Teams-Channel Routing --}}
+                                        <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                                            <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                                <input type="checkbox" x-model="selectedNode.data.notify_teams"
+                                                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                <span><strong>Microsoft Teams benachrichtigen</strong></span>
+                                            </label>
+                                            <template x-if="selectedNode.data.notify_teams !== false">
+                                                <div class="mt-2">
+                                                    <label class="block text-xs font-medium text-slate-600 mb-1">Teams Channel Webhook-URL (optional)</label>
+                                                    <input type="url" x-model="selectedNode.data.teams_webhook_url"
+                                                           placeholder="leer = globale URL aus den Systemeinstellungen"
+                                                           class="block w-full rounded-lg border-slate-300 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                                    <p class="mt-1 text-xs text-slate-500">
+                                                        Eintragen, wenn dieser Knoten in einen <strong>anderen</strong> Channel
+                                                        als die globale Default-URL gehen soll. Beispiel: Aufgaben fuer
+                                                        die IT-Rolle gehen in den IT-Teams-Chat, fuer Buchhaltung in den
+                                                        Buchhaltungs-Chat.
+                                                    </p>
+                                                </div>
+                                            </template>
+                                        </div>
+
                                         {{-- PDF-Stempel beim Approval --}}
                                         <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
                                             <label class="inline-flex items-center gap-2 text-sm text-slate-700">

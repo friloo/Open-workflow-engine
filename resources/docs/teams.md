@@ -46,18 +46,27 @@ Adaptive-Card mit:
 - Wichtigste Antrags-Daten (Betrag, Kostenstelle, Rechnungsnummer, ...)
 - Button **In OWE oeffnen** → bringt den User auf die Aufgaben-Seite
 
-## Pro-Workflow-Konfiguration
+## Pro-Knoten-Routing: jede Aufgabe in den passenden Channel
 
-Wer pro Workflow einen anderen Channel will (z. B. Buchhaltung-Channel
-fuer Rechnungen, Personal-Channel fuer Urlaubsantraege), kann pro
-Approval-Knoten eine eigene Webhook-URL setzen.
+Im Designer hat jeder Approval-Knoten einen eigenen Block
+**„Microsoft Teams benachrichtigen"** mit:
 
-Aktuell noch nicht UI-konfigurierbar — das Feld heisst
-`teams_webhook_url` im Knoten-Daten-JSON. Manuell ueber die
-Workflow-Versions-API oder im Definition-Editor setzen.
+- **Checkbox** an/aus — pro Knoten deaktivierbar (sehr interne
+  Approvals muss man nicht im Channel posten)
+- **Eigene Webhook-URL** (optional, leer = globale Default-URL)
 
-Plus `notify_teams: false` deaktiviert das Teams-Posting fuer diesen
-Knoten (z. B. bei sehr internen Approvals).
+Typischer Use-Case:
+
+| Approval-Knoten | Teams-Channel |
+|-----------------|---------------|
+| „Pruefung Buchhaltung" im Rechnungs-Workflow | #buchhaltung |
+| „IT-Freigabe" im Hardware-Bestell-Workflow | #it-support |
+| „GF-Approval > 10 000 €" im Bestell-Workflow | #geschaeftsleitung |
+| „HR-Pruefung" im Krankmeldungs-Workflow | #hr-team |
+
+Pro Channel einen Webhook in Teams einrichten (siehe Schritt 1 oben),
+die URL pro Knoten in den Properties eintragen — fertig. Aufgaben
+landen automatisch im passenden Chat-Raum.
 
 ## Was sieht der User in Teams?
 
