@@ -17,11 +17,13 @@ class AIController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $data = $request->validate([
+            'enabled' => ['nullable', 'boolean'],
             'provider' => ['required', 'in:openai,deepseek,ollama,custom'],
             'base_url' => ['required', 'url', 'max:512'],
             'model' => ['required', 'string', 'max:128'],
             'api_key' => ['nullable', 'string', 'max:1024'],
         ]);
+        Settings::set('ai.enabled', (bool) ($data['enabled'] ?? false), $request->user()->id);
         foreach (['provider', 'base_url', 'model'] as $k) {
             Settings::set("ai.{$k}", $data[$k], $request->user()->id);
         }
@@ -29,6 +31,7 @@ class AIController extends Controller
             Settings::set('ai.api_key', $data['api_key'], $request->user()->id);
         }
         $this->audit->log('settings.ai.updated', null, null, [
+            'enabled' => (bool) ($data['enabled'] ?? false),
             'provider' => $data['provider'], 'model' => $data['model'],
         ], 'KI-Konfiguration aktualisiert', $request->user()->id);
 
@@ -61,6 +64,9 @@ class AIController extends Controller
         $input = trim((string) ($data['input'] ?? $data['description'] ?? ''));
         if ($input === '') {
             return response()->json(['error' => 'Bitte Beschreibung, curl-Befehl oder API-Doku angeben.'], 422);
+        }
+        if (! $client->isEnabled()) {
+            return response()->json(['error' => 'KI ist global deaktiviert.'], 422);
         }
         if (! $client->isConfigured()) {
             return response()->json(['error' => 'KI ist nicht konfiguriert.'], 422);
@@ -183,6 +189,9 @@ TXT;
             'description' => ['required', 'string', 'max:6000'],
             'trigger_type' => ['nullable', 'in:form,manual,recurring'],
         ]);
+        if (! $client->isEnabled()) {
+            return response()->json(['error' => 'KI ist global deaktiviert.'], 422);
+        }
         if (! $client->isConfigured()) {
             return response()->json(['error' => 'KI ist nicht konfiguriert.'], 422);
         }

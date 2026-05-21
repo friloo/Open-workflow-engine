@@ -96,6 +96,7 @@ class SystemSettingsController extends Controller
     {
         return view('admin.settings.ai', [
             'ai' => Settings::group('ai') + [
+                'enabled' => true,
                 'provider' => 'openai',
                 'base_url' => 'https://api.openai.com/v1',
                 'model' => 'gpt-4o-mini',

@@ -108,6 +108,10 @@ Route::middleware(['auth'])->group(function () {
     // Global Search (Cmd+K)
     Route::get('/search', [\App\Http\Controllers\GlobalSearchController::class, 'search'])->name('search.global');
 
+    // Natural-Language-Search (optional, nur wenn KI aktiv)
+    Route::get('/search/nl', [\App\Http\Controllers\NlSearchController::class, 'form'])->name('search.nl');
+    Route::post('/search/nl', [\App\Http\Controllers\NlSearchController::class, 'ask'])->name('search.nl.ask');
+
     // IT-Support (eingeblendet wenn support.enabled in Settings)
     Route::get('/support', [\App\Http\Controllers\SupportController::class, 'show'])->name('support.show');
     Route::post('/support', [\App\Http\Controllers\SupportController::class, 'send'])->name('support.send');

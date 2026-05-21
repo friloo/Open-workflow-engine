@@ -19,6 +19,24 @@ class AIClient
         return ! empty(Settings::get('ai.base_url')) && ! empty(Settings::get('ai.model'));
     }
 
+    /**
+     * Globaler Master-Schalter — wenn false, sind ALLE KI-Features in der
+     * Anwendung deaktiviert (Workflow-Entwurf, HTTP-Vorschlag, NL-Suche,
+     * Field-Extractor etc.). Default = true, damit bestehende Installationen
+     * wie bisher funktionieren.
+     */
+    public function isEnabled(): bool
+    {
+        $flag = Settings::get('ai.enabled', true);
+        return $flag === null || (bool) $flag;
+    }
+
+    /** Praktischer Helper: KI ist konfiguriert UND eingeschaltet. */
+    public function isReady(): bool
+    {
+        return $this->isEnabled() && $this->isConfigured();
+    }
+
     public function provider(): string
     {
         return Settings::get('ai.provider', 'openai');
@@ -35,6 +53,9 @@ class AIClient
         $base = rtrim((string) Settings::get('ai.base_url'), '/');
         $model = (string) Settings::get('ai.model');
         $key = (string) Settings::get('ai.api_key', '');
+        if (! $this->isEnabled()) {
+            throw new \RuntimeException('KI ist global deaktiviert (Settings: ai.enabled).');
+        }
         if (! $base || ! $model) {
             throw new \RuntimeException('KI ist nicht konfiguriert.');
         }

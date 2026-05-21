@@ -8,6 +8,22 @@
         <form method="POST" action="{{ route('admin.ai.update') }}" class="space-y-3 max-w-2xl"
               x-data="{ busy: false, action: '' }" @submit="busy = true">
             @csrf
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <input type="hidden" name="enabled" value="0">
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" name="enabled" value="1"
+                           class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                           @checked($ai['enabled'] ?? true)>
+                    <span>
+                        <span class="block text-sm font-medium text-slate-900">KI-Features aktivieren</span>
+                        <span class="block text-xs text-slate-500">
+                            Wenn deaktiviert: alle KI-Funktionen sind ausgeblendet (Workflow-Entwurf,
+                            HTTP-Vorschlag, NL-Suche, Feldextraktor). Das Tool funktioniert vollständig
+                            ohne KI weiter — du brauchst dann keinen Provider zu konfigurieren.
+                        </span>
+                    </span>
+                </label>
+            </div>
             <div>
                 <x-input-label for="ai_provider" value="Anbieter" />
                 <select id="ai_provider" name="provider" class="block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
