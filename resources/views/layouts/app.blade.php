@@ -13,6 +13,16 @@
     @endauth
     <link rel="manifest" href="/manifest.webmanifest">
     <title>{{ isset($title) ? $title.' · '.config('app.name') : config('app.name', 'Open Workflow Engine') }}</title>
+    {{-- Theme-Pre-Paint: verhindert Flash beim Reload --}}
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('owe-theme') || 'auto';
+                var sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (t === 'dark' || (t === 'auto' && sysDark)) document.documentElement.classList.add('dark');
+            } catch(e) {}
+        })();
+    </script>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
