@@ -110,29 +110,74 @@
             </template>
         </x-card>
 
-        {{-- Migration-Status --}}
-        <x-card title="Migrations-Status (Updater-eigene Migrationen)" description="Reine Schema-Änderungen aus updater/migrations/. App-Migrationen laufen weiter über php artisan migrate.">
-            <button type="button" @click="loadMigrations()" :disabled="busy"
-                class="text-sm text-indigo-600 hover:text-indigo-500">Aktualisieren</button>
+        {{-- Migrations + Caches --}}
+        <x-card title="Migrationen und Caches"
+                description="Updater-Migrationen (eigenes Schema) und App-Migrationen (php artisan migrate) laufen automatisch nach jedem Update. Hier kannst du beides auch manuell triggern — kein SSH nötig.">
+            <div class="flex flex-wrap gap-2 mb-3">
+                <button type="button" @click="runMigrations()" :disabled="busy"
+                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
+                    Migrationen jetzt ausführen
+                </button>
+                <button type="button" @click="clearCaches()" :disabled="busy"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50">
+                    App-Caches leeren (view/config/route/cache + opcache)
+                </button>
+                <button type="button" @click="loadMigrations()" :disabled="busy"
+                    class="ms-auto text-sm text-indigo-600 hover:text-indigo-500">Status aktualisieren</button>
+            </div>
+
+            <div x-show="actionResult" x-cloak class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800" x-text="actionResult"></div>
+
             <template x-if="migrations">
-                <div class="mt-2 grid grid-cols-2 gap-3 text-sm">
+                <div class="space-y-4">
+                    {{-- App-Migrationen (Laravel) --}}
                     <div>
-                        <div class="text-xs font-semibold uppercase text-slate-500">Angewendet</div>
-                        <ul class="mt-1 text-slate-700">
-                            <template x-for="m in migrations.applied" :key="m">
-                                <li class="font-mono text-xs" x-text="m"></li>
-                            </template>
-                            <li x-show="migrations.applied.length === 0" class="text-slate-500 text-xs">noch keine</li>
-                        </ul>
+                        <h3 class="text-sm font-semibold text-slate-900 mb-1">App-Migrationen (Laravel)</h3>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <div class="text-xs font-semibold uppercase text-slate-500">Angewendet (<span x-text="migrations.app?.applied?.length || 0"></span>)</div>
+                                <ul class="mt-1 text-slate-700 max-h-40 overflow-y-auto">
+                                    <template x-for="m in (migrations.app?.applied || [])" :key="m">
+                                        <li class="font-mono text-xs" x-text="m"></li>
+                                    </template>
+                                    <li x-show="(migrations.app?.applied?.length || 0) === 0" class="text-slate-500 text-xs">noch keine</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <div class="text-xs font-semibold uppercase text-slate-500">Ausstehend (<span x-text="migrations.app?.pending?.length || 0"></span>)</div>
+                                <ul class="mt-1 text-slate-700 max-h-40 overflow-y-auto">
+                                    <template x-for="m in (migrations.app?.pending || [])" :key="m">
+                                        <li class="font-mono text-xs text-amber-700" x-text="m"></li>
+                                    </template>
+                                    <li x-show="(migrations.app?.pending?.length || 0) === 0" class="text-slate-500 text-xs">keine</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
+
+                    {{-- Updater-Migrationen --}}
                     <div>
-                        <div class="text-xs font-semibold uppercase text-slate-500">Ausstehend</div>
-                        <ul class="mt-1 text-slate-700">
-                            <template x-for="m in migrations.pending" :key="m">
-                                <li class="font-mono text-xs" x-text="m"></li>
-                            </template>
-                            <li x-show="migrations.pending.length === 0" class="text-slate-500 text-xs">keine</li>
-                        </ul>
+                        <h3 class="text-sm font-semibold text-slate-900 mb-1">Updater-Migrationen (eigenes Schema)</h3>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <div class="text-xs font-semibold uppercase text-slate-500">Angewendet (<span x-text="migrations.updater?.applied?.length || 0"></span>)</div>
+                                <ul class="mt-1 text-slate-700 max-h-40 overflow-y-auto">
+                                    <template x-for="m in (migrations.updater?.applied || [])" :key="m">
+                                        <li class="font-mono text-xs" x-text="m"></li>
+                                    </template>
+                                    <li x-show="(migrations.updater?.applied?.length || 0) === 0" class="text-slate-500 text-xs">noch keine</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <div class="text-xs font-semibold uppercase text-slate-500">Ausstehend (<span x-text="migrations.updater?.pending?.length || 0"></span>)</div>
+                                <ul class="mt-1 text-slate-700 max-h-40 overflow-y-auto">
+                                    <template x-for="m in (migrations.updater?.pending || [])" :key="m">
+                                        <li class="font-mono text-xs text-amber-700" x-text="m"></li>
+                                    </template>
+                                    <li x-show="(migrations.updater?.pending?.length || 0) === 0" class="text-slate-500 text-xs">keine</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </template>
@@ -145,6 +190,7 @@
                 return {
                     busy: false,
                     error: null,
+                    actionResult: null,
                     checkResult: null,
                     progress: null,
                     migrations: null,
@@ -218,6 +264,47 @@
                             const data = await r.json();
                             this.migrations = data.data || null;
                         } catch (e) { /* still */ }
+                    },
+                    async runMigrations() {
+                        if (! confirm('Migrationen jetzt ausführen?')) return;
+                        this.busy = true; this.actionResult = null; this.error = null;
+                        try {
+                            const r = await fetch(@js(route('admin.update.migrations.run')), {
+                                method: 'POST',
+                                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() },
+                            });
+                            const data = await r.json();
+                            if (! data.ok) {
+                                this.error = data.error || 'Migration fehlgeschlagen';
+                            } else {
+                                const u = data.data.updater_applied || 0;
+                                const a = data.data.app_applied || 0;
+                                this.actionResult = `Migrationen ausgeführt: ${u} Updater- und ${a} App-Migrationen.`;
+                            }
+                        } catch (e) {
+                            this.error = 'Netzwerkfehler: ' + e.message;
+                        }
+                        this.busy = false;
+                        await this.loadMigrations();
+                    },
+                    async clearCaches() {
+                        this.busy = true; this.actionResult = null; this.error = null;
+                        try {
+                            const r = await fetch(@js(route('admin.update.caches.clear')), {
+                                method: 'POST',
+                                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() },
+                            });
+                            const data = await r.json();
+                            if (! data.ok) {
+                                this.error = data.error || 'Cache-Clear fehlgeschlagen';
+                            } else {
+                                const ok = Object.entries(data.data).filter(([k,v]) => v === 'ok').map(([k]) => k);
+                                this.actionResult = 'Caches geleert: ' + ok.join(', ');
+                            }
+                        } catch (e) {
+                            this.error = 'Netzwerkfehler: ' + e.message;
+                        }
+                        this.busy = false;
                     },
                 };
             }

@@ -116,6 +116,90 @@ final class UpdateManager
         @unlink($this->projectRoot.'/.update-progress');
     }
 
+    /**
+     * Fuehrt 'php artisan migrate --force' programmatisch ueber die
+     * Artisan-Facade aus. Sicher gegen Shell-Quoting und ohne SSH.
+     *
+     * @return int Anzahl ausgefuehrter Migrationen (best-effort aus Output)
+     */
+    public function runLaravelMigrations(): int
+    {
+        if (! class_exists(\Illuminate\Support\Facades\Artisan::class)) return 0;
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            // Laravel printet pro Migration eine Zeile wie 'XXXX...DONE'
+            return substr_count($output, 'DONE');
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    /**
+     * Liste der noch ausstehenden Laravel-Migrationen (best-effort via
+     * 'migrate:status' Parsing).
+     *
+     * @return array{applied: array<int,string>, pending: array<int,string>}
+     */
+    public function laravelMigrationStatus(): array
+    {
+        $applied = [];
+        $pending = [];
+        if (! class_exists(\Illuminate\Support\Facades\Artisan::class)) {
+            return ['applied' => $applied, 'pending' => $pending];
+        }
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate:status');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            foreach (explode("\n", $output) as $line) {
+                $line = trim($line);
+                if ($line === '' || str_starts_with($line, '-') || str_starts_with($line, '=')) continue;
+                // Format ist je nach Laravel-Version unterschiedlich. Heuristik:
+                // 'YYYY_MM_DD_xxxxxx_name ......... Ran' oder 'Pending'.
+                if (preg_match('/(\d{4}_\d{2}_\d{2}_\d+_[a-z0-9_]+)/i', $line, $m)) {
+                    $name = $m[1];
+                    $lower = strtolower($line);
+                    if (str_contains($lower, 'pending')) {
+                        $pending[] = $name;
+                    } else {
+                        $applied[] = $name;
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            // egal — Status ist nice-to-have
+        }
+        return ['applied' => $applied, 'pending' => $pending];
+    }
+
+    /**
+     * Leert die App-Caches programmatisch. Wird genutzt nach jedem
+     * Update + von einem dedizierten 'Caches leeren'-Button im UI.
+     *
+     * @return array<string, string> command => 'ok'|error
+     */
+    public function clearAppCaches(): array
+    {
+        $results = [];
+        $cmds = ['view:clear', 'config:clear', 'route:clear', 'cache:clear'];
+        if (! class_exists(\Illuminate\Support\Facades\Artisan::class)) {
+            return array_fill_keys($cmds, 'artisan-nicht-verfuegbar');
+        }
+        foreach ($cmds as $cmd) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call($cmd);
+                $results[$cmd] = 'ok';
+            } catch (\Throwable $e) {
+                $results[$cmd] = $e->getMessage();
+            }
+        }
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+            $results['opcache'] = 'ok';
+        }
+        return $results;
+    }
+
     public function installUpdate(?int $userId = null): array
     {
         $this->setProgress('start', 'Update beginnt', 0);
@@ -156,20 +240,24 @@ final class UpdateManager
             $this->setProgress('apply', 'Schreibe neue Dateien (geschuetzte Pfade bleiben)', 60);
             $copied = $this->applier->applyToProduction($stagingDir);
 
-            $this->setProgress('migrate', 'Wende Migrationen an', 80);
+            $this->setProgress('migrate', 'Wende Updater-Migrationen an', 75);
             $applied = $this->migrations->migrate();
+
+            $this->setProgress('migrate-app', 'Wende App-Migrationen an (php artisan migrate)', 85);
+            $appMigrations = $this->runLaravelMigrations();
 
             $this->setProgress('cleanup', 'Cache invalidieren', 92);
             $this->invalidateCaches();
 
             $this->saveCurrentVersion($latestSha);
-            $this->setProgress('done', "Auf {$latestSha} aktualisiert ({$copied} Dateien, {$applied} Migrationen)", 100);
+            $this->setProgress('done', "Auf {$latestSha} aktualisiert ({$copied} Dateien, {$applied} Updater- + {$appMigrations} App-Migrationen)", 100);
 
             $this->logAudit('updater.installed', [
                 'from' => $this->getCurrentVersion(),
                 'to' => $latestSha,
                 'files_copied' => $copied,
                 'migrations_applied' => $applied,
+                'app_migrations_applied' => $appMigrations,
                 'channel' => $this->channel,
             ], "Update auf {$latestSha} eingespielt", $userId);
 
@@ -178,6 +266,7 @@ final class UpdateManager
                 'sha' => $latestSha,
                 'files_copied' => $copied,
                 'migrations_applied' => $applied,
+                'app_migrations_applied' => $appMigrations,
             ];
         } catch (\Throwable $e) {
             $this->setProgress('error', 'Fehler: '.$e->getMessage(), 0);
@@ -205,13 +294,9 @@ final class UpdateManager
 
     private function invalidateCaches(): void
     {
-        if (function_exists('opcache_reset')) {
-            @opcache_reset();
-        }
-        // Laravel-Caches (best-effort, schlucken wenn Artisan nicht da)
-        @shell_exec('php '.escapeshellarg($this->projectRoot.'/artisan').' view:clear 2>&1');
-        @shell_exec('php '.escapeshellarg($this->projectRoot.'/artisan').' config:clear 2>&1');
-        @shell_exec('php '.escapeshellarg($this->projectRoot.'/artisan').' route:clear 2>&1');
+        // Delegiert an die programmatische Variante — keine shell_exec,
+        // die in disabled_functions-Setups still scheitern wuerde.
+        $this->clearAppCaches();
     }
 
     private function logAudit(string $event, array $data, string $description, ?int $userId): void
