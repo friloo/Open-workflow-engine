@@ -214,6 +214,8 @@
                 </p>
             </x-card>
 
+            <x-audit-trail :model="$contract" :limit="8" />
+
             @if($contract->last_reminder_at)
                 <x-card title="Letzte Erinnerung">
                     <p class="text-sm text-slate-700">
