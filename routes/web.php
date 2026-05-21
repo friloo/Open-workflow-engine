@@ -506,13 +506,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('backups/retention', [\App\Http\Controllers\Admin\BackupController::class, 'updateRetention'])->name('backups.retention');
     });
 
-    Route::middleware('permission:system.update')->group(function () {
-        Route::get('update', [\App\Http\Controllers\Admin\UpdateController::class, 'index'])->name('update.index');
-        Route::get('update/status', [\App\Http\Controllers\Admin\UpdateController::class, 'status'])->name('update.status');
-        Route::post('update/channel', [\App\Http\Controllers\Admin\UpdateController::class, 'updateChannel'])->name('update.channel');
-        Route::post('update/run', [\App\Http\Controllers\Admin\UpdateController::class, 'run'])->name('update.run');
-        Route::post('update/upload', [\App\Http\Controllers\Admin\UpdateController::class, 'upload'])->name('update.upload');
-    });
+    // Alter Updater entfernt — neuer liegt in updater/ und wird unten
+    // via 'require updater/routes.php' eingehaengt (Routes-Praefix
+    // /admin/update, Name 'admin.update.*').
 
     Route::middleware('permission:mailboxes.manage')->group(function () {
         Route::get('mailboxes', [\App\Http\Controllers\Admin\MailboxController::class, 'index'])->name('mailboxes.index');

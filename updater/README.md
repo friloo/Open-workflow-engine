@@ -69,17 +69,29 @@ Laravel-Config/Settings):
 
 ## Touch am Bestandscode
 
-Genau **zwei** Eingriffe sind nötig (beide rückbau-trivial):
+Eingriffe nötig (alle rückbau-trivial):
 
 1. `composer.json` — PSR-4-Mapping `"Updater\\": "updater/src/"`
 2. `routes/web.php` — eine Zeile am Ende:
    ```php
    require __DIR__.'/../updater/routes.php';
    ```
+3. `app/Services/HealthChecker.php::checkUpdate()` — port auf
+   `UpdaterFactory::create(DB::connection())`. War vorher gegen einen
+   alten App-eigenen UpdateManager verdrahtet, der entfernt wurde.
+
+Beim **Aufräumen des Vorgängers** wurden außerdem entfernt (Voraussetzung
+damit `/admin/update` frei wird):
+- `app/Http/Controllers/Admin/UpdateController.php`
+- `app/Services/Update/` (Channel + Factory + alter Manager)
+- `app/Console/Commands/{RunUpdate,NotifyUpdateAvailable}.php`
+- `resources/views/admin/update/`
+- `tests/Feature/{Phase15cTest,UpdateNotificationTest}.php`
+- Routes-Block für `admin.update.*` aus `routes/web.php`
 
 Der Maintenance-Hook in `public/index.php` (Zeilen 7–18) **war bereits
-vorhanden** vor der Installation und prüft `.maintenance` im Root — der
-Updater nutzt genau diesen Pfad.
+vorhanden** und prüft `.maintenance` im Root — der Updater nutzt genau
+diesen Pfad.
 
 ## Rückbau
 

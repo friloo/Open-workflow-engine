@@ -9,13 +9,9 @@
 use Illuminate\Support\Facades\Route;
 use Updater\UpdateController;
 
-// Provisorischer Prefix '/admin/system-update' — der Bestand hat schon
-// einen Updater auf '/admin/update'. Sobald entschieden ist, ob der
-// alte entfernt wird, kann hier auf 'admin/update' zurueckgewechselt
-// werden (Block in routes.php + README anpassen).
-Route::middleware(['auth', 'permission:system.settings'])
-    ->prefix('admin/system-update')
-    ->name('admin.system_update.')
+Route::middleware(['auth', 'permission:system.update'])
+    ->prefix('admin/update')
+    ->name('admin.update.')
     ->group(function () {
         Route::get('/', [UpdateController::class, 'index'])->name('index');
         Route::post('/check', [UpdateController::class, 'check'])->name('check');

@@ -36,7 +36,7 @@
 
         {{-- Channel-Auswahl --}}
         <x-card title="Update-Channel" description="Welche Branch nimmt der Updater? 'stable' für Produktion, 'development' für Vorab-Tests.">
-            <form method="POST" action="{{ route('admin.system_update.channel') }}" class="flex items-end gap-3">
+            <form method="POST" action="{{ route('admin.update.channel') }}" class="flex items-end gap-3">
                 @csrf
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Channel</label>
@@ -163,7 +163,7 @@
                     async check() {
                         this.busy = true; this.error = null;
                         try {
-                            const r = await fetch(@js(route('admin.system_update.check')), {
+                            const r = await fetch(@js(route('admin.update.check')), {
                                 method: 'POST',
                                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() },
                             });
@@ -181,7 +181,7 @@
                         this.busy = true; this.error = null;
                         this._poll = setInterval(() => this.loadProgress(), 1500);
                         try {
-                            const r = await fetch(@js(route('admin.system_update.install')), {
+                            const r = await fetch(@js(route('admin.update.install')), {
                                 method: 'POST',
                                 headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrf() },
                             });
@@ -197,14 +197,14 @@
                     },
                     async loadProgress() {
                         try {
-                            const r = await fetch(@js(route('admin.system_update.progress')), { headers: { 'Accept': 'application/json' } });
+                            const r = await fetch(@js(route('admin.update.progress')), { headers: { 'Accept': 'application/json' } });
                             const data = await r.json();
                             this.progress = data.data || null;
                         } catch (e) { /* still */ }
                     },
                     async loadMigrations() {
                         try {
-                            const r = await fetch(@js(route('admin.system_update.migrations')), { headers: { 'Accept': 'application/json' } });
+                            const r = await fetch(@js(route('admin.update.migrations')), { headers: { 'Accept': 'application/json' } });
                             const data = await r.json();
                             this.migrations = data.data || null;
                         } catch (e) { /* still */ }

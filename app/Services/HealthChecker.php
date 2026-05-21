@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Models\Attachment;
 use App\Models\Mailbox;
-use App\Services\Update\UpdateManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Updater\UpdaterFactory;
 
 /**
  * Sammelt Health-Checks für die Admin-Übersicht.
@@ -159,20 +159,18 @@ class HealthChecker
     private function checkUpdate(): array
     {
         try {
-            $um = app(UpdateManager::class);
-            if ($um->isMaintenanceActive()) {
+            $um = UpdaterFactory::create(DB::connection());
+            if ($um->isInMaintenance()) {
                 return ['name' => 'System-Update', 'status' => 'warn', 'message' => 'Wartungsmodus aktiv.'];
             }
-            $check = $um->check();
-            if (! empty($check['error'])) {
-                return ['name' => 'System-Update', 'status' => 'warn', 'message' => 'Check-Endpoint: '.$check['error']];
-            }
-            if ($check['has_update']) {
+            $check = $um->checkForUpdates();
+            if (! empty($check['has_update'])) {
                 return ['name' => 'System-Update', 'status' => 'warn',
-                    'message' => "Update verfügbar ({$check['channel']}) → {$check['latest']}"];
+                    'message' => "Update verfügbar ({$check['channel']}) → ".substr((string) ($check['latest_sha'] ?? '—'), 0, 7)];
             }
+            $current = $check['current_sha'] ?? null;
             return ['name' => 'System-Update', 'status' => 'ok',
-                'message' => 'Aktuell ('.($check['current'] ?? 'unbekannt').').'];
+                'message' => 'Aktuell ('.($current ? substr($current, 0, 7) : 'unbekannt').').'];
         } catch (\Throwable $e) {
             return ['name' => 'System-Update', 'status' => 'warn', 'message' => $e->getMessage()];
         }
