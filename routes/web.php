@@ -340,6 +340,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('users/import', [UserImportController::class, 'store'])->name('users.import.store')
             ->middleware('permission:users.import');
         Route::resource('users', UserController::class)->except(['show']);
+
+        // Admin-Token-Verwaltung pro Benutzer (auch fuer Service-Accounts)
+        Route::get('users/{user}/tokens', [\App\Http\Controllers\Admin\UserApiTokenController::class, 'index'])->name('users.tokens.index');
+        Route::post('users/{user}/tokens', [\App\Http\Controllers\Admin\UserApiTokenController::class, 'store'])->name('users.tokens.store');
+        Route::delete('users/{user}/tokens/{token}', [\App\Http\Controllers\Admin\UserApiTokenController::class, 'destroy'])->name('users.tokens.destroy');
     });
 
     Route::middleware('permission:roles.view,roles.manage')->group(function () {

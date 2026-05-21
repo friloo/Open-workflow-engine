@@ -104,7 +104,7 @@ class GlobalSearchController extends Controller
 
         // Benutzer
         if ($user->hasAnyPermission(['users.view', 'users.update'])) {
-            $users = User::where(function ($w) use ($like) {
+            $users = User::humans()->where(function ($w) use ($like) {
                 $w->where('name', 'like', $like)->orWhere('email', 'like', $like);
             })->orderBy('name')->limit(5)->get(['id', 'name', 'email']);
             if ($users->isNotEmpty()) {

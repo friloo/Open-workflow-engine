@@ -20,7 +20,7 @@ class WorkflowScheduleController extends Controller
     public function index(Workflow $workflow): View
     {
         $schedules = $workflow->schedules()->with("subjectUser", "creator")->orderBy("next_run_at")->paginate(50);
-        $users = User::where('is_active', true)->orderBy('name')->get(['id', 'name', 'email']);
+        $users = User::humans()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'email']);
         return view('workflows.schedules.index', compact('workflow', 'schedules', 'users'));
     }
 

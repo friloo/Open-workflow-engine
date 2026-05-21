@@ -33,6 +33,7 @@ class User extends Authenticatable
         'saml_nameid',
         'ldap_dn',
         'ical_token',
+        'is_service_account',
         'department',
         'job_title',
         'phone',
@@ -49,6 +50,23 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    /**
+     * Scope: nur menschliche Benutzer (keine Service-Accounts).
+     * Verwendet in allen User-Auswahllisten — Service-Accounts sollen
+     * nicht als Approver, Supervisor o.ae. ausgewaehlt werden.
+     */
+    public function scopeHumans($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('is_service_account', false)->orWhereNull('is_service_account');
+        });
+    }
+
+    public function isServiceAccount(): bool
+    {
+        return (bool) $this->is_service_account;
+    }
+
     protected function casts(): array
     {
         return [
@@ -59,6 +77,7 @@ class User extends Authenticatable
             'delegate_to' => 'date',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_service_account' => 'boolean',
             'email_notifications_enabled' => 'boolean',
             'prefer_m365_supervisor' => 'boolean',
             'custom_fields' => 'array',

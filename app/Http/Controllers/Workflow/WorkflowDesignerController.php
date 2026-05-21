@@ -33,7 +33,7 @@ class WorkflowDesignerController extends Controller
             'form_schema' => $workflow->currentVersion?->form_schema ?? [],
             'directory' => [
                 'roles' => Role::orderBy('name')->get(['id', 'name', 'slug'])->all(),
-                'users' => User::where('is_active', true)->orderBy('name')
+                'users' => User::humans()->where('is_active', true)->orderBy('name')
                     ->limit(500)->get(['id', 'name', 'email'])->all(),
                 'lists' => \App\Models\LookupList::orderBy('name')
                     ->get(['id', 'name', 'columns'])

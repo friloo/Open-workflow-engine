@@ -130,7 +130,7 @@ class TaskController extends Controller
             'node' => $node,
             'instance' => $step->instance,
             'directory' => [
-                'users' => User::where('is_active', true)
+                'users' => User::humans()->where('is_active', true)
                     ->where('id', '!=', $request->user()->id)
                     ->orderBy('name')->limit(500)->get(['id', 'name', 'email']),
             ],

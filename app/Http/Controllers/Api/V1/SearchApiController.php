@@ -84,7 +84,7 @@ class SearchApiController extends Controller
         }
 
         if ($user->hasPermission('users.view')) {
-            $out['users'] = User::query()->where('is_active', true)
+            $out['users'] = User::query()->humans()->where('is_active', true)
                 ->where(fn ($w) => $w->where('name', 'like', "%{$q}%")
                     ->orWhere('email', 'like', "%{$q}%"))
                 ->orderBy('name')->limit($limit)

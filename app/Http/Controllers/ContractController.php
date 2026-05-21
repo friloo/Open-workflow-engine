@@ -64,7 +64,7 @@ class ContractController extends Controller
     {
         return view('contracts.form', [
             'contract' => new Contract(['notice_period_days' => 90, 'status' => 'active']),
-            'users' => User::orderBy('name')->get(['id', 'name']),
+            'users' => User::humans()->orderBy('name')->get(['id', 'name']),
             'types' => ContractType::orderBy('name')->get(),
             'roles' => Role::orderBy('name')->get(),
         ]);
@@ -112,7 +112,7 @@ class ContractController extends Controller
         }
         return view('contracts.form', [
             'contract' => $contract->load('roles'),
-            'users' => User::orderBy('name')->get(['id', 'name']),
+            'users' => User::humans()->orderBy('name')->get(['id', 'name']),
             'types' => ContractType::orderBy('name')->get(),
             'roles' => Role::orderBy('name')->get(),
         ]);

@@ -87,6 +87,52 @@ HMAC + Token in der URL):
 |---|---|---|
 | POST | `/api/incoming/{token}` | Workflow von extern triggern |
 
+## Service-Accounts (Tokens fuer Maschinen)
+
+Fuer System-zu-System-Integrationen (n8n, Power-BI, DATEV-Bridge,
+externer Reporter, ...) ist es sauberer, einen dedizierten
+**Service-Account** statt eines persoenlichen Tokens zu verwenden:
+
+1. **Benutzer anlegen** unter **[Admin → Benutzer → Neu](app:admin.users.create)**:
+   - Name: z. B. „API: n8n-Bridge", „Service: Power-BI"
+   - E-Mail: `n8n@deine-firma.intern` (eindeutig, muss nicht echt sein)
+   - Checkbox **„Service-Account"** anhaken
+   - Rolle: nur was die Integration wirklich braucht
+     (z. B. „BI-Reader" mit `reports.view` statt Admin)
+2. **Token vergeben** auf der Benutzer-Detailseite ueber den Button
+   „API-Tokens verwalten" (Admin-Endpoint:
+   `/admin/users/{user}/tokens`). Kein Login als der Service-User
+   noetig — der erstellende Admin sieht den Klartext-Token genau wie
+   beim eigenen Token-Erstellen.
+3. **Abilities einschraenken**: Selbst wenn der User mehr darf, kann
+   der Token explizit nur eine Teilmenge.
+
+Was der Service-Account-Flag bewirkt:
+
+- Erscheint **nicht** in Empfaenger-Dropdowns (Approval-Knoten,
+  Supervisor-Auswahl, Workflow-Forwarding, Vertrags-Owner)
+- Wird **nicht** in der globalen Schnellsuche oder der `/api/v1/users`-
+  Liste mitgeliefert (Override: `?include_service=1`)
+- Erscheint in der Benutzer-Liste mit Badge „Service"
+
+Was der Flag NICHT macht:
+
+- Login bleibt grundsaetzlich moeglich — wenn du das verhindern willst,
+  setze ein langes Zufalls-Passwort und/oder aktiviere 2FA im
+  Service-User. Beides reduziert die Angriffsflaeche.
+- Audit-Eintraege heissen weiterhin „von <Service-Username>" — das
+  ist sogar ein Vorteil: du erkennst sofort, welche Integration was
+  geaendert hat.
+
+### Beispiel-Aufteilung
+
+| Service-Account | Rolle | Abilities |
+|----|----|----|
+| `API: n8n-Bridge` | Workflow-Designer | `workflows.run`, `tasks.write`, `documents.write` |
+| `Service: PowerBI` | BI-Reader (nur `reports.view`+`audit.view`) | `reports.view`, `audit.view` |
+| `Service: DATEV-Sync` | Stammdaten-Pfleger | `lists.manage` |
+| `API: ext. Vertragstool` | Vertragsverwalter | `contracts.view`, `contracts.manage` |
+
 ## Beispiele
 
 ### Aufgabe genehmigen via API

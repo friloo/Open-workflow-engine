@@ -58,6 +58,9 @@
                                 @else
                                     <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">inaktiv</span>
                                 @endif
+                                @if($u->isServiceAccount())
+                                    <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700" title="API-/Service-Konto">Service</span>
+                                @endif
                             </td>
                             <td class="py-3 text-right">
                                 @if(auth()->user()->hasPermission('users.update'))

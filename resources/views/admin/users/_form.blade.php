@@ -60,6 +60,19 @@
         <input type="checkbox" name="prefer_m365_supervisor" value="1" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked(old('prefer_m365_supervisor', $user->prefer_m365_supervisor ?? false))>
         M365-Vorgesetzten verwenden (sofern vorhanden)
     </label>
+
+    <label class="inline-flex items-start gap-2 text-sm text-slate-700">
+        <input type="hidden" name="is_service_account" value="0">
+        <input type="checkbox" name="is_service_account" value="1" class="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" @checked(old('is_service_account', $user->is_service_account ?? false))>
+        <span>
+            <strong>Service-Account</strong> (Konto fuer API-Integrationen, kein Mensch)
+            <span class="block text-xs text-slate-500 mt-0.5">
+                Erscheint nicht in Empfaenger-/Vorgesetzten-Dropdowns, wird von
+                Auswahllisten ausgeschlossen. Token werden ueber Benutzer-Detail
+                &raquo; API-Tokens vergeben.
+            </span>
+        </span>
+    </label>
 </div>
 
 @if(! empty($customFields))

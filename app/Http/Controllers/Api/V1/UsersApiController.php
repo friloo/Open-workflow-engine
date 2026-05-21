@@ -15,6 +15,10 @@ class UsersApiController extends Controller
     public function index(Request $request): JsonResponse
     {
         $q = User::query()->with('roles:id,slug,name');
+        // Default: keine Service-Accounts in der Liste. include_service=1 -> alle.
+        if (! $request->boolean('include_service')) {
+            $q->humans();
+        }
         if ($s = trim((string) $request->get('q', ''))) {
             $q->where(fn ($w) => $w->where('name', 'like', "%{$s}%")
                 ->orWhere('email', 'like', "%{$s}%"));
@@ -49,6 +53,7 @@ class UsersApiController extends Controller
             'name' => $u->name,
             'email' => $u->email,
             'is_active' => (bool) $u->is_active,
+            'is_service_account' => (bool) $u->is_service_account,
             'roles' => $u->roles->map(fn ($r) => ['slug' => $r->slug, 'name' => $r->name])->all(),
         ];
         if ($full) {
