@@ -47,6 +47,11 @@
                 </details>
 
                 <x-primary-button>Simulieren</x-primary-button>
+                <button type="submit" formaction="{{ route('workflows.simulate.pdf', $workflow) }}"
+                        class="ms-2 inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                        title="Trockenlauf direkt als PDF herunterladen (Pre-Production-Check)">
+                    Als PDF
+                </button>
                 <a href="{{ route('workflows.edit', $workflow) }}" class="ms-3 text-sm text-slate-600 hover:text-slate-900">Zurueck</a>
             </form>
         </x-card>

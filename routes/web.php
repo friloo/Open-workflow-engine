@@ -136,6 +136,7 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
         Route::get('{workflow}/stats', [\App\Http\Controllers\Workflow\StatsController::class, 'show'])->name('stats.show');
         Route::get('{workflow}/simulate', [\App\Http\Controllers\Workflow\SimulationController::class, 'show'])->name('simulate.show');
         Route::post('{workflow}/simulate', [\App\Http\Controllers\Workflow\SimulationController::class, 'run'])->name('simulate.run');
+        Route::post('{workflow}/simulate.pdf', [\App\Http\Controllers\Workflow\SimulationController::class, 'pdf'])->name('simulate.pdf');
         Route::get('{workflow}/process-doc.pdf', [WorkflowController::class, 'processDoc'])->name('process_doc');
         Route::get('{workflow}/versions/{version}/process-doc.pdf', [WorkflowController::class, 'processDocVersion'])->name('process_doc.version');
     });
