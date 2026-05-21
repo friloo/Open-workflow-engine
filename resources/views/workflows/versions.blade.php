@@ -2,8 +2,14 @@
     <x-slot name="header">Versionen: {{ $workflow->name }}</x-slot>
     <x-slot name="subheader">Jede Speicherung erzeugt eine neue, unveraenderbare Version.</x-slot>
 
-    <div class="mb-4">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
         <a href="{{ route('workflows.design', $workflow) }}" class="text-sm text-indigo-600 hover:text-indigo-500">&larr; Zurueck zum Designer</a>
+        @if($versions->count() >= 2)
+            <a href="{{ route('workflows.versions.diff', $workflow) }}"
+               class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                Versionen vergleichen
+            </a>
+        @endif
     </div>
 
     <x-card>

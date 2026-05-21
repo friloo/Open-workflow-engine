@@ -150,6 +150,7 @@ Route::middleware(['auth'])->prefix('workflows')->name('workflows.')->group(func
         Route::get('{workflow}/design', [WorkflowDesignerController::class, 'show'])->name('design');
         Route::post('{workflow}/design', [WorkflowDesignerController::class, 'save'])->name('designer.save');
         Route::get('{workflow}/versions', [WorkflowDesignerController::class, 'versions'])->name('versions');
+        Route::get('{workflow}/versions/diff', [WorkflowDesignerController::class, 'versionsDiff'])->name('versions.diff');
         Route::post('{workflow}/versions/{version}/restore', [WorkflowDesignerController::class, 'restore'])->name('versions.restore');
     });
 

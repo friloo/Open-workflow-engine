@@ -100,6 +100,19 @@ class WorkflowDesignerController extends Controller
         return view('workflows.versions', compact('workflow', 'versions'));
     }
 
+    public function versionsDiff(Request $request, Workflow $workflow): View
+    {
+        $a = $request->integer('a');
+        $b = $request->integer('b');
+        $versionsList = $workflow->versions()->orderByDesc('version_number')->get(['id', 'version_number', 'change_summary', 'created_at']);
+
+        $verA = $a ? $workflow->versions()->where('id', $a)->first() : null;
+        $verB = $b ? $workflow->versions()->where('id', $b)->first() : null;
+        $diff = ($verA && $verB) ? app(\App\Services\WorkflowDiffer::class)->diff($verA, $verB) : null;
+
+        return view('workflows.versions_diff', compact('workflow', 'versionsList', 'verA', 'verB', 'diff'));
+    }
+
     public function restore(Request $request, Workflow $workflow, WorkflowVersion $version)
     {
         abort_unless($version->workflow_id === $workflow->id, 404);
