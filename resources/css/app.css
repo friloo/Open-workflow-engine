@@ -76,3 +76,87 @@ html.dark .text-indigo-600 { color: #818cf8 !important; }
 html.dark a.text-indigo-600 { color: #a5b4fc; }
 html.dark code { background-color: #334155 !important; color: #f1f5f9 !important; }
 
+/* ---------- Status-Badges im Dark Mode ----------
+   Helle Pastell-Hintergruende ueberlagern wir mit gesaettigten Toenen,
+   dazu drehen wir die Schrift heller. Greift fuer 50er und 100er
+   Toene aller Status-Farben. */
+html.dark .bg-emerald-50  { background-color: #064e3b !important; }
+html.dark .bg-emerald-100 { background-color: #065f46 !important; }
+html.dark .text-emerald-700 { color: #6ee7b7 !important; }
+html.dark .text-emerald-600 { color: #6ee7b7 !important; }
+html.dark .border-emerald-200 { border-color: #065f46 !important; }
+html.dark .border-emerald-400 { border-color: #047857 !important; }
+
+html.dark .bg-amber-50  { background-color: #78350f !important; }
+html.dark .bg-amber-100 { background-color: #92400e !important; }
+html.dark .text-amber-800 { color: #fcd34d !important; }
+html.dark .text-amber-700 { color: #fcd34d !important; }
+html.dark .border-amber-200 { border-color: #92400e !important; }
+html.dark .border-amber-400 { border-color: #b45309 !important; }
+
+html.dark .bg-rose-50  { background-color: #7f1d1d !important; }
+html.dark .bg-rose-100 { background-color: #991b1b !important; }
+html.dark .text-rose-700 { color: #fca5a5 !important; }
+html.dark .text-rose-600 { color: #fca5a5 !important; }
+html.dark .text-rose-800 { color: #fca5a5 !important; }
+html.dark .border-rose-200 { border-color: #991b1b !important; }
+html.dark .border-rose-400 { border-color: #b91c1c !important; }
+
+html.dark .bg-sky-50  { background-color: #0c4a6e !important; }
+html.dark .bg-sky-100 { background-color: #075985 !important; }
+html.dark .text-sky-700 { color: #7dd3fc !important; }
+html.dark .border-sky-200 { border-color: #075985 !important; }
+
+html.dark .bg-violet-50  { background-color: #4c1d95 !important; }
+html.dark .bg-violet-100 { background-color: #5b21b6 !important; }
+html.dark .text-violet-700 { color: #c4b5fd !important; }
+html.dark .border-violet-200 { border-color: #5b21b6 !important; }
+
+html.dark .bg-fuchsia-50 { background-color: #701a75 !important; }
+html.dark .text-fuchsia-700 { color: #f0abfc !important; }
+
+html.dark .bg-orange-50 { background-color: #7c2d12 !important; }
+html.dark .text-orange-700 { color: #fdba74 !important; }
+
+html.dark .bg-pink-50 { background-color: #831843 !important; }
+html.dark .text-pink-700 { color: #f9a8d4 !important; }
+
+/* Callouts (Help-Pages) ------------------------------ */
+html.dark .callout-note      { background-color: #082f49 !important; border-color: #0369a1 !important; }
+html.dark .callout-tip       { background-color: #064e3b !important; border-color: #047857 !important; }
+html.dark .callout-important { background-color: #4c1d95 !important; border-color: #6d28d9 !important; }
+html.dark .callout-warning   { background-color: #78350f !important; border-color: #b45309 !important; }
+html.dark .callout-danger    { background-color: #7f1d1d !important; border-color: #b91c1c !important; }
+
+/* Markdown-Tabellen ---------------------------------- */
+html.dark .owe-table th { background-color: #1e293b !important; border-bottom-color: #475569 !important; color: #94a3b8 !important; }
+html.dark .owe-table td { border-bottom-color: #334155 !important; }
+html.dark .owe-table tr:hover td { background-color: #1e293b !important; }
+
+/* ---------- Drawflow-Designer im Dark Mode ----------
+   Canvas, Knoten, Verbindungen anpassen. Drawflow zeichnet seinen
+   eigenen Canvas, also muessen wir hier direkt patchen. */
+html.dark #drawflow {
+    background: #0f172a !important;
+    background-image: radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.12) 1px, transparent 0) !important;
+}
+html.dark .drawflow .drawflow-node {
+    background: #1e293b !important;
+    border-color: #475569 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
+    color: #e2e8f0 !important;
+}
+html.dark .drawflow .drawflow-node.selected {
+    border-color: #818cf8 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35) !important;
+}
+html.dark .drawflow .drawflow-node .input,
+html.dark .drawflow .drawflow-node .output {
+    background: #0f172a !important;
+}
+html.dark .drawflow .connection .main-path { stroke: #64748b !important; }
+html.dark .drawflow .connection .main-path:hover { stroke: #a5b4fc !important; }
+html.dark .owe-node__title { color: #f1f5f9 !important; }
+html.dark .owe-node__type { color: #94a3b8 !important; }
+html.dark .owe-node__head { background: rgba(255,255,255,0.03) !important; }
+html.dark #mini-map { background: #1e293b !important; }
