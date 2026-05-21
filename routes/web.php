@@ -264,6 +264,8 @@ Route::middleware(['auth', 'permission:documents.search'])->prefix('dokumente')-
     Route::post('{attachment}/start-workflow', [\App\Http\Controllers\DocumentController::class, 'startWorkflow'])->name('start_workflow');
     Route::post('{attachment}/new-version', [\App\Http\Controllers\DocumentController::class, 'uploadVersion'])->name('new_version');
     Route::get('{attachment}/diff/{other}', [\App\Http\Controllers\DocumentController::class, 'diff'])->name('diff');
+    Route::get('{attachment}/signatures', [\App\Http\Controllers\SignatureController::class, 'show'])->name('signatures.show');
+    Route::post('{attachment}/signatures', [\App\Http\Controllers\SignatureController::class, 'store'])->name('signatures.store');
     Route::post('{attachment}/annotations', [\App\Http\Controllers\PdfAnnotationController::class, 'store'])->name('annotations.store');
     Route::delete('annotations/{annotation}', [\App\Http\Controllers\PdfAnnotationController::class, 'destroy'])->name('annotations.destroy');
     Route::post('bulk-action', [\App\Http\Controllers\DocumentController::class, 'bulkAction'])->name('bulk_action');
@@ -414,6 +416,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('settings/shares', [SystemSettingsController::class, 'updateShares'])->name('settings.shares.update');
         Route::post('settings/role-document-types', [SystemSettingsController::class, 'updateRoleDocumentTypes'])->name('settings.role_document_types.update');
         Route::post('settings/retention', [SystemSettingsController::class, 'updateRetention'])->name('settings.retention.update');
+        Route::post('settings/signature-levels', [SystemSettingsController::class, 'updateSignatureLevels'])->name('settings.signature_levels.update');
 
         // API-Dokumentation (Swagger-UI, intern)
         Route::get('api-docs', [\App\Http\Controllers\Admin\ApiDocsController::class, 'index'])->name('api_docs.index');

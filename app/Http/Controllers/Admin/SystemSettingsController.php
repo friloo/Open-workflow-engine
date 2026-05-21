@@ -121,6 +121,7 @@ class SystemSettingsController extends Controller
             'roleDocumentTypes' => \App\Support\DocumentTypes::roleMapping(),
             'roles' => \App\Models\Role::orderBy('name')->get(['id', 'name', 'slug']),
             'retention' => Settings::get('attachments.retention', []),
+            'signatureLevels' => (array) Settings::get('attachments.signature_levels', []),
             'shares' => [
                 'max_expiry_days' => (int) Settings::get('shares.max_expiry_days', 90),
                 'default_expiry_days' => (int) Settings::get('shares.default_expiry_days', 14),
@@ -442,6 +443,24 @@ class SystemSettingsController extends Controller
         $this->audit->log('settings.retention.updated', null, null, ['types' => array_keys($clean)],
             'Aufbewahrungsregeln aktualisiert', $request->user()->id);
         return back()->with('status', 'Aufbewahrungsregeln gespeichert.');
+    }
+
+    public function updateSignatureLevels(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'levels' => ['array'],
+            'levels.*' => ['nullable', 'in:none,ses,aes,qes'],
+        ]);
+        $clean = [];
+        foreach ($data['levels'] ?? [] as $docType => $level) {
+            if ($level && $level !== 'none') {
+                $clean[$docType] = $level;
+            }
+        }
+        Settings::set('attachments.signature_levels', $clean, $request->user()->id);
+        $this->audit->log('settings.signature_levels.updated', null, null, ['types' => array_keys($clean)],
+            'Signatur-Pflicht pro Dokumenttyp aktualisiert', $request->user()->id);
+        return back()->with('status', 'Signatur-Pflichten gespeichert.');
     }
 
     public function updateShares(Request $request): RedirectResponse

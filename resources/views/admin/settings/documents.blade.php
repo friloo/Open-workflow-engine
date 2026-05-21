@@ -75,6 +75,38 @@
         @endif
     </x-card>
 
+    <x-card title="Signatur-Pflicht pro Dokumenttyp" description="Welches Signatur-Niveau ist für diesen Dokumenttyp erforderlich. Workflows können das Level für einzelne Approvals anheben, nicht absenken.">
+        @if(empty($documentTypes))
+            <p class="text-sm text-slate-500">Lege zuerst Dokumenttypen oben an.</p>
+        @else
+            <form method="POST" action="{{ route('admin.settings.signature_levels.update') }}" class="space-y-2">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    @foreach($documentTypes as $t)
+                        <div class="flex items-center gap-3 rounded-lg border border-slate-200 p-2.5">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-medium text-slate-900 truncate">{{ $t }}</div>
+                            </div>
+                            <select name="levels[{{ $t }}]" class="rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                @foreach(['none' => 'Keine', 'ses' => 'SES', 'aes' => 'AES (PKCS#7)', 'qes' => 'QES (extern)'] as $code => $label)
+                                    <option value="{{ $code }}" @selected(($signatureLevels[$t] ?? 'none') === $code)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="mt-3 flex justify-end">
+                    <x-primary-button>Speichern</x-primary-button>
+                </div>
+            </form>
+            <p class="mt-3 text-xs text-slate-500">
+                AES benötigt ein Server-Zertifikat in Settings (signatures.aes_cert_pem + signatures.aes_key_pem).
+                QES benötigt einen externen Provider — aktuell verfügbar: <code>mock</code> (Tests/Demos),
+                produktiv via D-Trust/Bundesdruckerei/Swisscom (Lizenz pro Mandant).
+            </p>
+        @endif
+    </x-card>
+
     <x-card title="Aufbewahrungsregeln pro Dokumenttyp" description="Pro Dokumenttyp eine Mindestlaufzeit und eine Aktion nach Ablauf. Wird täglich um 03:15 ausgewertet.">
         @php
             $retentionRules = [];
