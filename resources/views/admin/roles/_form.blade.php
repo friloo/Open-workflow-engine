@@ -1,4 +1,11 @@
-@php($selected = old('permissions', isset($role) ? $role->permissions->pluck('id')->all() : []))
+@php
+    // Kopierte Rolle: $selectedPermissions enthaelt Permission-SLUGS;
+    // wir mappen das auf IDs damit das existierende Form-Markup weiter
+    // funktioniert.
+    $copySlugs = $selectedPermissions ?? [];
+    $copyIds = ! empty($copySlugs) ? \App\Models\Permission::whereIn('slug', $copySlugs)->pluck('id')->all() : [];
+    $selected = old('permissions', isset($role) ? $role->permissions->pluck('id')->all() : $copyIds);
+@endphp
 @csrf
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div>

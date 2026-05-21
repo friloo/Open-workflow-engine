@@ -26,14 +26,23 @@ class RoleController extends Controller
         return view('admin.roles.index', ['roles' => $roles]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
+        // Optional: aus existierender Rolle kopieren — Permissions, Doc-Types,
+        // List-Access werden uebernommen, Name+Slug bleiben leer.
+        $copyFromId = (int) $request->get('copy_from', 0);
+        $copyFrom = $copyFromId ? Role::with('permissions')->find($copyFromId) : null;
+        $selectedPermissions = $copyFrom ? $copyFrom->permissions->pluck('slug')->all() : [];
+
         return view('admin.roles.create', [
             'permissions' => Permission::orderBy('group')->orderBy('name')->get()->groupBy('group'),
             'documentTypes' => DocumentTypes::all(),
-            'roleDocumentTypes' => [],
+            'roleDocumentTypes' => $copyFrom ? DocumentTypes::roleMapping()[$copyFrom->slug] ?? [] : [],
             'lists' => LookupList::orderBy('name')->get(['id', 'name', 'description']),
-            'roleListAccess' => [],
+            'roleListAccess' => $copyFrom ? LookupList::whereHas('roles', fn ($q) => $q->where('roles.id', $copyFrom->id))->pluck('lookup_lists.id')->all() : [],
+            'copyFrom' => $copyFrom,
+            'selectedPermissions' => $selectedPermissions,
+            'allRoles' => Role::orderBy('name')->get(['id', 'name', 'slug']),
         ]);
     }
 

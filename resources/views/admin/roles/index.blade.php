@@ -25,6 +25,7 @@
                     <div class="text-right space-y-2 shrink-0">
                         @if(auth()->user()->hasPermission('roles.manage'))
                             <a href="{{ route('admin.roles.edit', $r) }}" class="block text-sm text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
+                            <a href="{{ route('admin.roles.create', ['copy_from' => $r->id]) }}" class="block text-sm text-slate-600 hover:text-slate-900">Kopieren</a>
                             @if(! $r->is_system)
                                 <form method="POST" action="{{ route('admin.roles.destroy', $r) }}" onsubmit="return confirm('Rolle wirklich loeschen?')">
                                     @csrf @method('DELETE')
