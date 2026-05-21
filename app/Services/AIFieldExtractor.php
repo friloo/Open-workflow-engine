@@ -18,7 +18,7 @@ class AIFieldExtractor
 
     public function isAvailable(): bool
     {
-        return $this->ai->isConfigured();
+        return $this->ai->isReady() && $this->ai->isFeatureEnabled('field_extract');
     }
 
     /**

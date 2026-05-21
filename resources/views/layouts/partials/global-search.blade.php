@@ -83,7 +83,8 @@
             <div class="flex items-center gap-3">
                 <span><kbd class="rounded border border-slate-300 bg-white px-1 font-mono">&uarr; &darr;</kbd> navigieren</span>
                 <span><kbd class="rounded border border-slate-300 bg-white px-1 font-mono">Enter</kbd> öffnen</span>
-                @if(app(\App\Services\AIClient::class)->isReady())
+                @php($aiClient = app(\App\Services\AIClient::class))
+                @if($aiClient->isReady() && $aiClient->isFeatureEnabled('nl_search'))
                     <a href="{{ route('search.nl') }}" class="text-indigo-600 hover:text-indigo-500">
                         Frage in eigenen Worten →
                     </a>

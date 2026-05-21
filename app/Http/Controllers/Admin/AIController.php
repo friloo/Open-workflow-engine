@@ -22,6 +22,8 @@ class AIController extends Controller
             'base_url' => ['required', 'url', 'max:512'],
             'model' => ['required', 'string', 'max:128'],
             'api_key' => ['nullable', 'string', 'max:1024'],
+            'features' => ['nullable', 'array'],
+            'features.*' => ['nullable', 'boolean'],
         ]);
         Settings::set('ai.enabled', (bool) ($data['enabled'] ?? false), $request->user()->id);
         foreach (['provider', 'base_url', 'model'] as $k) {
@@ -30,9 +32,16 @@ class AIController extends Controller
         if (! empty($data['api_key'])) {
             Settings::set('ai.api_key', $data['api_key'], $request->user()->id);
         }
+
+        $submitted = (array) ($data['features'] ?? []);
+        foreach (array_keys(\App\Services\AIClient::knownFeatures()) as $feature) {
+            Settings::set("ai.feature.{$feature}", (bool) ($submitted[$feature] ?? false), $request->user()->id);
+        }
+
         $this->audit->log('settings.ai.updated', null, null, [
             'enabled' => (bool) ($data['enabled'] ?? false),
             'provider' => $data['provider'], 'model' => $data['model'],
+            'features' => array_map(fn ($v) => (bool) $v, $submitted),
         ], 'KI-Konfiguration aktualisiert', $request->user()->id);
 
         return back()->with('status', 'KI-Konfiguration gespeichert.');
@@ -67,6 +76,9 @@ class AIController extends Controller
         }
         if (! $client->isEnabled()) {
             return response()->json(['error' => 'KI ist global deaktiviert.'], 422);
+        }
+        if (! $client->isFeatureEnabled('http_suggest')) {
+            return response()->json(['error' => 'KI-Feature „HTTP-Vorschlag" ist deaktiviert.'], 422);
         }
         if (! $client->isConfigured()) {
             return response()->json(['error' => 'KI ist nicht konfiguriert.'], 422);
@@ -191,6 +203,9 @@ TXT;
         ]);
         if (! $client->isEnabled()) {
             return response()->json(['error' => 'KI ist global deaktiviert.'], 422);
+        }
+        if (! $client->isFeatureEnabled('workflow_design')) {
+            return response()->json(['error' => 'KI-Feature „Workflow-Entwurf" ist deaktiviert.'], 422);
         }
         if (! $client->isConfigured()) {
             return response()->json(['error' => 'KI ist nicht konfiguriert.'], 422);

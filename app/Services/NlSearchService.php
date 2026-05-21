@@ -30,7 +30,7 @@ class NlSearchService
 
     public function isAvailable(): bool
     {
-        return $this->ai->isReady();
+        return $this->ai->isReady() && $this->ai->isFeatureEnabled('nl_search');
     }
 
     /**

@@ -28,12 +28,23 @@ class NlSearchTest extends TestCase
         $this->assertFalse(app(NlSearchService::class)->isAvailable());
     }
 
-    public function test_search_available_when_enabled_and_configured(): void
+    public function test_search_available_when_enabled_configured_and_feature_on(): void
     {
         Settings::set('ai.enabled', true, null);
         Settings::set('ai.base_url', 'https://api.openai.com/v1', null);
         Settings::set('ai.model', 'gpt-4o-mini', null);
+        // NL-Search ist Opt-in: muss explizit aktiviert werden
+        Settings::set('ai.feature.nl_search', true, null);
         $this->assertTrue(app(NlSearchService::class)->isAvailable());
+    }
+
+    public function test_search_not_available_when_feature_off_even_if_master_on(): void
+    {
+        Settings::set('ai.enabled', true, null);
+        Settings::set('ai.base_url', 'https://api.openai.com/v1', null);
+        Settings::set('ai.model', 'gpt-4o-mini', null);
+        Settings::set('ai.feature.nl_search', false, null);
+        $this->assertFalse(app(NlSearchService::class)->isAvailable());
     }
 
     public function test_form_renders_unavailable_when_ai_off(): void

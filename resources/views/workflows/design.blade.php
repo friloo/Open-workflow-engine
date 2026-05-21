@@ -36,11 +36,14 @@
                 </div>
             </div>
             <div class="ms-auto flex items-center gap-2">
-                <button type="button" @click="aiOpen = true"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-500">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
-                    KI-Entwurf
-                </button>
+                @php($aiClient = app(\App\Services\AIClient::class))
+                @if($aiClient->isReady() && $aiClient->isFeatureEnabled('workflow_design'))
+                    <button type="button" @click="aiOpen = true"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-500">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"/></svg>
+                        KI-Entwurf
+                    </button>
+                @endif
                 <input type="text" x-model="changeSummary" placeholder="Beschreibung der Änderung (optional)"
                     class="w-64 rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 <a href="{{ route('workflows.versions', $workflow) }}" class="text-sm text-slate-600 hover:text-slate-900">Versionen</a>
@@ -635,6 +638,7 @@
                                     <div class="space-y-3" x-data="{ aiDesc:'', aiBusy:false, aiError:'' }">
                                         <p class="text-xs text-slate-500">Body und Header sind frei anpassbar. Antwort-Felder koennen zurück in den Workflow übernommen werden.</p>
 
+                                        @if($aiClient->isReady() && $aiClient->isFeatureEnabled('http_suggest'))
                                         <div class="rounded-lg border border-violet-200 bg-violet-50 p-3 space-y-2">
                                             <div class="text-xs font-semibold text-violet-800">+ KI-Import: curl, OpenAPI oder API-Doku</div>
                                             <p class="text-[11px] text-violet-700">Komplettes curl reinpasten, OpenAPI-Snippet, Markdown-Endpoint oder Freitext — KI füllt URL, Methode, Header, Auth und Body-Template aus. Beispielwerte werden durch passende Form-Platzhalter ersetzt.</p>
@@ -668,6 +672,7 @@
                                                 <span x-text="aiError" class="text-xs text-violet-700"></span>
                                             </div>
                                         </div>
+                                        @endif
 
                                         <div class="grid grid-cols-3 gap-2">
                                             <div class="col-span-1">

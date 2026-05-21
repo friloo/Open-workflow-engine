@@ -51,6 +51,31 @@
                 <x-text-input id="ai_api_key" name="api_key" type="password" autocomplete="new-password" placeholder="@if(! empty($ai['api_key']))(unverändert lassen)@endif" />
                 <p class="mt-1 text-xs text-slate-500">Verschlüsselt gespeichert.</p>
             </div>
+            <div class="rounded-lg border border-slate-200 p-3 space-y-2">
+                <div class="text-sm font-semibold text-slate-900">Aktive KI-Funktionen</div>
+                <p class="text-xs text-slate-500">
+                    Jede Funktion einzeln an/aus. Funktionen mit Zugriff auf Produktivdaten sind extra markiert.
+                </p>
+                @foreach(\App\Services\AIClient::knownFeatures() as $key => $meta)
+                    @php($current = $ai['feature.'.$key] ?? $meta['default'])
+                    <label class="flex items-start gap-3 rounded-lg border border-slate-100 p-2.5 cursor-pointer hover:bg-slate-50">
+                        <input type="hidden" name="features[{{ $key }}]" value="0">
+                        <input type="checkbox" name="features[{{ $key }}]" value="1"
+                               class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                               @checked($current)>
+                        <span class="flex-1">
+                            <span class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-slate-900">{{ $meta['label'] }}</span>
+                                @if($meta['data_access'])
+                                    <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700" title="Liest oder verarbeitet Produktivdaten">Produktivdaten</span>
+                                @endif
+                            </span>
+                            <span class="block text-xs text-slate-500">{{ $meta['description'] }}</span>
+                        </span>
+                    </label>
+                @endforeach
+            </div>
+
             <div class="flex gap-2">
                 <button type="submit" :disabled="busy" @click="action='save'"
                     class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-wait">

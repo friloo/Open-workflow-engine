@@ -31,6 +31,67 @@ class AIClient
         return $flag === null || (bool) $flag;
     }
 
+    /**
+     * Pro-Feature-Schalter. Default-Werte unterscheiden bewusst nach
+     * Datensensibilitaet:
+     *  - workflow_design / http_suggest: liefern nur Templates, kein
+     *    Zugriff auf Produktivdaten -> Default an.
+     *  - field_extract: liest Dokument-Inhalte fuer Feld-Extraktion ->
+     *    Default an (war schon vorhanden).
+     *  - nl_search: liest Vertraege, Akten, Vorgaenge -> Default AUS
+     *    (Opt-in), weil neues Feature mit Zugriff auf Produktivdaten.
+     */
+    public function isFeatureEnabled(string $feature): bool
+    {
+        if (! $this->isEnabled()) return false;
+
+        $defaults = [
+            'workflow_design' => true,
+            'http_suggest' => true,
+            'field_extract' => true,
+            'nl_search' => false,
+        ];
+        $default = $defaults[$feature] ?? false;
+        $value = Settings::get("ai.feature.{$feature}", $default);
+        return $value === null ? $default : (bool) $value;
+    }
+
+    /**
+     * Liefert die bekannten Feature-Keys mit Default-Wert und Beschreibung
+     * fuer das Admin-UI.
+     *
+     * @return array<string, array{label: string, description: string, data_access: bool, default: bool}>
+     */
+    public static function knownFeatures(): array
+    {
+        return [
+            'workflow_design' => [
+                'label' => 'Workflow-Entwurf aus Freitext',
+                'description' => 'Designer-Button „KI-Entwurf". Erzeugt nur Vorlagen — keinen Zugriff auf Produktivdaten.',
+                'data_access' => false,
+                'default' => true,
+            ],
+            'http_suggest' => [
+                'label' => 'HTTP-Knoten-Vorschlag aus curl/OpenAPI',
+                'description' => 'Übersetzt curl-Befehle und API-Dokus in HTTP-Knoten-Konfiguration. Keine Produktivdaten.',
+                'data_access' => false,
+                'default' => true,
+            ],
+            'field_extract' => [
+                'label' => 'Dokument-Feld-Extraktor (OCR-Nachgang)',
+                'description' => 'Liest OCR-Text hochgeladener Dokumente und extrahiert konfigurierte Felder per KI.',
+                'data_access' => true,
+                'default' => true,
+            ],
+            'nl_search' => [
+                'label' => 'Natürlich-sprachliche Suche',
+                'description' => 'Übersetzt Freitext-Anfragen in Datenbankabfragen über Verträge, Akten, Vorgänge und Dokumente. Liest direkt Produktivdaten.',
+                'data_access' => true,
+                'default' => false,
+            ],
+        ];
+    }
+
     /** Praktischer Helper: KI ist konfiguriert UND eingeschaltet. */
     public function isReady(): bool
     {
