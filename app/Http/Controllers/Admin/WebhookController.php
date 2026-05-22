@@ -76,6 +76,23 @@ class WebhookController extends Controller
         return redirect()->route('admin.webhooks.index')->with('status', 'Webhook gelöscht.');
     }
 
+    public function activity(Webhook $webhook): View
+    {
+        $deliveries = \App\Models\WebhookDelivery::where('webhook_id', $webhook->id)
+            ->orderByDesc('sent_at')->limit(100)->get();
+        $stats = [
+            'total' => $deliveries->count(),
+            'ok' => $deliveries->where('ok', true)->count(),
+            'failed' => $deliveries->where('ok', false)->count(),
+            'avg_ms' => $deliveries->avg('duration_ms'),
+        ];
+        return view('admin.webhooks.activity', [
+            'webhook' => $webhook,
+            'deliveries' => $deliveries,
+            'stats' => $stats,
+        ]);
+    }
+
     public function test(Webhook $webhook, Request $request): RedirectResponse
     {
         $payload = [

@@ -390,6 +390,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('audit/verify.pdf', [AuditLogController::class, 'verifyPdf'])
             ->name('audit.verify_pdf')
             ->middleware('permission:audit.verify');
+        Route::get('login-anomalies', [\App\Http\Controllers\Admin\LoginAnomaliesController::class, 'index'])
+            ->name('login_anomalies.index');
     });
 
     Route::middleware('permission:system.settings')->group(function () {
@@ -484,6 +486,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('webhooks/{webhook}', [WebhookController::class, 'update'])->name('webhooks.update');
         Route::delete('webhooks/{webhook}', [WebhookController::class, 'destroy'])->name('webhooks.destroy');
         Route::post('webhooks/{webhook}/test', [WebhookController::class, 'test'])->name('webhooks.test');
+        Route::get('webhooks/{webhook}/activity', [WebhookController::class, 'activity'])->name('webhooks.activity');
     });
 
     Route::middleware('permission:system.health')->group(function () {

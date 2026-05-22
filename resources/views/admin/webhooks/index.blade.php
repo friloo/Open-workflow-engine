@@ -39,6 +39,7 @@
                             <td class="py-3 pr-4 text-xs text-slate-500">{{ $w->last_called_at?->diffForHumans() ?? '—' }}</td>
                             <td class="py-3 text-right space-x-3">
                                 <form method="POST" action="{{ route('admin.webhooks.test', $w) }}" class="inline">@csrf<button class="text-sm text-slate-600 hover:text-slate-900">Test</button></form>
+                                <a href="{{ route('admin.webhooks.activity', $w) }}" class="text-sm text-slate-600 hover:text-slate-900">Aktivität</a>
                                 <a href="{{ route('admin.webhooks.edit', $w) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Bearbeiten</a>
                                 <form method="POST" action="{{ route('admin.webhooks.destroy', $w) }}" class="inline" onsubmit="return confirm('Webhook löschen?')">
                                     @csrf @method('DELETE')

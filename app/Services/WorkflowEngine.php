@@ -1547,16 +1547,35 @@ class WorkflowEngine
             if ($hook->secret) {
                 $headers['X-OWE-Signature'] = 'sha256='.hash_hmac('sha256', $body, $hook->secret);
             }
+            $start = microtime(true);
+            $ok = false;
+            $code = null;
+            $error = null;
+            $excerpt = null;
             try {
                 $resp = Http::withHeaders($headers)->timeout(10)->withBody($body, 'application/json')->post($hook->url);
+                $ok = $resp->successful();
+                $code = $resp->status();
+                $excerpt = substr((string) $resp->body(), 0, 512);
                 $hook->forceFill([
                     'last_called_at' => now(),
-                    'failure_count' => $resp->successful() ? 0 : $hook->failure_count + 1,
+                    'failure_count' => $ok ? 0 : $hook->failure_count + 1,
                 ])->save();
             } catch (\Throwable $e) {
-                Log::warning('Webhook failed', ['url' => $hook->url, 'error' => $e->getMessage()]);
+                $error = $e->getMessage();
+                Log::warning('Webhook failed', ['url' => $hook->url, 'error' => $error]);
                 $hook->forceFill(['failure_count' => $hook->failure_count + 1])->save();
             }
+            \App\Models\WebhookDelivery::create([
+                'webhook_id' => $hook->id,
+                'event' => $event,
+                'response_code' => $code,
+                'ok' => $ok,
+                'duration_ms' => (int) ((microtime(true) - $start) * 1000),
+                'error' => $error ? substr($error, 0, 1000) : null,
+                'response_excerpt' => $excerpt,
+                'sent_at' => now(),
+            ]);
         }
     }
 
