@@ -200,12 +200,137 @@ final class UpdateManager
         return $results;
     }
 
+    // ─── Snapshots / Disaster-Recovery ──────────────────────────────────
+
+    /**
+     * Pre-Update-Snapshot: ruft den vorhandenen BackupService und merkt
+     * den Filename + aktuellen SHA in einer Updater-eigenen Meta-Datei,
+     * damit das UI die Snapshots als 'Vor-Update'-markiert auflisten kann.
+     *
+     * @return string Filename des Snapshots
+     */
+    public function createPreUpdateSnapshot(?int $userId = null): string
+    {
+        if (! class_exists(\App\Services\BackupService::class)) {
+            throw new \RuntimeException('BackupService nicht verfuegbar — Snapshot uebersprungen.');
+        }
+        $svc = app(\App\Services\BackupService::class);
+        $file = $svc->create($userId);
+
+        // Meta-Eintrag
+        $meta = $this->loadSnapshotMeta();
+        $meta[$file] = [
+            'created_at' => now()->toIso8601String(),
+            'from_sha' => $this->getCurrentVersion(),
+            'channel' => $this->channel,
+            'by_user_id' => $userId,
+        ];
+        $this->saveSnapshotMeta($meta);
+
+        $this->logAudit('updater.snapshot_created', [
+            'file' => $file,
+            'from_sha' => $this->getCurrentVersion(),
+        ], "Pre-Update-Snapshot erstellt: {$file}", $userId);
+
+        return $file;
+    }
+
+    /**
+     * Liste aller Snapshots (auch nicht-Updater-Backups), markiert die
+     * Updater-eigenen via 'pre_update' = true.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function listSnapshots(): array
+    {
+        if (! class_exists(\App\Services\BackupService::class)) return [];
+        $svc = app(\App\Services\BackupService::class);
+        $meta = $this->loadSnapshotMeta();
+        $out = [];
+        foreach ($svc->list() as $b) {
+            $info = $meta[$b['file']] ?? null;
+            $out[] = [
+                'file' => $b['file'],
+                'size' => $b['size'],
+                'created_at' => $b['created_at'],
+                'pre_update' => $info !== null,
+                'from_sha' => $info['from_sha'] ?? null,
+                'channel' => $info['channel'] ?? null,
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Restore aus einem Snapshot. Wartungsmodus ist im BackupService::restore()
+     * selbst aktiv waehrend des Restores; wir setzen ihn vorher zusaetzlich
+     * fuer den Audit-Pfad.
+     *
+     * @return array<string, mixed>
+     */
+    public function restoreSnapshot(string $filename, ?int $userId = null): array
+    {
+        if (! class_exists(\App\Services\BackupService::class)) {
+            throw new \RuntimeException('BackupService nicht verfuegbar.');
+        }
+        $svc = app(\App\Services\BackupService::class);
+
+        $this->setProgress('restore', "Restore aus Snapshot {$filename}", 30);
+        $this->maintenanceOn();
+        try {
+            $result = $svc->restore($filename);
+            $this->setProgress('done', 'Restore abgeschlossen', 100);
+            $this->logAudit('updater.snapshot_restored', [
+                'file' => $filename,
+            ], "Snapshot {$filename} wiederhergestellt", $userId);
+            return ['ok' => true, 'data' => $result];
+        } catch (\Throwable $e) {
+            $this->setProgress('error', 'Restore fehlgeschlagen: '.$e->getMessage(), 0);
+            $this->logAudit('updater.snapshot_restore_failed', [
+                'file' => $filename, 'error' => $e->getMessage(),
+            ], "Snapshot-Restore {$filename} fehlgeschlagen", $userId);
+            throw $e;
+        } finally {
+            $this->maintenanceOff();
+        }
+    }
+
+    /** @return array<string, array<string, mixed>> */
+    private function loadSnapshotMeta(): array
+    {
+        $f = $this->projectRoot.'/.updater-snapshots.json';
+        if (! is_file($f)) return [];
+        $j = json_decode((string) file_get_contents($f), true);
+        return is_array($j) ? $j : [];
+    }
+
+    private function saveSnapshotMeta(array $meta): void
+    {
+        file_put_contents(
+            $this->projectRoot.'/.updater-snapshots.json',
+            json_encode($meta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        );
+    }
+
     public function installUpdate(?int $userId = null): array
     {
         $this->setProgress('start', 'Update beginnt', 0);
         $this->maintenanceOn();
 
+        $snapshotFile = null;
         try {
+            // Vor dem Apply: Pre-Update-Snapshot ziehen, damit ein Restore
+            // moeglich ist falls das Update kaputt geht.
+            $this->setProgress('snapshot', 'Erstelle Pre-Update-Snapshot', 3);
+            try {
+                $snapshotFile = $this->createPreUpdateSnapshot($userId);
+            } catch (\Throwable $e) {
+                // Snapshot ist nice-to-have. Wenn er scheitert (z.B.
+                // mysqldump fehlt) machen wir trotzdem weiter, loggen das.
+                $this->logAudit('updater.snapshot_failed', ['error' => $e->getMessage()],
+                    'Pre-Update-Snapshot fehlgeschlagen — Update laeuft ohne Restore-Punkt weiter', $userId);
+            }
+
             $this->setProgress('check', 'Hole Ziel-Version vom Proxy', 5);
             $latest = $this->proxy->version();
             $latestSha = (string) ($latest['sha'] ?? '');

@@ -21,4 +21,6 @@ Route::middleware(['auth', 'permission:system.update'])
         Route::get('/migrations', [UpdateController::class, 'migrationStatus'])->name('migrations');
         Route::post('/migrations/run', [UpdateController::class, 'runMigrations'])->name('migrations.run');
         Route::post('/caches/clear', [UpdateController::class, 'clearCaches'])->name('caches.clear');
+        Route::get('/snapshots', [UpdateController::class, 'snapshots'])->name('snapshots');
+        Route::post('/snapshots/restore', [UpdateController::class, 'snapshotRestore'])->name('snapshots.restore');
     });

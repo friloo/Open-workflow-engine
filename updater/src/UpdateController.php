@@ -126,4 +126,23 @@ final class UpdateController
             return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function snapshots(): JsonResponse
+    {
+        return response()->json(['ok' => true, 'data' => $this->manager()->listSnapshots()]);
+    }
+
+    public function snapshotRestore(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'file' => ['required', 'string', 'max:255'],
+            'confirm' => ['required', 'in:RESTORE'],
+        ]);
+        try {
+            $r = $this->manager()->restoreSnapshot($data['file'], $request->user()?->id);
+            return response()->json($r);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
 }

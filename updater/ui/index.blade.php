@@ -146,6 +146,53 @@
             </template>
         </x-card>
 
+        {{-- ───── Snapshots / Restore ───── --}}
+        <x-card title="Snapshots und Restore"
+                description="Vor jedem Update wird automatisch ein Snapshot der Datenbank + Anhänge angelegt. Falls ein Update kaputt geht, hier mit einem Klick zurückrollen.">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+                <button type="button" @click="loadSnapshots()" :disabled="busy"
+                    class="text-sm text-indigo-600 hover:text-indigo-500">Aktualisieren</button>
+            </div>
+
+            <template x-if="snapshots && snapshots.length === 0">
+                <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                    Noch keine Snapshots. Beim nächsten Update wird automatisch einer angelegt.
+                </div>
+            </template>
+
+            <template x-if="snapshots && snapshots.length > 0">
+                <ul class="rounded-lg border border-slate-200 bg-white divide-y divide-slate-100">
+                    <template x-for="s in snapshots" :key="s.file">
+                        <li class="px-3 py-2.5 flex items-center gap-3">
+                            <div class="grid h-8 w-8 place-items-center rounded-lg shrink-0"
+                                 :class="s.pre_update ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5v9a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 16.5v-9m16.5 0a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 7.5m16.5 0H3.75"/></svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-mono text-xs text-slate-700" x-text="s.file"></span>
+                                    <span x-show="s.pre_update" class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-medium text-indigo-700">Pre-Update</span>
+                                </div>
+                                <div class="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
+                                    <span x-text="formatBytes(s.size)"></span>
+                                    <span>·</span>
+                                    <span x-text="new Date(s.created_at * 1000).toLocaleString('de-DE')"></span>
+                                    <template x-if="s.from_sha">
+                                        <span class="font-mono">· von <span x-text="s.from_sha.substring(0,7)"></span></span>
+                                    </template>
+                                </div>
+                            </div>
+                            <button type="button" @click="restoreSnapshot(s.file)" :disabled="busy"
+                                class="inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm hover:bg-rose-50 disabled:opacity-50">
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                                Restore
+                            </button>
+                        </li>
+                    </template>
+                </ul>
+            </template>
+        </x-card>
+
         {{-- ───── Migrationen + Caches ───── --}}
         <x-card title="Migrationen und Caches"
                 description="Beides läuft automatisch nach jedem Update. Hier sind sie auch manuell triggerbar — kein SSH nötig.">
@@ -242,6 +289,7 @@
                     checkResult: null,
                     progress: null,
                     migrations: null,
+                    snapshots: null,
                     hasUpdate: false,
                     checkInFlight: false,
                     installInFlight: false,
@@ -272,6 +320,43 @@
                     async loadStatus() {
                         await this.loadProgress();
                         await this.loadMigrations();
+                        await this.loadSnapshots();
+                    },
+                    formatBytes(b) {
+                        if (! b) return '0 B';
+                        if (b < 1024) return b + ' B';
+                        if (b < 1024 * 1024) return (b/1024).toFixed(0) + ' KB';
+                        if (b < 1024 * 1024 * 1024) return (b/(1024*1024)).toFixed(1) + ' MB';
+                        return (b/(1024*1024*1024)).toFixed(2) + ' GB';
+                    },
+                    async loadSnapshots() {
+                        try {
+                            const r = await fetch(@js(route('admin.update.snapshots')), { headers: { 'Accept': 'application/json' } });
+                            const data = await r.json();
+                            this.snapshots = data.data || [];
+                        } catch (e) { /* still */ }
+                    },
+                    async restoreSnapshot(file) {
+                        const conf = prompt(`ACHTUNG: Restore ueberschreibt die aktuelle Datenbank und alle Anhaenge. Wirklich aus '${file}' wiederherstellen? Tippe RESTORE zur Bestaetigung.`);
+                        if (conf !== 'RESTORE') return;
+                        this.busy = true; this.error = null; this.actionResult = null;
+                        try {
+                            const r = await fetch(@js(route('admin.update.snapshots.restore')), {
+                                method: 'POST',
+                                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrf() },
+                                body: JSON.stringify({ file: file, confirm: 'RESTORE' }),
+                            });
+                            const data = await r.json();
+                            if (! data.ok) {
+                                this.error = data.error || 'Restore fehlgeschlagen';
+                            } else {
+                                this.actionResult = 'Restore abgeschlossen. Seite wird neu geladen…';
+                                setTimeout(() => window.location.reload(), 1500);
+                            }
+                        } catch (e) {
+                            this.error = 'Netzwerkfehler: ' + e.message;
+                        }
+                        this.busy = false;
                     },
                     async check() {
                         this.busy = true; this.checkInFlight = true; this.error = null;
