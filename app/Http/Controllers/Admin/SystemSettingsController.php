@@ -92,6 +92,34 @@ class SystemSettingsController extends Controller
         return redirect()->route('admin.settings.sso', ['#' => 'm365']);
     }
 
+    public function security(): View
+    {
+        return view('admin.settings.security', [
+            'policy' => \App\Support\PasswordPolicy::describe(),
+            'sections' => $this->sectionDescriptors(),
+        ]);
+    }
+
+    public function updateSecurity(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'min_length' => ['required', 'integer', 'between:6,128'],
+            'require_uppercase' => ['nullable', 'boolean'],
+            'require_number' => ['nullable', 'boolean'],
+            'require_symbol' => ['nullable', 'boolean'],
+            'max_age_days' => ['nullable', 'integer', 'between:1,3650'],
+        ]);
+        Settings::set('security.password.min_length', (int) $data['min_length'], $request->user()->id);
+        Settings::set('security.password.require_uppercase', (bool) ($data['require_uppercase'] ?? false), $request->user()->id);
+        Settings::set('security.password.require_number', (bool) ($data['require_number'] ?? false), $request->user()->id);
+        Settings::set('security.password.require_symbol', (bool) ($data['require_symbol'] ?? false), $request->user()->id);
+        Settings::set('security.password.max_age_days', $data['max_age_days'] ?: null, $request->user()->id);
+
+        $this->audit->log('settings.security.updated', null, null, $data,
+            'Passwort-Policy aktualisiert', $request->user()->id);
+        return back()->with('status', 'Passwort-Policy gespeichert.');
+    }
+
     public function ai(): View
     {
         return view('admin.settings.ai', [
@@ -413,6 +441,7 @@ class SystemSettingsController extends Controller
         return [
             ['slug' => 'overview', 'route' => 'admin.settings.index', 'label' => 'Übersicht', 'icon' => 'home'],
             ['slug' => 'sso', 'route' => 'admin.settings.sso', 'label' => 'Anmeldung & SSO', 'icon' => 'shield', 'description' => 'M365, OIDC, Google, SAML, LDAP/AD.'],
+            ['slug' => 'security', 'route' => 'admin.settings.security', 'label' => 'Sicherheit', 'icon' => 'shield', 'description' => 'Passwort-Policy und Login-Sicherheit.'],
             ['slug' => 'communication', 'route' => 'admin.settings.communication', 'label' => 'Kommunikation', 'icon' => 'cog', 'description' => 'Mail-Versand, IT-Support, Teams.'],
             ['slug' => 'documents', 'route' => 'admin.settings.documents', 'label' => 'Dokumente & Sharing', 'icon' => 'document', 'description' => 'Archive, Aufbewahrung, Rollen, externe Freigabe-Caps.'],
             ['slug' => 'branding', 'route' => 'admin.settings.branding', 'label' => 'Branding', 'icon' => 'cog', 'description' => 'Name, Logo, Farben + Benutzerfelder.'],

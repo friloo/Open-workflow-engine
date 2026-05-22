@@ -114,7 +114,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)->whereNull('deleted_at')],
-            'password' => [$user ? 'nullable' : 'nullable', 'string', 'min:8'],
+            'password' => ['nullable', 'string', \App\Support\PasswordPolicy::ruleObject()],
             'supervisor_id' => ['nullable', 'integer', Rule::exists('users', 'id')->whereNull('deleted_at')],
             'department' => ['nullable', 'string', 'max:255'],
             'job_title' => ['nullable', 'string', 'max:255'],

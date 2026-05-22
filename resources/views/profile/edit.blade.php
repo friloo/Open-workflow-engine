@@ -8,7 +8,25 @@
         </x-card>
 
         <x-card title="Passwort ändern" description="Stelle ein langes, zufälliges Passwort ein, damit dein Konto sicher bleibt.">
+            <p class="mb-3 text-xs text-slate-500">
+                Anforderungen aus der Sicherheits-Policy:
+                <span class="font-medium text-slate-700">{{ implode(' · ', \App\Support\PasswordPolicy::describeLines()) }}</span>
+            </p>
             @include('profile.partials.update-password-form')
+        </x-card>
+
+        <x-card title="Meine Daten herunterladen (DSGVO Art. 15)"
+                description="Lädt ein ZIP mit allen über dich gespeicherten Daten herunter — Profilfelder, Rollen, gestartete Vorgänge, hochgeladene Dokumente etc. Keine Admin-Anfrage nötig.">
+            <a href="{{ route('profile.data_export') }}"
+               class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                </svg>
+                Meine Daten als ZIP herunterladen
+            </a>
+            <p class="mt-2 text-xs text-slate-500">
+                Der Download wird im Audit-Log mit Zeitstempel und IP-Adresse protokolliert.
+            </p>
         </x-card>
 
         <x-card title="Vertretung" description="Während deiner Abwesenheit gehen alle dir zugewiesenen Aufgaben automatisch an die hier hinterlegte Person.">

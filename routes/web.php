@@ -100,6 +100,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'disable'])->name('two-factor.disable');
     Route::post('/profile/two-factor/recovery', [\App\Http\Controllers\TwoFactorController::class, 'regenerateCodes'])->name('two-factor.recovery');
 
+    // DSGVO-Self-Service: User darf eigene Daten ohne Admin runterladen
+    Route::get('/profile/data-export', [\App\Http\Controllers\SelfDataExportController::class, 'export'])->name('profile.data_export');
+
     // API-Tokens
     Route::get('/profile/tokens', [\App\Http\Controllers\ApiTokenController::class, 'index'])->name('tokens.index');
     Route::post('/profile/tokens', [\App\Http\Controllers\ApiTokenController::class, 'store'])->name('tokens.store');
@@ -397,6 +400,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('settings/sso', [SystemSettingsController::class, 'sso'])->name('settings.sso');
         Route::post('settings/sso', [SystemSettingsController::class, 'updateSso'])->name('settings.sso.update');
         Route::post('settings/sso/test-ldap', [SystemSettingsController::class, 'testLdap'])->name('settings.sso.test_ldap');
+        Route::get('settings/security', [SystemSettingsController::class, 'security'])->name('settings.security');
+        Route::post('settings/security', [SystemSettingsController::class, 'updateSecurity'])->name('settings.security.update');
         Route::get('settings/ai', [SystemSettingsController::class, 'ai'])->name('settings.ai');
         Route::get('settings/branding', [SystemSettingsController::class, 'branding'])->name('settings.branding');
         Route::get('settings/documents', [SystemSettingsController::class, 'documents'])->name('settings.documents');
