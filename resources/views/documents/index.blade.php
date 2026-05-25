@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout :full="true">
     <x-slot name="header">
         @if($type === '__unclassified__')
             Dokumente · <span class="font-normal italic text-slate-500">Unklassifiziert</span>
@@ -182,12 +182,42 @@
         ])->values();
     @endphp
 
+    {{-- 3-Spalten-Layout: Archiv-Sidebar | Dokumentliste | Preview --}}
     <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"
          x-data="documentsSplit(@js(request('doc')), @js($docsForJs), @js($availableWorkflows ?? []), @js((string) request('q', '')))"
          x-init="bootstrap()"
          @keydown.window="onKeydown($event)">
+
+        <div class="lg:grid lg:grid-cols-[13rem_minmax(0,1fr)_minmax(0,1.3fr)] lg:h-[82vh]">
+
+            {{-- Archiv-Sidebar (nur Desktop) --}}
+            <nav class="hidden lg:flex flex-col border-r border-slate-200 bg-slate-50/80 overflow-y-auto">
+                <div class="px-3 pt-4 pb-2 text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Archive</div>
+                <a href="{{ route('documents.index', array_filter(['q' => $q ?: null])) }}"
+                   class="block px-3 py-1.5 text-sm {{ ! $type ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-white' }}">
+                    Alle <span class="text-xs text-slate-400 ms-1">{{ $totalDocs }}</span>
+                </a>
+                @foreach($types as $t)
+                    <a href="{{ route('documents.index', ['type' => $t, 'q' => $q ?: null]) }}"
+                       class="block px-3 py-1.5 text-sm truncate {{ $type === $t ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-white' }}">
+                        {{ $t }} <span class="text-xs text-slate-400 ms-1">{{ $archiveCounts[$t] ?? 0 }}</span>
+                    </a>
+                @endforeach
+                @if($unclassifiedVisible ?? false)
+                    <a href="{{ route('documents.index', ['type' => '__unclassified__', 'q' => $q ?: null]) }}"
+                       class="block px-3 py-1.5 text-sm italic {{ $type === '__unclassified__' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-500 hover:bg-white' }}">
+                        Unklassifiziert <span class="text-xs text-slate-400 ms-1">{{ $unclassifiedCount }}</span>
+                    </a>
+                @endif
+                <div class="mt-auto border-t border-slate-200 px-3 py-2">
+                    <a href="{{ route('documents.bulk') }}" class="block text-xs text-indigo-600 hover:text-indigo-500">Bulk-Upload</a>
+                    <a href="{{ route('documents.inbox') }}" class="block text-xs text-indigo-600 hover:text-indigo-500 mt-1">Postkorb</a>
+                </div>
+            </nav>
+
+            {{-- Rest: Dokumentliste + Preview (bestehende 2-Spalten-Logik jetzt OHNE eigenes Grid, weil das äußere Grid sie aufteilt) --}}
         @if($documents->isEmpty())
-            <div class="p-6 lg:p-6">
+            <div class="p-6 lg:col-span-2">
             @php
                 if ($type === '__unclassified__') {
                     $emptyDescription = 'Im Archiv "Unklassifiziert" passen keine Treffer zu deinen Filtern.';
@@ -210,11 +240,7 @@
                 $allCases = \App\Models\DocumentCase::whereNull('closed_at')->orderBy('name')->get();
             @endphp
 
-            {{-- 2-Spalten auf Desktop: links Liste (mit Bulk-Toolbar oben),
-                 rechts Iframe-Preview. Mobile: nur die linke Spalte. --}}
-            <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:h-[78vh]">
-
-                {{-- Liste --}}
+                {{-- Dokumentliste --}}
                 <div class="flex flex-col lg:border-r lg:border-slate-200 lg:overflow-hidden">
                     <form method="POST" action="{{ route('documents.bulk_action') }}" class="flex flex-col h-full"
                           x-data="{ selected: [], action: 'set_type' }">
@@ -393,6 +419,7 @@
                         </div>
                     </template>
                 </div>
+            {{-- Grid close: 3-Spalten-Layout --}}
             </div>
         @endif
     </div>
